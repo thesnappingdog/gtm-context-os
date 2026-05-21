@@ -1,0 +1,11 @@
+[project]
+name = "gtm-context-os"
+version = "0.1.0"
+description = "AI-native GTM operating system"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.40.0",
+]
+
+[tool.uv]
+dev-dependencies = []

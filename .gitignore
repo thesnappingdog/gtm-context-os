@@ -17,3 +17,9 @@ node_modules/
 # Python virtual environments
 .venv/
 __pycache__/
+
+# Eval results (local, append-only)
+eval/results.jsonl
+
+# uv lock
+uv.lock
