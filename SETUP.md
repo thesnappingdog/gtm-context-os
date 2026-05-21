@@ -9,8 +9,10 @@ Get operational in 10 minutes.
 - Sales call transcripts (recordings, text transcripts, or detailed notes)
 
 **Optional:**
-- Python 3.10+ with `uv` (for eval scripts)
+- Python 3.10+ with `uv` (for eval scripts and API automation scripts)
 - MCP server access (for external integrations)
+
+**Not required:** No runtime, no database, no deployment. The repo IS the system.
 
 ## Step 1: Clone and Open
 

@@ -2,11 +2,25 @@
 
 This is a single-company GTM operating system. You are an AI agent helping GTM operators — sales leaders, RevOps, marketers, GTM engineers — do their work. The repo is the shared brain; you operate against it.
 
+## Two Modes of Operation
+
+This system operates in two modes simultaneously:
+
+**Context mode** — Build and maintain intelligence about your market. Ingest sales calls, analyze demand, define ICP, understand competitors and buyers. This is the foundation everything else builds on.
+
+**Operational mode** — Get things done. Draft outbound sequences, build enrichment pipelines, pull campaign metrics, import leads, run scripts against external APIs. This is where intelligence turns into action.
+
+Both modes read and write to the same repo. Context mode populates the evidence layer. Operational mode uses that evidence to execute and feeds results back. They reinforce each other.
+
+You should be equally capable in both modes. When the operator is building understanding, help them analyze and synthesize. When they're executing, help them script, automate, and ship.
+
 ## How This System Works
 
 **Core files** are always present and form the foundation. **Modules** materialize from blueprints below when an operator first needs them. Never create module folders preemptively — only bootstrap them when the work demands it.
 
 When an operator asks you to do something that requires a module that doesn't exist yet, tell them you'll set it up, create the structure from the blueprint, and proceed with their task. Don't ask permission to create the structure — just do it and confirm what you created.
+
+No external runtime, database, or deployment is required. The repo IS the system. AI operates on files. Scripts run locally when needed for API integrations.
 
 ## Core Files (Always Present)
 
@@ -437,6 +451,75 @@ Content should be grounded in demand insights — what buyers actually care abou
 - Published pieces should note where they were published and when
 
 **Connects to core via:** Content topics should reflect demand patterns from `demand/`. Buyer language comes from PULL analyses.
+
+---
+
+### Module: scripts
+
+**Activate when:** Operator needs to connect to external APIs, automate data pulls, import/export data, or run recurring operations.
+
+**Bootstrap structure:**
+```
+scripts/
+  README.md
+```
+
+**Initial files:**
+
+`README.md`:
+```markdown
+# Scripts
+
+Operational scripts for API integrations, data imports/exports, and automation.
+
+## Conventions
+- Use Python with `uv run` (no global installs, no virtualenv setup needed)
+- Each script is standalone — runs independently, no shared state
+- Scripts read config from `.env` (API keys, endpoints)
+- Output goes to the appropriate module folder (campaign metrics → campaigns/results.json, transcripts → demand/pull-analyses/)
+- Include a docstring explaining what the script does, what API it talks to, and what it outputs
+
+## Common Script Patterns
+
+### Pull data from an API
+```python
+#!/usr/bin/env python3
+"""Pull [data type] from [service] and write to [output location]."""
+import os, requests, json
+from pathlib import Path
+
+API_KEY = os.environ["SERVICE_API_KEY"]
+# ... fetch, transform, write
+```
+
+### Import leads from CSV
+```python
+#!/usr/bin/env python3
+"""Import leads from CSV into [sequencing tool]."""
+import csv, os, requests
+
+# Read CSV, validate, POST to API
+```
+```
+
+**Conventions:**
+- Scripts are tools, not frameworks. Each one does one thing.
+- Always read credentials from `.env`, never hardcode.
+- When a script produces output that maps to a state file (campaign metrics, transcript analyses), update the appropriate JSON index.
+- Document what each script does at the top of the file — the next operator may not have written it.
+- Use `uv run script.py` to execute (handles dependencies automatically with inline `# /// script` metadata).
+
+**Inline dependency example:**
+```python
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["requests", "python-dotenv"]
+# ///
+```
+
+This lets any script declare its own dependencies without a global `pyproject.toml`. `uv run` installs them on the fly.
+
+**Connects to core via:** Scripts are the bridge between external tools and the repo. They pull data in (transcripts → demand/, metrics → campaigns/) and push data out (leads → sequencing tools, contacts → CRM).
 
 ---
 

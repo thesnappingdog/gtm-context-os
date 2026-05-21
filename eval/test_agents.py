@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["anthropic>=0.40.0"]
+# ///
 """
 Eval suite for GTM Context OS AGENTS.md instructions.
 
