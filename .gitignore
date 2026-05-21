@@ -1,0 +1,19 @@
+# Environment and credentials
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor configs (except .claude which is part of the system)
+.cursor/
+.vscode/
+.idea/
+
+# Node modules (if MCP servers are added later)
+node_modules/
+
+# Python virtual environments
+.venv/
+__pycache__/
