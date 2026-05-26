@@ -30,7 +30,7 @@ classification = demand
 demand_strength = very_high
 primary_trigger = scaling_team
 pull_score >= 15
-buyer_types contains vp_engineering
+buyer_type = vp_engineering
 would_close = yes
 features_resonated contains integration
 ```
@@ -74,7 +74,7 @@ After displaying results:
 
 ## Common Patterns
 
-- **Segment validation:** "Do we have evidence for targeting {persona}?" → filter by buyer_types
+- **Segment validation:** "Do we have evidence for targeting {persona}?" → filter by buyer_type
 - **Messaging grounding:** "What language do buyers use about {topic}?" → read full analyses for quotes
 - **Win pattern:** "What do fast buyers have in common?" → filter would_close = yes, look for patterns
 - **Trigger discovery:** "Group by trigger" → find which triggers correlate with demand

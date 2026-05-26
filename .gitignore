@@ -23,7 +23,7 @@ _intake/*
 !_intake/_processed.json
 
 # Eval results (local, append-only)
-eval/results.jsonl
+eval/results.md
 
 # uv lock
 uv.lock

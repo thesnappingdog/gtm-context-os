@@ -1,56 +1,46 @@
 # Eval Suite
 
-Tests that AGENTS.md instructions produce correct agent behavior.
-
-## Why This Exists
-
-Agent instructions drift. Files get added, conventions change, skills evolve. The eval suite catches:
-- Incorrect routing (agent creates wrong files in wrong places)
-- Blueprint violations (module bootstrapped without following spec)
-- Evidence chain breaks (downstream work without upstream evidence)
-- Stale references (instructions point to things that don't exist)
+Tests that AGENTS.md instructions produce correct agent behavior. Runs inside Claude Code — no API key or external dependencies needed.
 
 ## Running
 
-```bash
-uv run eval/test_agents.py
-```
+**Claude Code:** `/run-eval` (all tests) or `/run-eval T3` (specific test)
 
-Or run a specific test:
-```bash
-uv run eval/test_agents.py --test T3
-```
+**Other editors:** Ask "Run the eval suite in eval/tests.md against the current repo state"
 
 ## Test Cases
 
+See `tests.md` for the full list. Summary:
+
 | ID | Tests | Pass Criteria | Critical Fail |
 |----|-------|---------------|---------------|
-| T1 | "What is this repo?" | Mentions demand-first, PULL framework, evidence-based | Describes it as a wiki or template |
-| T2 | "Where do I put a new sales call analysis?" | Points to demand/pull-analyses/ | Points to any other directory |
-| T3 | "Create a segment for VP Engineering" | Checks for PULL evidence first, bootstraps segments/ | Creates segment without evidence check |
-| T4 | "Start content work" | Bootstraps content/ from blueprint in AGENTS.md | Creates arbitrary folder structure |
-| T5 | "What's our ICP?" | Reads context.md | Makes something up or reads wrong file |
-| T6 | "Draft an outbound sequence" | Checks for segment + messaging prerequisites | Drafts without evidence chain |
-| T7 | "Ingest this transcript" | Creates analysis in demand/pull-analyses/, updates index | Puts analysis in wrong location |
-| T8 | "Show GTM status" | Reads status.md + available modules, suggests next steps | Only reads one file |
+| T1 | "What is this repo?" | Mentions demand/PULL, describes as working system | Describes as wiki or code project |
+| T2 | "Where to put a call analysis?" | Points to demand/pull-analyses/ | Points to wrong directory |
+| T3 | "Create a segment for VP Eng" | Checks for PULL evidence first | Creates segment without evidence |
+| T4 | "Start content work" | Bootstraps content/ from blueprint incl. topics.md | Creates arbitrary structure |
+| T5 | "What's our ICP?" | Reads context.md, notes if unfilled | Invents company details |
+| T6 | "Draft an outbound sequence" | Checks prerequisites (segments, messaging) | Drafts without evidence chain |
+| T7 | "Analyze this call transcript" | Identifies project, urgency, alternatives, gaps | Doesn't recognize as demand analysis |
+| T8 | "Show GTM status" | Reads status + modules, suggests next steps | Reports nonexistent modules |
+
+## How It Works
+
+The eval runs inside your AI editor session. The AI processes each test prompt against the actual repo state, checks its response against the criteria, and reports honestly.
+
+**Self-evaluation tradeoff:** The same model grades itself. This is fine for regression testing (routing, evidence checks, file operations) but not for subjective quality. If you need independent evaluation, have a second person review the results.
+
+## Results
+
+Results are logged to `eval/results.md` after each run.
 
 ## Adding Tests
 
-Each test case is a dict with:
-```python
-{
-    "id": "T9",
-    "prompt": "The user message to send",
-    "pass_criteria": ["must include X", "must reference Y"],
-    "fail_criteria": ["must NOT do X"],
-    "critical_fail": ["absolutely must NOT do X — indicates broken mental model"]
-}
-```
+Add test cases to `tests.md` following the existing format. Good tests target specific instruction behaviors:
+- File routing (where does X go?)
+- Evidence chain enforcement (does it check prerequisites?)
+- Module bootstrapping (does it follow the blueprint?)
+- Prerequisite checks (does it refuse to skip steps?)
 
-## Interpreting Results
+Bad tests target subjective quality ("is the response helpful?").
 
-- **PASS**: Agent followed instructions correctly
-- **FAIL**: Agent deviated but not dangerously (may indicate unclear instructions)
-- **CRITICAL FAIL**: Agent has wrong mental model of the system (instructions need fixing)
-
-When a test fails, fix the instructions (AGENTS.md or skill files), not the test.
+When a test fails, fix the instructions (AGENTS.md or skill files), not the test — unless the test is wrong.

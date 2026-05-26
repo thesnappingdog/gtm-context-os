@@ -66,6 +66,25 @@ JSON index files (e.g., `segments.json`, `campaigns.json`, `pull-index.json`) ar
 - **Markdown is for humans** — rationale, context, nuance, quotes, buyer language live in `.md` files. JSON is for you to query and link.
 - **Reconcile on session start** — if indexes look out of sync with the markdown files, fix them silently.
 
+**Pull index schema** (`demand/pull-index.json`):
+```json
+{
+  "id": "acme-jane-doe",
+  "company": "Acme Corp",
+  "prospect": "Jane Doe",
+  "pull_score": 16,
+  "classification": "demand (14+) | benefit (8-13) | neither (0-7)",
+  "would_close": "yes | likely | unlikely | no",
+  "primary_trigger": "scaling_team",
+  "buyer_type": "vp_engineering",
+  "features_resonated": ["integration", "reporting"],
+  "date": "2026-01-15",
+  "file": "demand/pull-analyses/acme-jane-doe.md"
+}
+```
+
+This schema is derived from the PULL analysis template in `demand/pull-framework.md`. When you write a PULL analysis, extract these fields into the index entry. The full analysis (quotes, context, reasoning) stays in the markdown file.
+
 ### Evidence Requirements
 
 Downstream work must reference upstream evidence:
@@ -277,13 +296,14 @@ Each active campaign can have its own folder for drafts and working files.
 {
   "id": "campaign-slug",
   "name": "Human-readable name",
+  "type": "outbound | content | paid | event | other",
   "segment_id": "segment-slug",
   "messaging_angle_id": "angle-slug",
   "status": "draft | active | paused | completed | killed"
 }
 ```
 
-The AI maintains this index to trace: campaign → segment → demand evidence. Details like channel, sender, metrics, and sequence drafts live in the campaign's own folder (`campaigns/{id}/`), not in the JSON.
+The `type` field distinguishes how the campaign reaches its audience. All types follow the same evidence chain (segment → messaging → campaign). Details like channel, sender, metrics, and sequence drafts live in the campaign's own folder (`campaigns/{id}/`), not in the JSON.
 
 **If the operator pastes results or metrics**, store them in the campaign's folder as markdown or add to the JSON entry as an optional `metrics` object. Don't require a separate results file — let it emerge if the operator actually tracks metrics.
 
@@ -382,6 +402,7 @@ This is the technical infrastructure layer — how data flows, how accounts get 
 ```
 content/
   README.md
+  topics.md
   style-guide.md
   drafts/
   published/
@@ -395,8 +416,30 @@ content/
 
 Blog posts, LinkedIn content, newsletters, and marketing materials.
 
-Drafts go in `drafts/`, published pieces move to `published/`.
-Content should be grounded in demand insights — what buyers actually care about, in their language.
+Topics are derived from demand patterns — what buyers actually search for, ask about, and struggle with. `topics.md` maps demand evidence to content ideas. Drafts go in `drafts/`, published pieces move to `published/`.
+```
+
+`topics.md` — template:
+```markdown
+# Content Topics
+
+Topics derived from demand evidence. Each topic should connect to real buyer scenarios.
+
+## How to Use
+
+Review PULL analyses for recurring triggers, questions, and language patterns. Each becomes a topic cluster.
+
+## Topic Map
+
+| Topic | Demand Pattern | PULL Evidence | Content Ideas | Status |
+|-------|---------------|---------------|---------------|--------|
+| | | | | |
+
+## Topic Development Rules
+- Every topic must reference at least one PULL analysis or demand pattern
+- Write about what buyers are already searching for, not what you wish they'd search for
+- Use their language — if they say "scaling reviews" not "performance management transformation", use "scaling reviews"
+- One topic per demand trigger — don't combine unrelated buyer scenarios
 ```
 
 `style-guide.md` — template:
@@ -410,10 +453,15 @@ Content should be grounded in demand insights — what buyers actually care abou
 [Who we're writing for — reference ICP from context.md]
 
 ## Topics
-[What we write about and why]
+See topics.md for demand-derived topic clusters.
+
+## Distribution
+[Where content gets published — LinkedIn, blog, newsletter, etc.]
+[Cadence — how often, what format per channel]
 
 ## Rules
 - Use buyer language from PULL analyses, not marketing language
+- Lead with the scenario, not the product
 - [Add more as you develop the voice]
 ```
 
@@ -421,11 +469,12 @@ Content should be grounded in demand insights — what buyers actually care abou
 `published/` — archive of published pieces (or links to them)
 
 **Conventions:**
-- Ground content angles in demand evidence when possible
+- Ground content topics in demand evidence — `topics.md` is the bridge between PULL analyses and content planning
 - Use actual buyer language from PULL analyses
-- Published pieces should note where they were published and when
+- Published pieces should note where they were published, when, and performance if tracked
+- When new PULL analyses reveal recurring questions or triggers, check if they map to existing topics or suggest new ones
 
-**Connects to core via:** Content topics should reflect demand patterns from `demand/`. Buyer language comes from PULL analyses.
+**Connects to core via:** Content topics are derived from demand patterns in `demand/`. Buyer language comes from PULL analyses. `topics.md` explicitly links topics to evidence.
 
 ---
 
@@ -511,11 +560,15 @@ Raise issues naturally, not as a checklist. Fix index drift silently — only me
 
 ## Cross-Editor Compatibility
 
-This system works with any AI coding assistant that reads `AGENTS.md`:
-- **Claude Code** — Full support including slash commands via `.claude/skills/`
-- **Cursor** — Reads AGENTS.md automatically. Skills not available but instructions guide behavior.
-- **GitHub Copilot** — Reads AGENTS.md in agent mode.
-- **Windsurf** — Reads AGENTS.md automatically.
-- **Aider, Cline, Codex CLI** — Read AGENTS.md via their respective config.
+This system works with any AI coding assistant. `AGENTS.md` is the single source of truth; editor-specific pointer files redirect to it.
 
-The core system (this file + context.md + demand/ + status.md + module blueprints) works everywhere. Skills are a Claude Code bonus.
+| Editor | How it loads instructions |
+|--------|-------------------------|
+| Claude Code | Reads `AGENTS.md` + `.claude/CLAUDE.md` + skills |
+| Cursor | Reads `.cursorrules` → points to `AGENTS.md` |
+| GitHub Copilot | Reads `AGENTS.md` directly in agent mode |
+| Windsurf | Reads `.windsurfrules.md` → points to `AGENTS.md` |
+| Aider | Via `read: AGENTS.md` in config |
+| Cline | Add `AGENTS.md` to context files |
+
+The core system (this file + context.md + demand/ + status.md + module blueprints) works everywhere. Skills are a Claude Code bonus — other editors get the same methodology and blueprints via AGENTS.md.

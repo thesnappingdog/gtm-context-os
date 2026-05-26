@@ -6,10 +6,12 @@ Get operational in 10 minutes.
 
 - Git
 - An AI coding assistant (Claude Code, Cursor, Copilot, Windsurf, or similar)
-- Sales call transcripts (recordings, text transcripts, or detailed notes)
+
+**Optional but recommended:**
+- Sales call transcripts — the system is most powerful with real buyer conversations, but can start from a hypothesis if you don't have recordings yet
 
 **Optional:**
-- Python 3.10+ with `uv` (for eval scripts and API automation scripts)
+- Python 3.10+ with `uv` (for API automation scripts)
 - MCP server access (for external integrations)
 
 **Not required:** No runtime, no database, no deployment. The repo IS the system.
@@ -17,7 +19,8 @@ Get operational in 10 minutes.
 ## Step 1: Clone and Open
 
 ```bash
-git clone <this-repo> my-company-gtm
+# Replace URL with your copy of this repo
+git clone https://github.com/your-org/gtm-context-os.git my-company-gtm
 cd my-company-gtm
 ```
 

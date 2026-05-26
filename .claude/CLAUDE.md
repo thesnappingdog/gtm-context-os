@@ -18,6 +18,7 @@ Available slash commands for GTM operations:
 | `/pull-query` | Search demand analyses for evidence |
 | `/segment-messaging` | Match a segment to messaging angles using PULL evidence |
 | `/draft-sequence` | Write an outbound sequence grounded in demand data |
+| `/run-eval` | Run eval suite against current repo state — tests instruction correctness |
 
 ## Model Selection
 

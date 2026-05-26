@@ -21,7 +21,8 @@ Every layer is grounded in the one below it. No messaging without demand evidenc
 ## Getting Started
 
 ```bash
-git clone <this-repo> my-company-gtm
+# Clone the repo (replace URL with your copy)
+git clone https://github.com/your-org/gtm-context-os.git my-company-gtm
 cd my-company-gtm
 claude  # or open in Cursor/Copilot/Windsurf
 ```
@@ -61,16 +62,16 @@ When someone scores high on PULL, they would be weird NOT to buy. Everything els
 
 ## Compatibility
 
-Works with any AI assistant that reads project-level instruction files:
+Works with any AI coding assistant. `AGENTS.md` is the single source of truth; editor-specific pointer files redirect to it.
 
-| Editor | How it reads this repo |
-|--------|----------------------|
+| Editor | How it loads instructions |
+|--------|-------------------------|
 | Claude Code | `AGENTS.md` + `.claude/CLAUDE.md` + skills |
-| Cursor | `AGENTS.md` automatically |
-| GitHub Copilot | `AGENTS.md` in agent mode |
-| Windsurf | `AGENTS.md` automatically |
+| Cursor | `.cursorrules` → points to `AGENTS.md` |
+| GitHub Copilot | `AGENTS.md` directly (agent mode) |
+| Windsurf | `.windsurfrules.md` → points to `AGENTS.md` |
 | Aider | Via `read: AGENTS.md` in config |
-| Cline | `AGENTS.md` automatically |
+| Cline | Add `AGENTS.md` to context files |
 
 Claude Code users get bonus slash commands (`/pull-query`, `/gtm-status`, `/intake`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
 
