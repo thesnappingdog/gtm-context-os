@@ -75,6 +75,10 @@ Works with any AI coding assistant. `AGENTS.md` is the single source of truth; e
 
 Claude Code users get bonus slash commands (`/pull-query`, `/gtm-status`, `/intake`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
 
+## Acknowledgments
+
+The quickstart flow, eval harness pattern, attribution tags, and "check before you create" convention were inspired by [Jacob Dietle's context-os](https://github.com/jacob-dietle/context-os) — an open-source template for AI-native knowledge management. Different problem, overlapping patterns.
+
 ## License
 
-[TBD]
+MIT — see `LICENSE`.
