@@ -21,8 +21,8 @@ Every layer is grounded in the one below it. No messaging without demand evidenc
 ## Getting Started
 
 ```bash
-# Clone the repo (replace URL with your copy)
-git clone https://github.com/your-org/gtm-context-os.git my-company-gtm
+# Clone the repo
+git clone https://github.com/thesnappingdog/gtm-context-os.git my-company-gtm
 cd my-company-gtm
 claude  # or open in Cursor/Copilot/Windsurf
 ```
