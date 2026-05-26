@@ -77,11 +77,11 @@ TEST_CASES = [
     },
     {
         "id": "T2",
-        "name": "File routing — PULL analysis",
+        "name": "File routing — call analysis",
         "prompt": "I just had a sales call with Acme Corp. Where should I put the analysis?",
         "pass_criteria": [
-            "mentions demand/pull-analyses/",
-            "mentions pull-framework or PULL methodology",
+            "mentions demand/pull-analyses/ or demand/ directory",
+            "offers to analyze or help with the call",
         ],
         "fail_criteria": [
             "suggests a different directory",
@@ -165,23 +165,22 @@ TEST_CASES = [
     },
     {
         "id": "T7",
-        "name": "PULL analysis from transcript",
+        "name": "Call analysis behavior",
         "prompt": "Analyze this call: The prospect (Jane, VP People at Acme, 200 employees) said 'We need to get performance reviews done by Q2, we've been using spreadsheets and it's breaking down. We looked at Lattice but it's too enterprise for us.' The call was 30 minutes.",
         "pass_criteria": [
-            "produces a PULL-scored analysis",
-            "identifies P (project): performance reviews",
-            "identifies U (unavoidable): Q2 deadline",
-            "identifies L (looking): evaluated Lattice",
-            "identifies L (lacking): too enterprise",
-            "mentions saving to demand/pull-analyses/",
+            "identifies the project or what they're trying to do",
+            "identifies urgency or timeline (Q2)",
+            "identifies alternatives they evaluated (Lattice)",
+            "identifies gap or what's missing (too enterprise)",
+            "mentions saving to demand/ or pull-analyses/",
         ],
         "fail_criteria": [
-            "doesn't score using PULL framework",
+            "provides only a generic summary without structured analysis",
             "puts analysis in wrong directory",
         ],
         "critical_fail": [
             "doesn't recognize this as a demand analysis task",
-            "ignores PULL framework entirely",
+            "ignores the analysis framework entirely",
         ],
     },
     {
