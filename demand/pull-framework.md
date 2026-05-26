@@ -55,6 +55,24 @@ A good scenario describes:
 
 ---
 
+## What Makes a Transcript Analyzable
+
+PULL analysis requires the prospect's own words — not a summary of what they said.
+
+**Good enough for PULL analysis:**
+- Full verbatim transcript (Gong, Fireflies, Otter, Zoom AI) — best case
+- Speaker-labeled notes with direct quotes — works if quotes are real, not paraphrased
+- Detailed call notes with specific language the prospect used — workable if notes capture what they said, not what you think they meant
+
+**Not enough for PULL analysis:**
+- AI-generated call summaries (ChatGPT, Gong digest, Fireflies summary) — these compress away the exact language that reveals demand vs. benefit
+- One-paragraph deal notes from a CRM — too thin to score reliably
+- "They seemed interested in X" — that's your interpretation, not evidence
+
+**Why this matters:** The difference between demand and benefit is in the prospect's words. "I need this done by Q3" scores differently than "this would be nice to have eventually." Summaries flatten that distinction. If all you have is a summary, file it in `demand/notes/` as raw material and flag it — don't force a PULL score.
+
+---
+
 ## PULL Analysis: Scoring a Sales Call
 
 When analyzing a sales call transcript, score each PULL component 0-5:

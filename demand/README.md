@@ -6,6 +6,8 @@ Evidence-based understanding of who has demand for your product and why.
 
 - **PULL analyses** (`pull-analyses/`) — One per sales call or prospect conversation. Structured using the PULL framework. Created as calls are analyzed.
 - **Pull index** (`pull-index.json`) — Machine-queryable index of all analyses. Auto-maintained by the AI as analyses are added. Schema defined in AGENTS.md.
+- **Notes** (`notes/`) — Raw call notes, meeting summaries, and thin inputs that aren't detailed enough for full PULL analysis. Useful as context and raw material for future analysis when better transcripts arrive.
+- **Research** (`research/`) — Market research, win/loss analyses, buyer behavior data, and other evidence that informs demand understanding but isn't a single-call PULL analysis.
 - **Synthesis** (`synthesis.md`) — Patterns across multiple analyses. Created by the AI after 5+ analyses accumulate — not before, since patterns need data.
 - **Buyer insights** (`buyer-insights.md`) — Synthesized patterns about buyer behavior, triggers, and conversion signals. Emerges after synthesis, when enough evidence exists to generalize.
 - **Hypothesis** (`hypothesis.md`) — Initial demand hypothesis if no call transcripts are available yet. Created during `/quickstart` as a starting point to validate.

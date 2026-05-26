@@ -85,6 +85,10 @@ JSON index files (e.g., `segments.json`, `campaigns.json`, `pull-index.json`) ar
 
 This schema is derived from the PULL analysis template in `demand/pull-framework.md`. When you write a PULL analysis, extract these fields into the index entry. The full analysis (quotes, context, reasoning) stays in the markdown file.
 
+### Synthesis Trigger
+
+After saving a PULL analysis and updating `pull-index.json`, check the analysis count. If there are 5+ analyses and `demand/synthesis.md` does not exist, offer to create it — patterns need at least this many data points to be meaningful. If `synthesis.md` already exists, check whether the new analysis introduces a pattern not yet captured and offer to update it.
+
 ### Evidence Requirements
 
 Downstream work must reference upstream evidence:
@@ -162,6 +166,36 @@ Links to PULL analyses that support this segment.
 
 ## Performance (updated as campaigns run)
 What happened when we targeted this group.
+```
+
+**Worked example** (`segments/new-people-leaders.md`):
+```markdown
+# Segment: New People Leaders Building From Scratch
+
+Status: active
+
+## Hypothesis
+New VP/Head of People hired at 100-300 person companies with no existing performance infrastructure. They have 3-6 months to show results to the board. This creates unavoidable demand — they must ship a review process, and spreadsheets won't cut it.
+
+## Targeting Criteria
+**In:**
+- Title: VP People, Head of People, Chief People Officer — joined within last 6 months
+- Company: 100-300 employees, Series A-B, no existing performance management tool detected
+- Signal: recently hired into a newly created role (LinkedIn job change + no predecessor in role)
+
+**Out:**
+- Companies with Lattice/Culture Amp/15Five already in tech stack
+- People leaders at companies >500 (different buying process, committee decisions)
+- Consultants or fractional people leaders (no budget authority)
+
+## Evidence
+- [demand/pull-analyses/acme-jane-smith.md](demand/pull-analyses/acme-jane-smith.md) — PULL 18/20, board deadline, building from zero
+- [demand/pull-analyses/betaco-mike-chen.md](demand/pull-analyses/betaco-mike-chen.md) — PULL 15/20, new hire, inherited spreadsheet mess
+
+Pattern: 3 of 5 "demand" classified calls share this profile. Board pressure or exec mandate is the common accelerant.
+
+## Performance
+- C1-new-leaders campaign: 4.2% reply rate, 2 meetings from 120 leads (launched 2026-02-01)
 ```
 
 **Conventions:**
@@ -256,6 +290,24 @@ Each angle targets a specific segment + role combination. Angles must reference 
 
 Buyer role, channel, hook text, and rationale live in `angles.md` — not duplicated in JSON.
 
+**Worked example** (entry in `angles.md`):
+```markdown
+## Board Deadline — New People Leader
+
+**Segment:** new-people-leaders
+**Buyer role:** VP People / Head of People
+**Channel:** email
+
+**Hook:** "Are you building a review process from scratch, or replacing one that stopped working?"
+**Through-line:** New people leaders at growing companies get 3-6 months to show the board they've built real infrastructure. Spreadsheets won't survive the first cycle at 150+ people.
+**Proof point:** "A VP People at a 180-person SaaS company ran their first review cycle in 3 weeks after searching for 2 months." [INFERRED: from acme-jane-smith PULL analysis — compressed timeline, fast implementation was decisive]
+**CTA:** "Worth a 15-min look at how [product] handles first-cycle setup?"
+
+**Grounded in:**
+- [demand/pull-analyses/acme-jane-smith.md] — board mandate, 6-week deadline, rejected Lattice for complexity
+- [demand/pull-analyses/betaco-mike-chen.md] — inherited spreadsheets, needed something live in Slack
+```
+
 **Conventions:**
 - Angles reference segments. Don't create angles for segments that don't exist.
 - When a campaign tests an angle, update the angle's status and link the campaign.
@@ -326,8 +378,10 @@ engine/
   README.md
   architecture.md
   prompts/
-  integrations/
+  integrations/        ← ships pre-populated with API references for common tools
 ```
+
+**Note:** `engine/integrations/` exists from initial setup with references for HubSpot, Gong, Fireflies, Lemlist, Clay, and Apollo. When bootstrapping the engine module, keep these files — only create `README.md`, `architecture.md`, and `prompts/`.
 
 **Initial files:**
 
