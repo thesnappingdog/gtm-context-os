@@ -11,7 +11,7 @@ Evidence-based understanding of who has demand for your product and why.
 
 ## How It Works
 
-1. Ingest sales call transcripts using `/ingest` — produces a PULL analysis per call
+1. Paste sales call transcripts — the AI reads `pull-framework.md` and produces a PULL analysis per call
 2. After 5+ analyses, synthesize patterns into `synthesis.md`
 3. Use `/pull-query` to search analyses for evidence when building segments or messaging
 4. `pull-index.json` gets updated automatically as analyses are added

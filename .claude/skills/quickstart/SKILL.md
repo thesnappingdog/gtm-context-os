@@ -52,7 +52,7 @@ Do you have recorded sales calls (from Gong, Fireflies, Zoom, or transcripts in 
 
 **If yes:** "Paste a transcript or give me the file path. I'll run a PULL analysis and show you how the demand layer works."
 
-Then run the `/ingest` skill on the first transcript.
+Read `demand/pull-framework.md` and run a PULL analysis on the transcript. Save to `demand/pull-analyses/` and update `pull-index.json`.
 
 **If no:** "That's fine — the demand layer builds over time. For now, let's capture your current hypothesis about who has demand."
 
@@ -90,7 +90,7 @@ Ingest 5+ sales call transcripts to validate or refine this hypothesis.
 - `status.md` — Will track progress as you work
 
 **Next steps:**
-- Ingest more sales calls with `/ingest` to build the evidence layer
+- Feed more sales calls to build the evidence layer (paste transcripts or use `/setup-api` to connect your call recorder)
 - After 5+ analyses, patterns will emerge for segmentation
 - Use `/gtm-status` anytime to see where things stand"
 

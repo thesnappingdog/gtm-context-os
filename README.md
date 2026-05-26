@@ -72,7 +72,7 @@ Works with any AI assistant that reads project-level instruction files:
 | Aider | Via `read: AGENTS.md` in config |
 | Cline | `AGENTS.md` automatically |
 
-Claude Code users get bonus slash commands (`/ingest`, `/pull-query`, `/gtm-status`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
+Claude Code users get bonus slash commands (`/pull-query`, `/gtm-status`, `/intake`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
 
 ## License
 

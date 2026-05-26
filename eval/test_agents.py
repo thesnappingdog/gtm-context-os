@@ -50,7 +50,7 @@ The repository currently contains:
 - demand/pull-analyses/ (empty)
 - status.md (template)
 - .claude/CLAUDE.md
-- .claude/skills/ (quickstart, ingest, gtm-status, pull-query, segment-messaging, draft-sequence)
+- .claude/skills/ (quickstart, setup-env, setup-api, intake, gtm-status, pull-query, segment-messaging, draft-sequence)
 
 No modules have been bootstrapped yet (no segments/, messaging/, campaigns/, engine/, content/).
 """
@@ -81,7 +81,7 @@ TEST_CASES = [
         "prompt": "I just had a sales call with Acme Corp. Where should I put the analysis?",
         "pass_criteria": [
             "mentions demand/pull-analyses/",
-            "suggests using /ingest or the ingest skill",
+            "mentions pull-framework or PULL methodology",
         ],
         "fail_criteria": [
             "suggests a different directory",
@@ -165,7 +165,7 @@ TEST_CASES = [
     },
     {
         "id": "T7",
-        "name": "Ingest behavior",
+        "name": "PULL analysis from transcript",
         "prompt": "Analyze this call: The prospect (Jane, VP People at Acme, 200 employees) said 'We need to get performance reviews done by Q2, we've been using spreadsheets and it's breaking down. We looked at Lattice but it's too enterprise for us.' The call was 30 minutes.",
         "pass_criteria": [
             "produces a PULL-scored analysis",

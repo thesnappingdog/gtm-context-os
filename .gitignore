@@ -18,6 +18,10 @@ node_modules/
 .venv/
 __pycache__/
 
+# Intake source documents (may contain sensitive materials)
+_intake/*
+!_intake/_processed.json
+
 # Eval results (local, append-only)
 eval/results.jsonl
 

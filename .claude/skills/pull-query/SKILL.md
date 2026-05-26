@@ -12,7 +12,7 @@ Query PULL analyses to find evidence for segments, messaging, or pattern recogni
 
 Read `demand/pull-index.json`.
 
-If missing or empty: "No PULL analyses indexed yet. Run `/ingest` with sales call transcripts to build the evidence layer."
+If missing or empty: "No PULL analyses indexed yet. Paste a sales call transcript and I'll run a PULL analysis to start building the evidence layer."
 
 ### Step 2: Parse Query
 

@@ -49,7 +49,7 @@ Top demand signals:
 - {company} ({score}/20) — {trigger}
 ```
 
-If no analyses exist: "No demand evidence yet. Run `/ingest` with a sales call transcript to start building the evidence layer."
+If no analyses exist: "No demand evidence yet. Paste a sales call transcript and I'll run a PULL analysis to start building the evidence layer."
 
 ### Step 4: Module Dashboards (if they exist)
 

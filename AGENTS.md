@@ -55,12 +55,16 @@ Append to `status.md` at the end of any substantive work session:
 
 Don't log quick Q&A. Don't create separate log files. Always append, never overwrite.
 
-### JSON + Markdown Duality
+### JSON Indexes — AI-Maintained Infrastructure
 
-When a module has both JSON and Markdown files:
-- **JSON** is for you to query — filter, count, cross-reference, aggregate
-- **Markdown** is for humans to read — rationale, context, nuance, quotes
-- JSON indexes are generated from the work, not maintained separately. When someone creates a new segment definition (markdown), update the JSON index. When results come in, update the JSON.
+JSON index files (e.g., `segments.json`, `campaigns.json`, `pull-index.json`) are **your internal navigation system**. They exist so you can quickly trace relationships between entities without re-reading every markdown file.
+
+**Design principles:**
+- **You create and maintain these.** The operator never edits or reads them directly.
+- **Update them automatically** as a side effect of work — when you create a segment markdown file, update segments.json in the same operation. Don't ask permission.
+- **Keep schemas minimal** — only store what you need to navigate relationships. IDs, names, statuses, and links to other entities. Don't store data that requires the operator to manually paste it back.
+- **Markdown is for humans** — rationale, context, nuance, quotes, buyer language live in `.md` files. JSON is for you to query and link.
+- **Reconcile on session start** — if indexes look out of sync with the markdown files, fix them silently.
 
 ### Evidence Requirements
 
@@ -107,28 +111,20 @@ Account segments with targeting criteria, grounded in demand evidence.
 Each segment gets its own markdown file with rationale. `segments.json` is the queryable index.
 ```
 
-`segments.json` — empty array `[]`, populated as segments are created.
+`segments.json` — empty array `[]`, auto-maintained as segments are created.
 
-**Segment JSON schema:**
+**Segment JSON schema (minimal — for AI navigation):**
 ```json
 {
   "id": "segment-slug",
   "name": "Human-readable name",
-  "status": "draft | active | paused | completed | killed",
-  "created": "YYYY-MM-DD",
-  "criteria": {
-    "titles": [],
-    "company_size": "",
-    "geography": "",
-    "signals": [],
-    "hard_constraints": []
-  },
-  "expected_volume": 0,
+  "status": "draft | active | paused | killed",
   "pull_evidence": ["demand/pull-analyses/filename.md"],
-  "campaign_ids": [],
-  "notes": ""
+  "campaign_ids": []
 }
 ```
+
+Targeting criteria, rationale, and performance notes live in the segment's markdown file — not duplicated here.
 
 **Per-segment file format** (`segments/{id}.md`):
 ```markdown
@@ -180,7 +176,7 @@ messaging/
 Outreach angles, objection handling, proof points, and voice guidelines. All grounded in demand evidence and segment definitions.
 ```
 
-`messaging.json` — queryable index of angles by segment, role, and channel. Empty array `[]` initially.
+`messaging.json` — AI-maintained index linking angles to segments and evidence. Empty array `[]` initially.
 
 `angles.md` — template:
 ```markdown
@@ -228,19 +224,18 @@ Each angle targets a specific segment + role combination. Angles must reference 
 - [Add rules as you learn from campaign performance]
 ```
 
-**Messaging angle JSON schema:**
+**Messaging angle JSON schema (minimal — for AI navigation):**
 ```json
 {
   "id": "angle-slug",
   "segment_id": "segment-slug",
-  "buyer_role": "",
-  "channel": "email | linkedin | phone",
-  "hook": "",
   "status": "draft | active | tested | killed",
   "pull_evidence": [],
   "campaign_ids": []
 }
 ```
+
+Buyer role, channel, hook text, and rationale live in `angles.md` — not duplicated in JSON.
 
 **Conventions:**
 - Angles reference segments. Don't create angles for segments that don't exist.
@@ -252,14 +247,13 @@ Each angle targets a specific segment + role combination. Angles must reference 
 
 ### Module: campaigns
 
-**Activate when:** Operator is launching outbound sequences, tracking campaign performance, or managing active outreach.
+**Activate when:** Operator is launching campaigns of any kind — outbound sequences, content programs, paid ads, events, webinars — or wants to track what's been run.
 
 **Bootstrap structure:**
 ```
 campaigns/
   README.md
   campaigns.json
-  results.json
   archive/
 ```
 
@@ -269,53 +263,34 @@ campaigns/
 ```markdown
 # Campaigns
 
-Outbound campaign records, sequence drafts, and performance results.
+Campaign records and working files. "Campaign" means any coordinated GTM effort targeting a segment — outbound sequences, content pushes, paid programs, events, whatever your team runs.
 
-Each active campaign can have its own folder for sequence drafts and working files.
-`campaigns.json` tracks all campaigns. `results.json` tracks performance metrics.
+Each active campaign can have its own folder for drafts and working files.
+`campaigns.json` is maintained by the AI to link campaigns back to segments and messaging.
 ```
 
-`campaigns.json` — empty array `[]`
-`results.json` — empty array `[]`
+`campaigns.json` — empty array `[]`, auto-maintained
 `archive/` — empty directory with `.gitkeep`
 
-**Campaign JSON schema:**
+**Campaign JSON schema (minimal — for AI navigation):**
 ```json
 {
   "id": "campaign-slug",
   "name": "Human-readable name",
   "segment_id": "segment-slug",
   "messaging_angle_id": "angle-slug",
-  "status": "draft | launched | running | paused | completed | killed",
-  "sender": "",
-  "channel": "email | linkedin | multichannel",
-  "launched": "YYYY-MM-DD",
-  "target_volume": 0,
-  "notes": ""
+  "status": "draft | active | paused | completed | killed"
 }
 ```
 
-**Results JSON schema:**
-```json
-{
-  "campaign_id": "campaign-slug",
-  "source": "tool name or manual",
-  "updated": "YYYY-MM-DD",
-  "metrics": {
-    "sent": 0,
-    "opened": 0,
-    "replied": 0,
-    "interested": 0,
-    "meetings": 0
-  },
-  "breakdown": {}
-}
-```
+The AI maintains this index to trace: campaign → segment → demand evidence. Details like channel, sender, metrics, and sequence drafts live in the campaign's own folder (`campaigns/{id}/`), not in the JSON.
+
+**If the operator pastes results or metrics**, store them in the campaign's folder as markdown or add to the JSON entry as an optional `metrics` object. Don't require a separate results file — let it emerge if the operator actually tracks metrics.
 
 **Conventions:**
 - Every campaign links to a segment and messaging angle
+- What "campaign" means is defined by the operator — don't force outbound-only assumptions
 - When a campaign is killed, move its folder to `archive/` with a post-mortem
-- When someone pastes campaign metrics, update `results.json` immediately
 
 **Connects to core via:** References segments and messaging angles (which reference PULL analyses)
 
@@ -529,9 +504,10 @@ At the start of each session, silently assess:
 1. Does `context.md` have content beyond the template? If not, suggest running `/quickstart`.
 2. Are there PULL analyses in `demand/`? If not, the system is empty — suggest ingesting sales calls.
 3. Is `status.md` current? If last entry is >7 days old, mention it.
-4. Do any existing modules have consistency issues? (e.g., segments without PULL evidence, campaigns without results)
+4. **Reconcile JSON indexes** — if any module's JSON index is out of sync with its markdown files (missing entries, stale statuses, broken links), fix it silently. Don't ask.
+5. Do any existing modules have broken evidence chains? (e.g., segments without PULL evidence links, campaigns pointing to deleted segments)
 
-Raise issues naturally, not as a checklist.
+Raise issues naturally, not as a checklist. Fix index drift silently — only mention it if you find broken evidence chains that need operator input.
 
 ## Cross-Editor Compatibility
 

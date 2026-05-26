@@ -10,8 +10,10 @@ Available slash commands for GTM operations:
 
 | Skill | Purpose |
 |-------|---------|
-| `/quickstart` | Guided first-use setup — fill context.md, ingest first call |
-| `/ingest` | Absorb a sales call transcript → structured PULL analysis |
+| `/quickstart` | Guided first-use setup — fill context.md, first demand evidence |
+| `/setup-env` | Check base technical environment — Python, uv, .env, .mcp.json |
+| `/setup-api` | Connect a specific tool — scaffolds scripts, MCP config, integration docs |
+| `/intake` | Process raw documents into structured knowledge — drop docs in `_intake/`, run to dissect |
 | `/gtm-status` | Dashboard of current GTM state across all modules |
 | `/pull-query` | Search demand analyses for evidence |
 | `/segment-messaging` | Match a segment to messaging angles using PULL evidence |
@@ -32,3 +34,14 @@ When processing multiple transcripts:
 4. Main instance orchestrates batches, never sees full analysis content
 
 Max 3 parallel agents to avoid context overflow.
+
+## JSON Index Maintenance
+
+JSON indexes (`pull-index.json`, `segments.json`, `messaging.json`, `campaigns.json`) are your internal infrastructure. The operator never reads or edits them.
+
+**When to update:**
+- You create/modify a markdown file in a module directory → update that module's JSON index in the same operation
+- Session start → reconcile indexes silently (fix drift, don't ask)
+- Operator pastes data that implies state changes → update indexes as side effect
+
+**Never ask the operator** to update an index, verify an index, or paste data specifically to feed an index. These are your files.

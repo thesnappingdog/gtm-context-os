@@ -41,7 +41,7 @@ This walks you through:
 
 The system gets smarter with every sales call you analyze:
 
-**Claude Code:** `/ingest` then paste a transcript
+**Claude Code:** Paste a transcript and ask for a PULL analysis
 
 **Other editors:** "Analyze this sales call transcript using the PULL framework" then paste
 
