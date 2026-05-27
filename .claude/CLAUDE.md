@@ -10,6 +10,7 @@ Available slash commands for GTM operations:
 
 | Skill | Purpose |
 |-------|---------|
+| `/bootstrap` | Fastest setup — give a website URL, agents crawl and populate context.md |
 | `/quickstart` | Guided first-use setup — fill context.md, first demand evidence |
 | `/setup-env` | Check base technical environment — Python, uv, .env, .mcp.json |
 | `/setup-api` | Connect a specific tool — scaffolds scripts, MCP config, integration docs |

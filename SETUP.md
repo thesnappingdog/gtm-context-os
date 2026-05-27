@@ -19,8 +19,8 @@ Get operational in 10 minutes.
 ## Step 1: Clone and Open
 
 ```bash
-# Replace URL with your copy of this repo
-git clone https://github.com/your-org/gtm-context-os.git my-company-gtm
+# Clone the repo
+git clone https://github.com/thesnappingdog/gtm-context-os.git my-company-gtm
 cd my-company-gtm
 ```
 
@@ -29,16 +29,13 @@ Open with your AI editor:
 - Cursor: `cursor .`
 - VS Code + Copilot: `code .`
 
-## Step 2: Run Quickstart
+## Step 2: Bootstrap Your Context
 
-**Claude Code:** Type `/quickstart`
+**Fastest path (Claude Code):** Type `/bootstrap acme.com` — agents crawl your website and populate `context.md` automatically. Everything gets tagged as `[CLAIMED: website]` since marketing sites aren't ground truth.
+
+**Guided path (Claude Code):** Type `/quickstart` for a conversational walkthrough that fills `context.md` and ingests your first sales call.
 
 **Other editors:** Ask "Help me get started with this GTM system" — the AI will read AGENTS.md and guide you through filling `context.md`.
-
-This walks you through:
-1. Filling in your company context (ICP, positioning, competitors)
-2. Ingesting your first sales call transcript
-3. Understanding how the system builds intelligence over time
 
 ## Step 3: Feed It Calls
 
