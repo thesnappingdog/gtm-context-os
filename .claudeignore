@@ -1,0 +1,19 @@
+# Reference docs — read on demand by /setup-api skill
+engine/integrations/
+
+# Eval infrastructure — read on demand by /run-eval skill
+eval/
+
+# Example files — referenced by skills when demonstrating patterns
+demand/pull-analyses/_EXAMPLE.md
+
+# Intake staging area — processed by /intake skill on demand
+_intake/
+
+# Editor pointer files — not needed by Claude Code
+.cursorrules
+.windsurfrules.md
+
+# Not operationally relevant
+LICENSE
+.env.example

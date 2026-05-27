@@ -618,7 +618,7 @@ This system works with any AI coding assistant. `AGENTS.md` is the single source
 
 | Editor | How it loads instructions |
 |--------|-------------------------|
-| Claude Code | Reads `AGENTS.md` + `.claude/CLAUDE.md` + skills |
+| Claude Code / Cowork | `.claude/rules/` (scoped) + `.claude/CLAUDE.md` + skills |
 | Cursor | Reads `.cursorrules` → points to `AGENTS.md` |
 | GitHub Copilot | Reads `AGENTS.md` directly in agent mode |
 | Windsurf | Reads `.windsurfrules.md` → points to `AGENTS.md` |

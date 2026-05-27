@@ -29,6 +29,8 @@ claude  # or open in Cursor/Copilot/Windsurf
 
 Then run `/quickstart` (Claude Code) or ask "help me get started" (any editor).
 
+**Claude Cowork users:** Open this repo as a **project**, not a task. Cowork projects persist across sessions and load the full `.claude/` configuration (rules, skills, settings). Tasks are one-shot and miss the system context. After opening as a project, type `/start` to begin.
+
 See `SETUP.md` for detailed requirements and configuration.
 
 ## Structure
@@ -66,7 +68,8 @@ Works with any AI coding assistant. `AGENTS.md` is the single source of truth; e
 
 | Editor | How it loads instructions |
 |--------|-------------------------|
-| Claude Code | `AGENTS.md` + `.claude/CLAUDE.md` + skills |
+| Claude Code | `.claude/rules/` (scoped) + `.claude/CLAUDE.md` + skills |
+| Claude Cowork | Same as Claude Code — open as **project**, not task |
 | Cursor | `.cursorrules` → points to `AGENTS.md` |
 | GitHub Copilot | `AGENTS.md` directly (agent mode) |
 | Windsurf | `.windsurfrules.md` → points to `AGENTS.md` |

@@ -1,6 +1,8 @@
 # Claude Code Configuration
 
-Read `AGENTS.md` in the repo root for full system instructions, module blueprints, and operational conventions.
+This repo uses `.claude/rules/` for scoped system guidance. Rules load automatically based on which files you are working with.
+
+`AGENTS.md` in the repo root is the single source of truth for the full system — module blueprints, worked examples, and conventions. Consult specific sections of AGENTS.md when you need detail beyond what the rules provide, or when bootstrapping a new module. Do not read the entire file into context preemptively.
 
 This file adds Claude Code-specific capabilities (skills) on top of the universal AGENTS.md instructions.
 

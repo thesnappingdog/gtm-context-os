@@ -26,6 +26,7 @@ cd my-company-gtm
 
 Open with your AI editor:
 - Claude Code: `claude`
+- Claude Cowork: Open as a **project** from the Cowork dashboard (not a task)
 - Cursor: `cursor .`
 - VS Code + Copilot: `code .`
 
@@ -57,6 +58,16 @@ As evidence accumulates, the system supports progressively more sophisticated op
 | 5 calls | Identify demand trigger patterns |
 | 10 calls | Define evidence-based segments |
 | 15+ calls | Develop grounded messaging and sequences |
+
+## Claude Cowork Notes
+
+Claude Cowork runs in an isolated Linux VM on your device. This repo is optimized for it:
+
+- **Open as project, not task.** Tasks do not load `.claude/` configuration, skills, or rules.
+- **Rules load automatically.** `.claude/rules/` provides scoped guidance — you do not need to manually reference AGENTS.md.
+- **Skills work normally.** All slash commands (`/start`, `/bootstrap`, `/quickstart`, etc.) are available.
+- **Hooks are not supported.** If hooks are added to the repo later, they will not execute in Cowork.
+- **Start with `/start`.** Same as CLI — checks repo state and tells you what to do next.
 
 ## Configuration (Optional)
 
