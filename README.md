@@ -77,7 +77,9 @@ Claude Code users get bonus slash commands (`/pull-query`, `/gtm-status`, `/inta
 
 ## Acknowledgments
 
-The quickstart flow, eval harness pattern, attribution tags, and "check before you create" convention were inspired by [Jacob Dietle's context-os](https://github.com/jacob-dietle/context-os) — an open-source template for AI-native knowledge management. Different problem, overlapping patterns.
+The **PULL Framework** (Project, Unavoidable, Looking, Lacking) is the work of [Rob Snyder](https://www.linkedin.com/in/rsnyder1/). This repo operationalizes his framework for AI-native GTM — any credit for the underlying theory belongs to him.
+
+The quickstart flow, eval harness pattern, attribution tags, and "check before you create" convention were inspired by [Jacob Dietle's](https://www.linkedin.com/in/jacob-dietle/) [context-os](https://github.com/jacob-dietle/context-os) — an open-source template for AI-native knowledge management. Different problem, overlapping patterns.
 
 ## License
 

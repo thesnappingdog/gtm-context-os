@@ -1,5 +1,7 @@
 # Demand-First GTM Framework
 
+*Framework by [Rob Snyder](https://www.linkedin.com/in/rsnyder1/).*
+
 ## Core Principle
 
 **Default state: Nobody cares about your product.**
