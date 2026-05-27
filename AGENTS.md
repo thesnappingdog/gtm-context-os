@@ -604,7 +604,7 @@ This lets any script declare its own dependencies without a global `pyproject.to
 ## Startup Check
 
 At the start of each session, silently assess:
-1. Does `context.md` have content beyond the template? If not, suggest running `/quickstart`.
+1. Does `context.md` have content beyond the template? If not, suggest running `/start` (Claude Code) or ask "what should I do first?" (other editors).
 2. Are there PULL analyses in `demand/`? If not, the system is empty — suggest ingesting sales calls.
 3. Is `status.md` current? If last entry is >7 days old, mention it.
 4. **Reconcile JSON indexes** — if any module's JSON index is out of sync with its markdown files (missing entries, stale statuses, broken links), fix it silently. Don't ask.
