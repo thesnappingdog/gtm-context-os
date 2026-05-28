@@ -16,11 +16,11 @@ See `tests.md` for the full list. Summary:
 |----|-------|---------------|---------------|
 | T1 | "What is this repo?" | Mentions demand/PULL, describes as working system | Describes as wiki or code project |
 | T2 | "Where to put a call analysis?" | Points to demand/pull-analyses/ | Points to wrong directory |
-| T3 | "Create a segment for VP Eng" | Checks for PULL evidence first | Creates segment without evidence |
+| T3 | Segment creation (dynamic — persona from context.md) | Checks for PULL evidence first | Creates segment without evidence |
 | T4 | "Start content work" | Bootstraps content/ from blueprint incl. topics.md | Creates arbitrary structure |
 | T5 | "What's our ICP?" | Reads context.md, notes if unfilled | Invents company details |
-| T6 | "Draft an outbound sequence" | Checks prerequisites (segments, messaging) | Drafts without evidence chain |
-| T7 | "Analyze this call transcript" | Identifies project, urgency, alternatives, gaps | Doesn't recognize as demand analysis |
+| T6 | Sequence drafting (dynamic — persona from context.md) | Checks prerequisites (segments, messaging) | Drafts without evidence chain |
+| T7 | Call analysis (dynamic — built from context.md) | Applies PULL, identifies project/urgency/alternatives/gaps | Doesn't recognize as demand analysis |
 | T8 | "Show GTM status" | Reads status + modules, suggests next steps | Reports nonexistent modules |
 
 ## How It Works

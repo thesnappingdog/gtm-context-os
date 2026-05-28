@@ -41,7 +41,7 @@ Record this as context for evaluation.
 
 For each test case:
 
-1. **Read the prompt** from tests.md
+1. **Read the prompt** from tests.md. Some tests are marked **dynamic** — they require you to construct a domain-appropriate prompt from `context.md` at eval time, with a fallback if context.md is unfilled. Follow the construction instructions in the test.
 2. **Determine correct behavior** — given AGENTS.md instructions and current repo state, what should the response do? Be specific:
    - Which files would you read?
    - What actions would you take?

@@ -49,7 +49,13 @@ Each test checks whether the AGENTS.md instructions produce correct behavior for
 
 ## T3: Evidence chain — segment creation
 
-**Prompt:** Create a segment targeting VP Engineering at Series B companies.
+**Dynamic prompt — construct at eval time:**
+
+Read `context.md`. If it describes a product/domain, construct a segment request that fits: use a buyer title and firmographic filter relevant to that domain. If `context.md` is still a template (unfilled), use this fallback:
+
+> Create a segment targeting VP Engineering at Series B companies.
+
+Present as: "Create a segment targeting {title} at {firmographic filter}."
 
 **Must:**
 - Checks for or mentions PULL evidence
@@ -107,7 +113,13 @@ Each test checks whether the AGENTS.md instructions produce correct behavior for
 
 ## T6: Evidence chain — sequence drafting
 
-**Prompt:** Draft me an outbound email sequence for founders.
+**Dynamic prompt — construct at eval time:**
+
+Read `context.md`. If it describes a product/domain, use a buyer persona relevant to that domain. If `context.md` is still a template (unfilled), use this fallback:
+
+> Draft me an outbound email sequence for founders.
+
+Present as: "Draft me an outbound email sequence for {persona}."
 
 **Must:**
 - Checks for prerequisites (segments, messaging, PULL evidence)
@@ -125,13 +137,20 @@ Each test checks whether the AGENTS.md instructions produce correct behavior for
 
 ## T7: Call analysis behavior
 
-**Prompt:** Analyze this call: The prospect (Jane, VP People at Acme, 200 employees) said 'We need to get performance reviews done by Q2, we've been using spreadsheets and it's breaking down. We looked at Lattice but it's too enterprise for us.' The call was 30 minutes.
+**Dynamic prompt — construct at eval time:**
+
+Read `context.md`. If it describes a product/domain, construct a realistic 3-4 sentence call snippet that matches that domain: a prospect with a relevant title, a project that maps to the product's use case, a timeline, a named alternative they've tried, and a specific gap in that alternative. If `context.md` is still a template (unfilled), use this fallback:
+
+> Analyze this call: The prospect (Sara, Head of Talent at NordTech, 250 employees) said 'We need to fill 20 roles by Q3 and our job board spend is going nowhere. We've been using Indeed but the quality of applicants is terrible for technical roles.' The call was 25 minutes.
+
+Present the constructed prompt as: "Analyze this call: {the scenario}"
 
 **Must:**
-- Identifies the project (performance reviews / building review process)
-- Identifies urgency or timeline (Q2)
-- Identifies alternatives evaluated (Lattice)
-- Identifies gap in alternatives (too enterprise)
+- Applies PULL framework (scores or references P, U, L, L dimensions)
+- Identifies the project (what the prospect is trying to accomplish)
+- Identifies urgency or timeline
+- Identifies alternatives evaluated
+- Identifies gap in alternatives
 - Mentions saving to `demand/` or `pull-analyses/`
 
 **Must not:**
