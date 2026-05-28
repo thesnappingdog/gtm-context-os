@@ -152,6 +152,238 @@ Why don't current alternatives solve it?
 
 ---
 
+## Synthesis Deliverables
+
+After a full batch of transcripts has been analyzed, produce two documents. These are cumulative — update them as new batches are added.
+
+### `demand/synthesis.md` — Quantitative Synthesis
+
+```markdown
+# PULL Synthesis: {N} Sales Call Analysis
+
+**Analysis Date**: {date}
+**Calls Analyzed**: {N} ({breakdown by batch if applicable})
+**Framework**: PULL (Project, Unavoidable, Looking, Lacking)
+
+---
+
+## Executive Summary
+
+{1-2 paragraphs: total calls, demand distribution, headline findings, hard constraint rates, key shifts from prior batches}
+
+---
+
+## Full Scorecard
+
+### Tier 1: Strong Demand (PULL 16-20) — {N} Prospects
+
+| Company | Prospect | Role | PULL Score | Key Signal | Blocker |
+|---------|----------|------|------------|------------|---------|
+
+### Tier 2: Moderate Demand (PULL 13-15) — {N} Prospects
+
+{same table}
+
+### Tier 3: Weak Demand (PULL 9-12) — {N} Prospects
+
+{same table}
+
+### Tier 4: No Demand (PULL 0-8) — {N} Prospects
+
+{same table}
+
+---
+
+## Demand Distribution
+
+{Visual bar chart using unicode blocks, with percentages and counts per tier. Break out by batch if multiple batches.}
+
+---
+
+## Pattern Analysis
+
+### Strongest Demand Signals (Predict Close)
+{Numbered list with pattern name, supporting prospects, and why it predicts close}
+
+### Stall Patterns (Predict No Close)
+{Numbered list with pattern name, examples, and what makes it a stall}
+
+### Feature Gaps Mentioned
+
+| Feature Request | Frequency | Prospects | Impact |
+|-----------------|-----------|-----------|--------|
+
+### Competitive Landscape
+
+| Competitor | Mentions | Context | Your Positioning |
+|------------|----------|---------|------------------|
+
+### Buyer Type Distribution
+
+| Buyer Type | Count | % | Close Rate Signal |
+|------------|-------|---|-------------------|
+
+### Regional Distribution
+
+| Region | Count | Strong Demand | Notes |
+|--------|-------|---------------|-------|
+
+### Trigger Classification
+
+| Trigger | Count | Conversion Signal |
+|---------|-------|-------------------|
+
+---
+
+## Temporal Comparison
+{If multiple batches: compare demand rates, explain contributing factors, note what the new batch got right and wrong}
+
+---
+
+## Key Metrics
+
+| Metric | {Batch 1} | {Batch 2} | Combined |
+|--------|-----------|-----------|----------|
+
+---
+
+## Recommendations
+
+### Immediate Actions
+{Numbered, specific, grounded in the data above}
+
+### ICP Refinement
+{Updated ideal profile based on all evidence}
+
+### Next Best Actions by Tier
+
+| Tier | Count | Next Action |
+|------|-------|-------------|
+```
+
+### `demand/key-learnings.md` — Actionable Learnings
+
+```markdown
+# Key Learnings: Who Buys, When, and Why
+
+**Source**: {N} sales call PULL analyses ({date range})
+**Purpose**: Inform targeting, messaging, and qualification
+
+---
+
+## Executive Summary
+
+{One paragraph distilling the buyer profile, best triggers, and core value prop}
+
+---
+
+## 1. Who Buys
+
+### Primary Buyer: {Role}
+**Profile**: {title, tenure, context, authority}
+**Why this profile works**: {bullets}
+**Quotes from calls**: {direct quotes with attribution}
+
+### Secondary Buyer: {Role}
+{same structure}
+
+### Non-Buyers to Filter
+
+| Type | Signal | Action |
+|------|--------|--------|
+
+---
+
+## 2. When They Buy
+
+### Trigger Events (Highest Conversion)
+{Numbered, each with frequency, quote, and why it works}
+
+### Timeline Patterns
+
+| Signal | Timeline to Decision | Action |
+|--------|---------------------|--------|
+
+### Anti-Signals (Predict Long Stall)
+{Numbered list}
+
+---
+
+## 3. Why They Buy
+
+### Core Value Propositions (Resonated)
+{Numbered, each with a direct quote}
+
+### Why Current Solutions Fail
+
+| Current Solution | Why It Fails | Your Alternative |
+|------------------|--------------|------------------|
+
+### Objection Patterns
+
+| Objection | Frequency | Response |
+|-----------|-----------|----------|
+
+---
+
+## 4. Qualification Framework
+
+### Must-Have (Hard Constraints)
+- [ ] {constraint}
+
+### Should-Have (Strong Signals)
+- [ ] {signal}
+
+### Nice-to-Have (Bonus Signals)
+- [ ] {signal}
+
+### Red Flags (Deprioritize)
+- [ ] {signal}
+
+---
+
+## 5. Competitive Positioning
+
+### Against {Competitor}
+**Their Pain**: {what prospects say}
+**Your Position**: {how you win}
+**Key Quote**: {direct quote}
+
+{repeat per competitor}
+
+---
+
+## 6. Geographic Insights
+
+### {Region}
+{patterns, Slack adoption, price sensitivity, key dynamics}
+
+---
+
+## 7. Messaging Templates
+
+### For {Trigger/Persona}
+**Subject**: {line}
+**Hook**: {2-3 sentences grounded in call evidence}
+
+{2-3 templates}
+
+---
+
+## Key Takeaways
+
+1. {actionable finding}
+2. ...
+```
+
+**Key rules for both documents:**
+- Use actual buyer language — direct quotes with attribution, not marketing paraphrases
+- Ground every pattern in specific prospect examples
+- Both are cumulative — update when new batches are analyzed, don't replace
+- Temporal comparison sections only appear when 2+ batches exist
+
+---
+
 ## Finding Demand: The Practical Process
 
 ### Step 1: Form a Hypothesis

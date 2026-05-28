@@ -28,6 +28,12 @@ When you write a PULL analysis, extract these fields into the index. Full analys
 
 After saving a PULL analysis, check the count. If 5+ analyses exist and `demand/synthesis.md` does not, offer to create it. If it exists, check whether the new analysis introduces an uncaptured pattern and offer to update.
 
+When a full batch of transcripts has been analyzed, produce two synthesis deliverables:
+- **`demand/synthesis.md`** — Quantitative: full scorecard, demand distribution, pattern analysis, competitive landscape, trigger classification, recommendations
+- **`demand/key-learnings.md`** — Actionable: who buys, when, why, qualification framework, competitive positioning, messaging templates
+
+Both use actual buyer language (direct quotes, not paraphrases). Templates are in `demand/pull-framework.md`. Both are cumulative — update when new batches are analyzed.
+
 ## Methodology
 
 See `demand/pull-framework.md` for the full scoring rubric, analysis template, and worked examples.
