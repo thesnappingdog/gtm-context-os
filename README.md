@@ -16,17 +16,19 @@ Both modes work against the same repo. Context mode populates the evidence layer
 
 ## How It Works
 
-**Building intelligence:**
-1. **Start with demand** — Ingest sales call transcripts. The system produces structured PULL analyses scoring each call for real buyer demand.
-2. **Patterns emerge** — After 5+ analyses, trigger patterns, buyer personas, and competitive dynamics become visible. The system produces a quantitative synthesis and actionable key-learnings document.
-3. **Segments form** — Group prospects by shared demand patterns, not just firmographics.
-4. **Messaging grounds** — Write outreach angles using actual buyer language from calls.
+### Building intelligence
 
-**Operating on it:**
-5. **Connect your tools** — MCP servers for CRM, call recording, enrichment, pipeline tools. Scripts for anything that has an API.
-6. **Build pipelines** — Document data flow from sourcing through enrichment, qualification, and campaign routing in `engine/`.
-7. **Execute campaigns** — Launch sequences, track results, feed learnings back into demand evidence.
-8. **Automate what repeats** — Python scripts with `uv run` for recurring operations: transcript pulls, lead imports, metric snapshots, enrichment waterfalls.
+- **Start with demand** — Ingest sales call transcripts. The system produces structured PULL analyses scoring each call for real buyer demand.
+- **Patterns emerge** — After 5+ analyses, trigger patterns, buyer personas, and competitive dynamics become visible. The system produces a quantitative synthesis and actionable key-learnings document.
+- **Segments form** — Group prospects by shared demand patterns, not just firmographics.
+- **Messaging grounds** — Write outreach angles using actual buyer language from calls.
+
+### Operating on it
+
+- **Connect your tools** — MCP servers for CRM, call recording, enrichment, pipeline tools. Scripts for anything that has an API.
+- **Build pipelines** — Document data flow from sourcing through enrichment, qualification, and campaign routing in `engine/`.
+- **Execute campaigns** — Launch sequences, track results, feed learnings back into demand evidence.
+- **Automate what repeats** — Python scripts with `uv run` for recurring operations: transcript pulls, lead imports, metric snapshots, enrichment waterfalls.
 
 Every layer is grounded in the one below it. No messaging without demand evidence. No campaigns without tested messaging.
 
