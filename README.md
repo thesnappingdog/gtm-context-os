@@ -37,10 +37,22 @@ Every layer is grounded in the one below it. No messaging without demand evidenc
 ```bash
 git clone https://github.com/thesnappingdog/gtm-context-os.git my-company-gtm
 cd my-company-gtm
+```
+
+After cloning, disconnect from the template repo so your instance is fully yours:
+
+```bash
+git remote remove origin
+git remote add origin <your-own-repo-url>  # optional — push to your own remote
+```
+
+Then open in your AI editor and start:
+
+```bash
 claude  # or open in Cursor/Copilot/Windsurf
 ```
 
-Then run `/quickstart` (Claude Code) or ask "help me get started" (any editor).
+Run `/quickstart` (Claude Code) or ask "help me get started" (any editor).
 
 **Claude Cowork users:** Open this repo as a **project**, not a task. Cowork projects persist across sessions and load the full `.claude/` configuration (rules, skills, settings). Tasks are one-shot and miss the system context. After opening as a project, type `/start` to begin.
 
