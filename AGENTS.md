@@ -89,6 +89,36 @@ This schema is derived from the PULL analysis template in `demand/pull-framework
 
 After saving a PULL analysis and updating `pull-index.json`, check the analysis count. If there are 5+ analyses and `demand/synthesis.md` does not exist, offer to create it — patterns need at least this many data points to be meaningful. If `synthesis.md` already exists, check whether the new analysis introduces a pattern not yet captured and offer to update it.
 
+When a full batch of transcripts has been analyzed, produce two synthesis deliverables:
+
+**1. `demand/synthesis.md` — Quantitative Synthesis**
+
+The comprehensive scorecard and pattern analysis across all PULL analyses. Structure:
+
+- **Executive Summary** — total calls, demand distribution (strong/moderate/weak/none with counts and percentages), headline findings
+- **Full Scorecard** — table per tier with company, prospect, role, PULL score, key signal, blocker
+- **Demand Distribution** — visual distribution chart, broken out by batch if multiple batches exist
+- **Pattern Analysis** — strongest demand signals (predict close), stall patterns (predict no close), feature gaps mentioned (table with frequency/impact), competitive landscape (table with mention counts and positioning), buyer type distribution, regional distribution, trigger classification
+- **Temporal Comparison** — if multiple batches: compare demand rates, identify contributing factors (pipeline quality, sourcing mix, new objection classes), call out what the new batch got right
+- **Key Metrics** — summary table of rates across batches (demand rate, constraint failure rate, non-buyer rate, etc.)
+- **Recommendations** — immediate actions, ICP refinement, next best actions by tier
+
+**2. `demand/key-learnings.md` — Actionable Learnings**
+
+The "who buys, when, and why" document that directly informs targeting, messaging, and qualification. Structure:
+
+- **Executive Summary** — one-paragraph buyer profile distilled from all analyses
+- **Who Buys** — primary buyer profile (role, tenure, context, why it works, quotes), secondary buyer profiles, non-buyers to filter
+- **When They Buy** — trigger events ranked by conversion signal (with quotes), timeline patterns, anti-signals that predict stalls
+- **Why They Buy** — core value propositions that resonated (with quotes), why current solutions fail (table: current tool → pain → your alternative), objection patterns (table with frequency and response)
+- **Qualification Framework** — must-have, should-have, nice-to-have, red flags (checklist format)
+- **Competitive Positioning** — per-competitor sections with their pain, your position, key quote
+- **Geographic Insights** — per-region patterns
+- **Messaging Templates** — 2-3 outbound templates grounded in the patterns above
+- **Key Takeaways** — numbered list of the most actionable findings
+
+Both documents use actual buyer language from the PULL analyses — direct quotes, not marketing paraphrases. Templates for both are in `demand/pull-framework.md`.
+
 ### Evidence Requirements
 
 Downstream work must reference upstream evidence:

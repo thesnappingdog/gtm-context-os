@@ -4,24 +4,35 @@ An AI-native operating system for Go-to-Market teams. Works with any AI coding a
 
 ## What This Is
 
-A git repository that serves as the shared brain for your GTM operations. AI agents read and write to it, building intelligence about your market from real sales conversations and using that evidence to drive targeting, messaging, and outbound campaigns.
+A git repository that serves as the shared brain AND the operational backbone for your GTM. AI agents read and write to it — building intelligence from real sales conversations, then using that evidence to build pipelines, connect tools, write scripts, draft sequences, and run campaigns.
 
-**It is not** a wiki, a documentation dump, or a template you fill once and forget. It's a working system that compounds — every sales call analyzed makes future decisions better.
+**It is not** a wiki or a documentation template. It's a working system with two modes:
+
+**Context mode** — Build intelligence. Ingest sales calls, analyze demand, define your ICP, understand competitors and buyers. Every call analyzed makes the system smarter.
+
+**Operational mode** — Get things done. Connect your CRM and call recorder via MCP. Write scripts that pull transcripts, enrich contacts, and push leads to sequencing tools. Build enrichment pipelines. Draft outbound sequences. Track campaign results. This is where intelligence turns into revenue.
+
+Both modes work against the same repo. Context mode populates the evidence layer. Operational mode uses that evidence and feeds results back.
 
 ## How It Works
 
+**Building intelligence:**
 1. **Start with demand** — Ingest sales call transcripts. The system produces structured PULL analyses scoring each call for real buyer demand.
-2. **Patterns emerge** — After 5+ analyses, demand triggers and buyer personas become visible.
+2. **Patterns emerge** — After 5+ analyses, trigger patterns, buyer personas, and competitive dynamics become visible. The system produces a quantitative synthesis and actionable key-learnings document.
 3. **Segments form** — Group prospects by shared demand patterns, not just firmographics.
 4. **Messaging grounds** — Write outreach angles using actual buyer language from calls.
-5. **Campaigns execute** — Launch sequences, track results, feed learnings back.
+
+**Operating on it:**
+5. **Connect your tools** — MCP servers for CRM, call recording, enrichment, pipeline tools. Scripts for anything that has an API.
+6. **Build pipelines** — Document data flow from sourcing through enrichment, qualification, and campaign routing in `engine/`.
+7. **Execute campaigns** — Launch sequences, track results, feed learnings back into demand evidence.
+8. **Automate what repeats** — Python scripts with `uv run` for recurring operations: transcript pulls, lead imports, metric snapshots, enrichment waterfalls.
 
 Every layer is grounded in the one below it. No messaging without demand evidence. No campaigns without tested messaging.
 
 ## Getting Started
 
 ```bash
-# Clone the repo
 git clone https://github.com/thesnappingdog/gtm-context-os.git my-company-gtm
 cd my-company-gtm
 claude  # or open in Cursor/Copilot/Windsurf
@@ -38,17 +49,20 @@ See `SETUP.md` for detailed requirements and configuration.
 ```
 AGENTS.md              # System instructions (read by all AI editors)
 context.md             # Your ICP, positioning, competitors
-demand/                # PULL analyses and buyer evidence
+demand/                # PULL analyses, synthesis, key learnings
 status.md              # Operational log
 
 # Modules (created when needed):
 segments/              # Target account segments
 messaging/             # Outreach angles and voice
 campaigns/             # Sequences, results, tracking
-engine/                # Pipeline architecture and ops
+engine/                # Pipeline architecture, integrations, enrichment prompts
 content/               # Blog, LinkedIn, marketing
+scripts/               # API scripts, data pulls, automation
 
-.claude/               # Claude Code skills (optional power layer)
+.claude/               # Claude Code skills and scoped rules
+.mcp.json              # MCP server connections (CRM, enrichment, research)
+.env                   # API keys (gitignored)
 ```
 
 ## Core Methodology
@@ -76,7 +90,7 @@ Works with any AI coding assistant. `AGENTS.md` is the single source of truth; e
 | Aider | Via `read: AGENTS.md` in config |
 | Cline | Add `AGENTS.md` to context files |
 
-Claude Code users get bonus slash commands (`/pull-query`, `/gtm-status`, `/intake`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
+Claude Code users get bonus slash commands (`/pull-query`, `/gtm-status`, `/intake`, `/handover`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
 
 ## Acknowledgments
 
