@@ -25,6 +25,9 @@ _intake/*
 # Pipeline output (transient, regeneratable)
 _output/
 
+# Maintainer-internal docs — local only, not shipped with the template
+docs/
+
 # Eval results (local, append-only)
 eval/results.md
 

@@ -153,6 +153,8 @@ Scripts and pipelines produce two kinds of output: **repo state** and **transien
 
 Transient artifacts go in `_output/` at the repo root. This directory is gitignored and disposable — the operator can safely delete everything in it at any time.
 
+**Watch for transient-*looking* state.** Some files land among artifacts but are actually repo state — most often an append-only or longitudinal record (a running metrics log, a cumulative export history) that another doc treats as the persistent source of truth. A file being a CSV in the output directory does not make it transient. The test: **if deleting it loses history you can't regenerate, it's state, not an artifact.** Before gitignoring or clearing an output directory, audit it for anything that is actually state and promote that file to a tracked module location first.
+
 **Rules:**
 - Scripts write transient output to `_output/`. Create subdirectories as needed (e.g., `_output/enrichment/`, `_output/2026-05-29/`).
 - **Never write transient artifacts into module folders.** `engine/`, `scripts/`, `segments/`, etc. contain docs and indexes — not CSVs, not intermediate JSONs, not pipeline run outputs.
@@ -161,6 +163,7 @@ Transient artifacts go in `_output/` at the repo root. This directory is gitigno
 - **When writing script code**, route output paths according to these conventions. A script that writes `output_path = "engine/scored.csv"` violates this even though the agent didn't write the file directly.
 - If data from a pipeline run needs to persist, extract it into repo state: write a markdown doc, update a JSON index, or add structured reference data to the appropriate module. Don't leave it in `_output/` hoping it survives.
 - If the operator asks you to write transient output to a module folder, suggest `_output/` instead and explain why.
+- **Before gitignoring or clearing an output directory, audit it for transient-looking state** (append-only logs, cumulative records, anything another doc treats as the source of truth). Promote those to a tracked location first — a blanket gitignore silently discards that history on the next clone.
 - For data that needs to outlive the repo entirely (large datasets, production pipeline state), push to an external store (database, CRM, data warehouse) and document the store in `engine/architecture.md`.
 
 ### Document Architecture
