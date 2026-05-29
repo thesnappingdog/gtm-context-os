@@ -106,4 +106,4 @@ Next steps:
 - Review copy — adjust tone, add company-specific proof points
 - Import into your sequencing tool
 - Start with 50-100 prospects, measure reply rate
-- After first batch: update `campaigns/results.json` with performance data"
+- After first batch: log performance data in the campaign folder"

@@ -105,9 +105,9 @@ When updating context.md, merge with existing content. Don't overwrite — add, 
 
 **→ demand/**
 - Call notes or meeting summaries → `demand/pull-analyses/` if they contain enough buyer voice for PULL analysis
-- Call notes too thin for PULL analysis → `demand/notes/` as raw material
-- Market research with buyer behavior data → `demand/research/`
-- Win/loss analysis → `demand/research/`
+- Call notes too thin for PULL analysis → `demand/pull-analyses/` with a note that evidence is partial
+- Market research with buyer behavior data → `demand/` as supporting evidence
+- Win/loss analysis → `demand/` as supporting evidence
 
 **→ messaging/ (bootstrap if needed)**
 - Objection handling → `messaging/objections.md`
@@ -120,7 +120,7 @@ When updating context.md, merge with existing content. Don't overwrite — add, 
 - Targeting criteria → `segments/segments.json`
 
 **→ campaigns/ (bootstrap if needed)**
-- Past campaign data → `campaigns/campaigns.json` + `campaigns/results.json`
+- Past campaign data → `campaigns/campaigns.json` + relevant campaign folder
 - Sequence templates → `campaigns/{name}/`
 
 **→ engine/ (bootstrap if needed)**
@@ -139,7 +139,7 @@ After routing, update any relevant JSON indexes:
 - New PULL analyses → update `demand/pull-index.json`
 - New segments → update `segments/segments.json`
 - New campaigns → update `campaigns/campaigns.json`
-- New results → update `campaigns/results.json`
+- New campaign metrics → update `campaigns/campaigns.json` (add metrics to the campaign entry)
 
 ### Step 6: Gap Analysis
 

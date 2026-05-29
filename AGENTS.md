@@ -215,7 +215,7 @@ Targeting criteria, rationale, and performance notes live in the segment's markd
 ```markdown
 # Segment: {Name}
 
-Status: {draft | active | paused | completed | killed}
+Status: {draft | active | paused | killed}
 
 ## Hypothesis
 Why we believe this group has demand. Reference specific PULL analyses.
@@ -616,7 +616,7 @@ Local tools for API integrations, data imports/exports, and manual operations. R
 - Use Python with `uv run` (no global installs, no virtualenv setup needed)
 - Each script is standalone — runs independently, no shared state
 - Scripts read config from `.env` (API keys, endpoints)
-- Output goes to the appropriate module folder (campaign metrics → campaigns/results.json, transcripts → demand/pull-analyses/)
+- Output goes to the appropriate module folder (campaign metrics → campaigns/{campaign}/, transcripts → demand/pull-analyses/)
 - Include a docstring explaining what the script does, what API it talks to, and what it outputs
 
 ## Common Script Patterns
