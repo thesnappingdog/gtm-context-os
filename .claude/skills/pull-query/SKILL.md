@@ -27,7 +27,6 @@ Accept natural language or structured filters:
 **Structured filters:**
 ```
 classification = demand
-demand_strength = very_high
 primary_trigger = scaling_team
 pull_score >= 15
 buyer_type = vp_engineering
