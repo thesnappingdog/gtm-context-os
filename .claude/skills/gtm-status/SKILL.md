@@ -13,7 +13,7 @@ Check which modules exist (have been bootstrapped):
 - `demand/` — always present
 - `segments/` — if exists, read `segments.json`
 - `messaging/` — if exists, read `messaging.json`
-- `campaigns/` — if exists, read `campaigns.json` and `results.json`
+- `campaigns/` — if exists, read `campaigns.json`
 - `engine/` — if exists, note it
 - `content/` — if exists, note it
 
