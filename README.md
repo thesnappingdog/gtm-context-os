@@ -73,6 +73,7 @@ campaigns/             # Sequences, results, tracking
 engine/                # Pipeline architecture, integrations, enrichment prompts
 content/               # Blog, LinkedIn, marketing
 scripts/               # API scripts, data pulls, automation
+workflows/             # Production-grade automated workflows (graduated from scripts/)
 
 .claude/               # Claude Code skills and scoped rules
 .mcp.json              # MCP server connections (CRM, enrichment, research)
@@ -105,6 +106,16 @@ Works with any AI coding assistant. `AGENTS.md` is the single source of truth; e
 | Cline | Add `AGENTS.md` to context files |
 
 Claude Code users get bonus slash commands (`/pull-query`, `/gtm-status`, `/intake`, `/handover`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
+
+## Development
+
+**Branching:**
+- **`main`** — Stable. This is what people clone. Only receives merged PRs from `dev`.
+- **`dev`** — Working branch. Iterate here, run `/run-eval` before merging to main.
+
+**Versioning:** Date-based tags on main (`2026-05-28`, `2026-06-12`, etc.). Tagged when dev merges to main with a coherent batch of changes. No semver — the repo evolves too fast for version number semantics.
+
+**If you cloned this and want to contribute back:** PRs welcome against `dev`.
 
 ## Acknowledgments
 

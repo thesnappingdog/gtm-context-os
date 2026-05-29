@@ -2,7 +2,7 @@ globs: scripts/**
 
 # Scripts Module
 
-Operational scripts for API integrations, data imports/exports, and automation.
+Local tools for API integrations, data imports/exports, and manual operations. Run these from your terminal when you need them.
 
 ## Conventions
 
@@ -21,6 +21,10 @@ Operational scripts for API integrations, data imports/exports, and automation.
 
 - Scripts are tools, not frameworks. Each one does one thing.
 - When a script produces output that maps to a state file, update the appropriate JSON index.
+
+## Graduation
+
+When a script is deployed to run on a schedule, deployed to a cloud environment, or becomes production code that other systems depend on, it belongs in `workflows/` — not here. If you stop running it and something breaks, it's a workflow.
 
 ---
 
