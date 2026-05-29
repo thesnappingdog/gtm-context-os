@@ -23,6 +23,21 @@ Open follow-ups:
 - **Verify coverage for adopted conventions.** The eval suite tests behavior (routing/evidence/identity), so it's structurally blind to whether an adopted *convention* actually works — a live adoption scored 8/8 on an eval that couldn't have failed on that change. Proposed split: behavioral conventions rely on the "What I can't see from here" entry prompts; mechanically-checkable invariants ("no CSV in module folders," "no module doc references the output dir," "nothing tracked under a gitignored zone") get a lightweight structural lint folded into `/release-check`. Decision pending: this split vs. extending the eval suite itself. Don't bloat the behavioral eval with filesystem invariants.
 - **Untested paths:** a methodology entry that invalidates existing operator data (the genuinely dangerous case); batched review when an instance is many entries behind; missing-prerequisite handling (`Depends on` an entry that was skipped).
 
+### Extracting clean context from unfinished sessions
+
+Sessions often end before the work resolves — mid-diagnosis, mid-decision, mid-build. The chat holds a mix of durable insight (worth keeping) and ephemeral back-and-forth (noise, dead ends already superseded). There's no codified discipline for triaging what to persist and where, so it's improvised each time.
+
+A good pattern has emerged in practice — **layered persistence, most-durable first:**
+- **Module artifact** (`engine/`, `demand/`, …) — the durable findings: what was concluded, what was ruled out, open hypotheses, the decisive next test. The real output; ideally written *as you go*, not reconstructed at wrap-up.
+- **`status.md`** — a session log entry: what happened, decisions, next steps.
+- **`todo.md` / open tasks** — reconcile *stale* items so they reflect the new state, not the pre-session assumption; make the next concrete action explicit.
+- **Handover** (`/handover`) — a continuation message pointing at the artifact and the open fork.
+- **Memory** — durable preferences/working-style, not task state.
+
+The key judgment is durable-vs-ephemeral: an unresolved fork should be captured *with its alternatives and the test that would decide it*; superseded attempts and dead ends can be dropped. The best outcome is that most context is *already* in the repo because it was written as the work happened — wrap-up then just reconciles stale state and points the way forward.
+
+Could be a skill (`/wrap-up`?) or an extension of `/handover`: detect stale todo/status state, verify open decisions are captured with their alternatives, separate durable findings from ephemera, route each to the right layer, then generate the handover. `/handover` today produces the continuation message; this is the broader *extract-and-reconcile* step that should precede it.
+
 ## Hooks
 
 Ideas for Claude Code hooks that automate housekeeping:
