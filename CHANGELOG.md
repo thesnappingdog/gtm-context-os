@@ -43,6 +43,15 @@ Every `dev` → `main` merge **must** add one entry per coherent pattern changed
 
 Condensed index of what shipped under each `main` tag. Newest first. Each release groups the pattern entries (detailed below) that an instance would consider. This is the "what changed" summary; the entries are the "how to adopt it."
 
+### `2026-05-29c` — engineering artifact patterns + upgrade-path v2
+
+Three engineering artifact conventions, mined from a live instance's pipeline-hardening work:
+- **`engine-dev-notes`** — when hardening a pipeline, keep a priority-ranked findings ledger in a sibling `engine/{pipeline}-dev-notes.md`, keeping the canonical doc clean.
+- **`integration-diagnosis-doc`** — a second integration-doc genre: when a tool misbehaves, write a dated diagnosis (expected vs. observed, ruled-out, decisive test, fix options), distinct from the API-reference docs.
+- **`script-consolidate-retire`** — the missing middle of the script lifecycle: fold overlapping scripts into one and delete the loser, so `scripts/` doesn't rot.
+
+Also in this release (template-internal, not adoption entries): the `/upgrade` skill was rebuilt and renamed **`/gtm-upgrade`** — it now fetches the latest template (reconciling the real file diff, not just the changelog), works on a review branch, pauses before destructive changes, and records per-entry-ID ledger decisions.
+
 ### `2026-05-29b` — pipeline artifacts, upgrade path, OS namespace
 
 The template's first upgrade-path release. Three patterns:
@@ -148,3 +157,93 @@ Applies to any instance with a top-level `eval/` directory (it ships with the te
 
 **Reference (template implementation)**
 `.gtm-os/README.md` (namespace doc); `.claudeignore` and `.gitignore` (ignore paths); `.claude/skills/run-eval/` and `.claude/skills/release-check/` (updated path refs).
+
+---
+
+### [2026-05-29] Pipeline dev-notes companion doc
+
+- **ID:** engine-dev-notes
+- **Category:** doc-architecture
+- **Severity:** medium
+- **Depends on:** none
+
+**What changed**
+When auditing or hardening a pipeline, findings live in a sibling `engine/{pipeline}-dev-notes.md`, not inside the canonical pipeline doc. Findings are priority-ranked (P0 must-fix-before-next-run → P3 nice-to-have); each has a fixed shape — **Status** (open / fixed / wontfix / out-of-scope) · **Files** (line refs) · **Problem** · **Decision/Fix** · **Follow-up**. The doc also carries a "Pipeline Stages" scope table (what's in-pipeline vs campaign-execution vs one-off — which decides what graduates) and named design-decision initiatives that record *deferrals with the evidence still missing*.
+
+**Why**
+A hardening effort spans sessions. Without a ledger, the *why* behind each fix evaporates, settled WONTFIX decisions get re-litigated, and deferrals lose track of what evidence they're waiting on. Keeping it *beside* the canonical doc (not inside) keeps that doc clean while preserving the full audit trail.
+
+**How to assess fit**
+Do you have an `engine/` with pipeline scripts you audit or harden over time? If you only keep markdown docs with no evolving pipeline code, skip.
+
+**How to adapt (not copy)**
+The pattern is a priority-ranked, fixed-shape findings ledger living next to the system doc — not the literal filename. Name it for your pipeline; one dev-notes per pipeline if you have several. The priority bands and the per-finding shape are the load-bearing parts.
+
+**Downstream risks / migration**
+Additive (a new doc). If you currently keep audit notes *inside* a canonical pipeline doc, move them out so the canonical doc stays clean.
+
+**What I can't see from here**
+You may already track findings ad-hoc (TODOs in code, a scratch file). Consolidate into the dev-notes rather than adding a third place they can drift apart.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: engine" Conventions; `.claude/rules/06-engine.md`.
+
+---
+
+### [2026-05-29] Integration diagnosis doc (second genre)
+
+- **ID:** integration-diagnosis-doc
+- **Category:** convention
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+`engine/integrations/` now has two doc genres. The pre-populated files are API *references* (auth, endpoints, rate limits — what the tool *is*). When you debug a *misbehaving* integration, write the second kind — an integration **diagnosis** doc: a dated **bottom-line verdict**, **expected vs. actually-observed** (with real evidence), **ruled-out** hypotheses, remaining **hypotheses**, a **decisive test** to discriminate them, and **fix options** with trade-offs.
+
+**Why**
+Debugging a flaky integration is expensive and the knowledge evaporates. A diagnosis doc captures the hard-won finding as a durable artifact instead of guesswork re-derived the next time the same tool acts up.
+
+**How to assess fit**
+Have you ever debugged an integration that wasn't doing what you expected (a sync that silently drops data, an API field that's always empty)? If you run integrations at all, this applies the first time one misbehaves. No integrations yet → skip until you have one.
+
+**How to adapt (not copy)**
+A doc *shape*, not a folder requirement — write it wherever you keep integration docs. The skeleton (verdict · expected vs. observed · ruled-out · hypotheses · decisive test · fix options) is the reusable part.
+
+**Downstream risks / migration**
+Additive.
+
+**What I can't see from here**
+A diagnosis doc goes stale once the issue is fixed. Date it and note when it's resolved, so a later reader knows it's history, not a live problem.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: engine" Conventions; `.claude/rules/06-engine.md`.
+
+---
+
+### [2026-05-29] Script lifecycle: consolidate → retire
+
+- **ID:** script-consolidate-retire
+- **Category:** convention
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+The script lifecycle gains its missing middle: create → **consolidate → retire** → graduate. When two scripts overlap, fold them into one and **delete** the loser; record what superseded a retired script; keep `scripts/README.md` listing only *live* scripts; prefer a thin CLI wrapper around the survivor over reviving a retired script.
+
+**Why**
+The template documented *create* and *graduate* (→ workflows) but not consolidate/retire — the operations that keep `scripts/` from rotting into a pile of overlapping, half-broken near-duplicates an agent can no longer tell apart.
+
+**How to assess fit**
+Do you have a `scripts/` folder that's accumulated more than a couple of scripts, some overlapping? Few or no scripts → a no-op until the folder grows.
+
+**How to adapt (not copy)**
+Pure discipline — no files to create. Apply it the next time you notice two scripts doing overlapping work: consolidate, delete, record. Adapt *where* you record the supersession to your own conventions (commit message, dev-notes, README).
+
+**Downstream risks / migration**
+Deleting a script is destructive if something external calls it.
+
+**What I can't see from here**
+A script may be referenced by an external scheduler, a teammate's runbook, or a cron you set up outside the repo. A repo-internal check won't find those — confirm nothing external invokes a script before retiring it.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: scripts" (Lifecycle); `.claude/rules/08-scripts.md`.
