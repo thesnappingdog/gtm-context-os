@@ -64,7 +64,7 @@ The template keeps evolving — new skills, conventions, and framework improveme
 
 Updates ship as *patterns*, not files. The template publishes a `CHANGELOG.md` describing each change as a pattern with its rationale. To pull improvements in:
 
-- **Claude Code:** run `/upgrade`. Your agent reads the template's changelog, checks each pattern against your actual repo, and proposes — per item — what to adopt, adapt to your layout, or skip. You approve each one. Decisions are recorded so the next `/upgrade` only surfaces what's new.
+- **Claude Code:** run `/gtm-upgrade`. Your agent fetches the latest template, checks each new pattern against your actual repo, and proposes — per item — what to adopt, adapt to your layout, or skip. Changes land on a review branch and it pauses before anything destructive, so you review the diff and merge (or discard) when ready. Decisions are recorded so the next `/gtm-upgrade` only surfaces what's new. (Don't have the skill yet? Just ask the agent to *"install the gtm-upgrade skill from the template"* — one-time.)
 - **Any editor:** ask *"Check the GTM Context OS template at https://github.com/thesnappingdog/gtm-context-os for new patterns and propose what applies to this repo."* Same advisory flow.
 
 What it will **never** do: touch your content (`context.md`, `demand/`, `segments/`, …), impose the template's folder names, or change anything without your approval. The template is a source of ideas, not a remote you sync to.

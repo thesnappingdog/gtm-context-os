@@ -6,7 +6,7 @@ Instances are expected to diverge. We do not ship folder structures or force mig
 
 ## How instances use this
 
-Operators run `/upgrade` — **operator-initiated, never automatic**. The instance's agent reads the entries it hasn't considered yet, assesses fit against the actual instance, and proposes, per item, what to adopt, adapt, or skip — with reasoning. Decisions are recorded in the instance's **adoption ledger** (agent-to-agent infrastructure, like the JSON indexes — operators never read or edit it). See `.claude/skills/upgrade/SKILL.md`.
+Operators run `/gtm-upgrade` — **operator-initiated, never automatic**. The skill fetches the latest template, reconciles what's new against the actual instance (both this changelog *and* the real file diff, which catches drift never written up as an entry), and applies approved changes on a review branch — pausing before anything destructive. Decisions are recorded per entry ID in the instance's **adoption ledger** (agent-to-agent infrastructure, like the JSON indexes — operators never read or edit it). See `.claude/skills/gtm-upgrade/SKILL.md`.
 
 ## Maintainer discipline (required)
 
@@ -50,7 +50,7 @@ The template's first upgrade-path release. Three patterns:
 - **`transient-looking-state`** *(depends on the above)* — a file in the artifact zone can still be *state* (append-only logs, cumulative records); audit before gitignoring or you lose history on the next clone.
 - **`gtm-os-namespace`** — consolidate editor-agnostic OS machinery under `.gtm-os/`; the eval harness moves from `eval/` to `.gtm-os/eval/`.
 
-Also in this release (template-internal, not adoption entries): the `CHANGELOG.md` upgrade channel itself, the `/upgrade` skill, and the adoption-ledger convention.
+Also in this release (template-internal, not adoption entries): the `CHANGELOG.md` upgrade channel itself, the `/gtm-upgrade` skill, and the adoption-ledger convention.
 
 ---
 
