@@ -73,6 +73,7 @@ campaigns/             # Sequences, results, tracking
 engine/                # Pipeline architecture, integrations, enrichment prompts
 content/               # Blog, LinkedIn, marketing
 scripts/               # API scripts, data pulls, automation
+workflows/             # Production-grade automated workflows (graduated from scripts/)
 
 .claude/               # Claude Code skills and scoped rules
 .mcp.json              # MCP server connections (CRM, enrichment, research)

@@ -138,7 +138,7 @@ Before creating any new structure (file, folder, module):
 
 Structure documents for AI consumption, not narrative flow. Every file should answer one clear question and be named for that question.
 
-**Applies to:** Primarily `engine/` and `scripts/` where multi-stage pipelines live, but the principles apply whenever any module's files grow beyond simple single-purpose docs. Reference-style files that serve as lookup tables (like `messaging/angles.md` or `messaging/objections.md`) don't need splitting just because they're long — they're one concern.
+**Applies to:** Primarily `engine/`, `scripts/`, and `workflows/` where multi-stage pipelines and production code live, but the principles apply whenever any module's files grow beyond simple single-purpose docs. Reference-style files that serve as lookup tables (like `messaging/angles.md` or `messaging/objections.md`) don't need splitting just because they're long — they're one concern.
 
 **Principles:**
 
@@ -610,7 +610,7 @@ scripts/
 ```markdown
 # Scripts
 
-Operational scripts for API integrations, data imports/exports, and automation.
+Local tools for API integrations, data imports/exports, and manual operations. Run these from your terminal when you need them.
 
 ## Conventions
 - Use Python with `uv run` (no global installs, no virtualenv setup needed)
@@ -660,6 +660,76 @@ import csv, os, requests
 This lets any script declare its own dependencies without a global `pyproject.toml`. `uv run` installs them on the fly.
 
 **Connects to core via:** Scripts are the bridge between external tools and the repo. They pull data in (transcripts → demand/, metrics → campaigns/) and push data out (leads → sequencing tools, contacts → CRM).
+
+**Graduation:** Some scripts outgrow the local toolbox. When a script is deployed to run on a schedule (cron, cloud trigger), deployed to a cloud environment, or is production code that other systems depend on, it belongs in `workflows/` — not `scripts/`. A script that connects to a database but is still run manually stays in `scripts/` until it's actually deployed. See the workflows module below.
+
+---
+
+### Module: workflows
+
+**Activate when:** A script graduates from manual local execution to deployed automation — it runs on a schedule, is deployed to a cloud environment, or is production code that other systems depend on.
+
+**The graduation test:** If you stop running it, does something break? If yes, it's a workflow. If no, it's a script.
+
+**Don't create prematurely.** If you're still iterating on a script and running it manually, keep it in `scripts/` — even if it connects to a database. Only move to `workflows/` when the code is actually deployed or scheduled. Organizing around speculation creates empty structure.
+
+**Bootstrap structure:**
+```
+workflows/
+  README.md
+  {workflow-name}/
+```
+
+**Initial files:**
+
+`README.md`:
+```markdown
+# Workflows
+
+Production-grade automated workflows with infrastructure dependencies. These run on schedules, connect to persistent data stores, and may be deployed to cloud environments.
+
+For local one-off scripts, see `scripts/`.
+
+## Graduation Criteria
+
+Code moves here from `scripts/` when it is:
+- Deployed to run on a schedule (cron, cloud triggers)
+- Deployed to a cloud environment
+- Production code that other systems depend on
+
+## Workflows
+
+| Directory | What it does | Schedule | Infra |
+|-----------|-------------|----------|-------|
+```
+```
+
+**Per-workflow structure:**
+
+Each workflow gets its own directory with everything it needs to run:
+```
+workflows/{workflow-name}/
+  README.md            # what it does, how to deploy, how to monitor
+  main.py              # (or whatever the entrypoint is)
+  pyproject.toml       # locked dependencies (not inline # /// script)
+  .env.example         # required env vars (without values)
+  # Optional:
+  Dockerfile
+  migrations/
+  config/
+```
+
+**Conventions:**
+- Each workflow is self-contained — its own dependencies, config, and documentation.
+- Use `pyproject.toml` with locked dependencies, not inline `# /// script` metadata. Workflows need reproducible builds. For non-Python workflows, use the language's equivalent (package.json, go.mod, etc.).
+- Include a `README.md` in each workflow directory: what it does, what infrastructure it depends on, how to deploy, how to monitor, how to roll back.
+- Keep infrastructure documentation (schemas, connection setup, migration history) in the workflow directory. API-level integration reference docs (what the tool is, what endpoints exist) stay in `engine/integrations/`.
+- Changes to workflows affect production. Test changes before deploying and document rollback steps — don't just push and hope.
+- When a workflow produces output that feeds back into the GTM system (scored accounts, enriched contacts), document the output format and destination in the workflow's README.
+- When creating a workflow that implements a pipeline stage, cross-reference it from `engine/architecture.md` so the architecture doc stays current.
+- When a workflow is decommissioned, remove its directory and update the workflows README table. If it reverts to manual use, move the core logic back to `scripts/`.
+
+**Connects to core via:** Workflows implement the pipelines documented in `engine/architecture.md`. They pull data from sources defined in engine, process it through scoring/enrichment/qualification logic, and route outputs to campaigns or other modules. `engine/` is the map, `workflows/` is the territory.
 
 ---
 
