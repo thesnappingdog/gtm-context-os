@@ -1,8 +1,8 @@
 # Reference docs — read on demand by /setup-api skill
 engine/integrations/
 
-# Eval infrastructure — read on demand by /run-eval skill
-eval/
+# OS machinery (eval harness, upgrade ledger) — read on demand, not auto-loaded
+.gtm-os/
 
 # Example files — referenced by skills when demonstrating patterns
 demand/pull-analyses/_EXAMPLE.md

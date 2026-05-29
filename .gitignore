@@ -29,7 +29,7 @@ _output/
 docs/
 
 # Eval results (local, append-only)
-eval/results.md
+.gtm-os/eval/results.md
 
 # uv lock
 uv.lock

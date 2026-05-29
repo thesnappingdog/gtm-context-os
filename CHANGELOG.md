@@ -101,3 +101,35 @@ Move the state file to wherever tracked state belongs in *your* structure (e.g. 
 
 **Reference (template implementation)**
 `AGENTS.md` → "Pipeline Artifacts and Output" (the transient-looking-state caution paragraph and the audit-before-gitignore rule).
+
+---
+
+### [2026-05-29] `.gtm-os/` namespace for OS machinery
+
+- **ID:** gtm-os-namespace
+- **Category:** doc-architecture
+- **Severity:** low (organizational; no behavior change)
+- **Depends on:** none
+
+**What changed**
+OS-internal, editor-agnostic machinery moves under one hidden namespace, `.gtm-os/`. The eval harness relocates from top-level `eval/` to `.gtm-os/eval/`; the adoption ledger lives at `.gtm-os/upgrade-log.md`. The reasoning: `.claude/` already holds Claude-Code-specific system files (rules, skills), but the eval harness and the ledger are *editor-agnostic* — they needed a home that isn't tied to one editor and isn't mixed in with operator GTM content at the top level. `.gtm-os/` = how the OS operates itself; everything else top-level = your GTM data.
+
+**Why**
+Keeps the top level for GTM content (`context.md`, `demand/`, `segments/`, …) and consolidates system machinery so "OS internals" is visibly distinct from "my data." Sits alongside `.claude/` as its editor-agnostic counterpart.
+
+**How to assess fit**
+Applies to any instance with a top-level `eval/` directory (it ships with the template, so most). If you've customized `eval/tests.md` for your domain, this still applies — you're relocating your customized harness, not replacing it.
+
+**How to adapt (not copy)**
+`git mv` your existing `eval/` to `.gtm-os/eval/` — keep your domain-specific tests and results intact. Update path references: `.gitignore` (`eval/results.md` → `.gtm-os/eval/results.md`), `.claudeignore` (`eval/` → `.gtm-os/`), and any skill that reads `eval/tests.md` or `eval/results.md` (`run-eval`, `release-check`). Conceptual "eval" mentions and the `/run-eval` skill name don't change — only literal paths. Add a short `.gtm-os/README.md` describing the namespace. If your instance organizes things differently, the principle is "editor-agnostic OS machinery under one namespace" — the exact folder name is yours.
+
+**Downstream risks / migration**
+- Any doc or script referencing `eval/tests.md` or `eval/results.md` *by path* breaks until updated — grep for the `eval/` path form and fix.
+- Worktree-based flows (`/release-check`) read the path inside the worktree, so the same rename applies there.
+
+**What I can't see from here**
+- You may have *other* top-level files that are really OS machinery (a custom lint, a local config the agent maintains) — consider moving those under `.gtm-os/` too while you're here.
+- External tooling (CI, scripts outside the repo) may hardcode `eval/` paths. A grep inside the repo won't find those — check anything that runs the eval from outside.
+
+**Reference (template implementation)**
+`.gtm-os/README.md` (namespace doc); `.claudeignore` and `.gitignore` (ignore paths); `.claude/skills/run-eval/` and `.claude/skills/release-check/` (updated path refs).
