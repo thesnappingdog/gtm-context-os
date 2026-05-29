@@ -6,7 +6,7 @@ Tests that AGENTS.md instructions produce correct agent behavior. Runs inside Cl
 
 **Claude Code:** `/run-eval` (all tests) or `/run-eval T3` (specific test)
 
-**Other editors:** Ask "Run the eval suite in eval/tests.md against the current repo state"
+**Other editors:** Ask "Run the eval suite in .gtm-os/eval/tests.md against the current repo state"
 
 ## Test Cases
 
@@ -31,7 +31,7 @@ The eval runs inside your AI editor session. The AI processes each test prompt a
 
 ## Results
 
-Results are logged to `eval/results.md` after each run.
+Results are logged to `.gtm-os/eval/results.md` after each run.
 
 ## Adding Tests
 

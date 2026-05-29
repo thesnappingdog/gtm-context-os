@@ -134,6 +134,38 @@ Before creating any new structure (file, folder, module):
 2. Check if existing structure covers the need
 3. Only create if there's a genuine gap
 
+### Pipeline Artifacts and Output
+
+Scripts and pipelines produce two kinds of output: **repo state** and **transient artifacts**.
+
+**Repo state** — structured knowledge that belongs in the repo permanently:
+- PULL analyses, segment definitions, messaging angles, campaign docs (markdown in module folders)
+- JSON indexes maintained by agents (pull-index.json, segments.json, etc.)
+- API-pulled metrics that update campaign or module docs
+- Reference data used by scripts (lookup tables, mappings — small, rarely changing)
+- Pipeline architecture docs, scoring models, enrichment specs (markdown in engine/)
+
+**Transient artifacts** — intermediate and final data products from pipeline runs:
+- Enrichment outputs (enriched account lists, contact CSVs)
+- Intermediate step files (classification results, scoring batches, dedup outputs)
+- Exports for import into external tools (Smartlead CSVs, HubSpot imports)
+- Database files, cached API responses, test outputs
+
+Transient artifacts go in `_output/` at the repo root. This directory is gitignored and disposable — the operator can safely delete everything in it at any time.
+
+**Watch for transient-*looking* state.** Some files land among artifacts but are actually repo state — most often an append-only or longitudinal record (a running metrics log, a cumulative export history) that another doc treats as the persistent source of truth. A file being a CSV in the output directory does not make it transient. The test: **if deleting it loses history you can't regenerate, it's state, not an artifact.** Before gitignoring or clearing an output directory, audit it for anything that is actually state and promote that file to a tracked module location first.
+
+**Rules:**
+- Scripts write transient output to `_output/`. Create subdirectories as needed (e.g., `_output/enrichment/`, `_output/2026-05-29/`).
+- **Never write transient artifacts into module folders.** `engine/`, `scripts/`, `segments/`, etc. contain docs and indexes — not CSVs, not intermediate JSONs, not pipeline run outputs.
+- **`_output/` is write-only for agents.** Do not browse, search, or read files from `_output/` to inform your work. The contents are ephemeral and unreliable — they may be stale, partial, or from a different run. Only read a file from `_output/` if the operator explicitly points you to a specific file path. This prohibition applies to your reasoning about repo state — scripts you write may chain intermediate files through `_output/` within a single pipeline run.
+- **Never reference `_output/` files from module docs.** If a doc says "see `_output/scored-accounts.csv`", that's a broken reference waiting to happen.
+- **When writing script code**, route output paths according to these conventions. A script that writes `output_path = "engine/scored.csv"` violates this even though the agent didn't write the file directly.
+- If data from a pipeline run needs to persist, extract it into repo state: write a markdown doc, update a JSON index, or add structured reference data to the appropriate module. Don't leave it in `_output/` hoping it survives.
+- If the operator asks you to write transient output to a module folder, suggest `_output/` instead and explain why.
+- **Before gitignoring or clearing an output directory, audit it for transient-looking state** (append-only logs, cumulative records, anything another doc treats as the source of truth). Promote those to a tracked location first — a blanket gitignore silently discards that history on the next clone.
+- For data that needs to outlive the repo entirely (large datasets, production pipeline state), push to an external store (database, CRM, data warehouse) and document the store in `engine/architecture.md`.
+
 ### Document Architecture
 
 Structure documents for AI consumption, not narrative flow. Every file should answer one clear question and be named for that question.
@@ -505,6 +537,9 @@ This is the technical infrastructure layer — how data flows, how accounts get 
 - Document the full data flow, not just individual tables
 - Include cost estimates for enrichment steps
 - When prompts are iterated, keep calibration notes showing what changed and why
+- As the engine module grows, pipeline stage docs (scoring models, enrichment specs, step-by-step execution instructions) live at the engine root — one file per concern, following Document Architecture principles. `architecture.md` stays as the high-level overview. Subdirectories are for distinct categories: `integrations/` for API references, `prompts/` for AI column prompts. Don't create subdirectories for every pipeline stage — flat is fine when file names are descriptive.
+- Reference data files (JSON lookup tables, mapping files) used by scripts are fine at the engine root. They're small, rarely change, and are part of repo state.
+- Pipeline run artifacts (enrichment output CSVs, scored account batches, intermediate processing files) never go in `engine/` — they go in `_output/`. The engine module documents how the pipeline works; it doesn't store what the pipeline produces.
 
 **Connects to core via:** Pipeline qualifies accounts based on ICP criteria from `context.md` and routes to campaigns
 
@@ -616,7 +651,8 @@ Local tools for API integrations, data imports/exports, and manual operations. R
 - Use Python with `uv run` (no global installs, no virtualenv setup needed)
 - Each script is standalone — runs independently, no shared state
 - Scripts read config from `.env` (API keys, endpoints)
-- Output goes to the appropriate module folder (campaign metrics → campaigns/{campaign}/, transcripts → demand/pull-analyses/)
+- Repo state goes to the appropriate module folder (PULL analyses → demand/pull-analyses/, campaign docs → campaigns/)
+- Transient pipeline output (enrichment CSVs, scored lists, intermediate data) goes to `_output/`
 - Include a docstring explaining what the script does, what API it talks to, and what it outputs
 
 ## Common Script Patterns
@@ -646,6 +682,7 @@ import csv, os, requests
 - Scripts are tools, not frameworks. Each one does one thing.
 - Always read credentials from `.env`, never hardcode.
 - When a script produces output that maps to a state file (campaign metrics, transcript analyses), update the appropriate JSON index.
+- When a script produces transient data (enrichment results, scored account lists, intermediate CSVs), write to `_output/`. Never dump pipeline artifacts into module folders.
 - Document what each script does at the top of the file — the next operator may not have written it.
 - Use `uv run script.py` to execute (handles dependencies automatically with inline `# /// script` metadata).
 
@@ -659,7 +696,7 @@ import csv, os, requests
 
 This lets any script declare its own dependencies without a global `pyproject.toml`. `uv run` installs them on the fly.
 
-**Connects to core via:** Scripts are the bridge between external tools and the repo. They pull data in (transcripts → demand/, metrics → campaigns/) and push data out (leads → sequencing tools, contacts → CRM).
+**Connects to core via:** Scripts are the bridge between external tools and the repo. They pull repo state in (transcripts → demand/, metrics → campaigns/) and push data out (leads → sequencing tools, contacts → CRM). Transient pipeline output (enrichment CSVs, scored lists, intermediate data) goes to `_output/`, not module folders.
 
 **Graduation:** Some scripts outgrow the local toolbox. When a script is deployed to run on a schedule (cron, cloud trigger), deployed to a cloud environment, or is production code that other systems depend on, it belongs in `workflows/` — not `scripts/`. A script that connects to a database but is still run manually stays in `scripts/` until it's actually deployed. See the workflows module below.
 
