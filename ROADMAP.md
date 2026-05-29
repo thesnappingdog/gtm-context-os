@@ -17,7 +17,11 @@ Could be a new skill (`/explore-crm`?) or an extension of `/setup-api`. The outp
 Same idea for other connected systems — call recorders (what meetings exist, what's transcribed, what's not), enrichment tools (what data is already available), sequencing tools (what campaigns are running). The goal: when someone connects a tool, the system should learn from it, not just document the API.
 
 ### Upgrade path for existing instances
-After someone clones and disconnects from the template repo, they have no way to pull in new skills, eval tests, framework improvements, or rule changes we ship later. Need a mechanism — could be a merge-from-upstream script, a `/upgrade` skill that cherry-picks template changes without clobbering operator content, or something else. Tricky because operator files (context.md, demand/, segments/) must never be touched, but system files (AGENTS.md, .claude/skills/, eval/) should update. TBD — ideas exist, needs design.
+**Implemented (advisory model).** Instances upgrade by adopting *described patterns*, not by syncing files: the template publishes a pattern-shaped `CHANGELOG.md`, and the `/upgrade` skill has the instance's own agent assess each entry against its (unique, customized) structure and adapt it — operator-initiated, operator-approved per item, recorded in an agent-to-agent adoption ledger. Operator files are never touched by construction (we ship intent, not folders). Validated end-to-end against a live instance. See `CHANGELOG.md` and `.claude/skills/upgrade/`.
+
+Open follow-ups:
+- **Verify coverage for adopted conventions.** The eval suite tests behavior (routing/evidence/identity), so it's structurally blind to whether an adopted *convention* actually works — a live adoption scored 8/8 on an eval that couldn't have failed on that change. Proposed split: behavioral conventions rely on the "What I can't see from here" entry prompts; mechanically-checkable invariants ("no CSV in module folders," "no module doc references the output dir," "nothing tracked under a gitignored zone") get a lightweight structural lint folded into `/release-check`. Decision pending: this split vs. extending the eval suite itself. Don't bloat the behavioral eval with filesystem invariants.
+- **Untested paths:** a methodology entry that invalidates existing operator data (the genuinely dangerous case); batched review when an instance is many entries behind; missing-prerequisite handling (`Depends on` an entry that was skipped).
 
 ## Hooks
 

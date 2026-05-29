@@ -22,8 +22,14 @@ __pycache__/
 _intake/*
 !_intake/_processed.json
 
+# Pipeline output (transient, regeneratable)
+_output/
+
+# Maintainer-internal docs — local only, not shipped with the template
+docs/
+
 # Eval results (local, append-only)
-eval/results.md
+.gtm-os/eval/results.md
 
 # uv lock
 uv.lock
