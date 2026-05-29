@@ -17,11 +17,29 @@ Could be a new skill (`/explore-crm`?) or an extension of `/setup-api`. The outp
 Same idea for other connected systems — call recorders (what meetings exist, what's transcribed, what's not), enrichment tools (what data is already available), sequencing tools (what campaigns are running). The goal: when someone connects a tool, the system should learn from it, not just document the API.
 
 ### Upgrade path for existing instances
-**Implemented (advisory model).** Instances upgrade by adopting *described patterns*, not by syncing files: the template publishes a pattern-shaped `CHANGELOG.md`, and the `/upgrade` skill has the instance's own agent assess each entry against its (unique, customized) structure and adapt it — operator-initiated, operator-approved per item, recorded in an agent-to-agent adoption ledger. Operator files are never touched by construction (we ship intent, not folders). Validated end-to-end against a live instance. See `CHANGELOG.md` and `.claude/skills/upgrade/`.
+**Implemented (advisory model + fetch-the-template).** Instances upgrade by adopting *described patterns*, not by syncing files: the `/gtm-upgrade` skill fetches the latest template (shallow clone of the public repo, read-only reference), reconciles what's new against the instance's (unique, customized) structure — using both the pattern-shaped `CHANGELOG.md` *and* the real file diff, which catches template drift never written up as an entry — and applies approved changes on a review branch, pausing before anything destructive. Operator-initiated, recorded per entry ID in an agent-to-agent adoption ledger. Operator files are never touched by construction (we ship intent, not folders). See `CHANGELOG.md` and `.claude/skills/gtm-upgrade/`.
+
+Design rationale and the leak it fixes (watermark ledger, drift outside the changelog, the `/upgrade` name collision): `docs/design-log.md` → "Upgrade mechanism v2".
 
 Open follow-ups:
 - **Verify coverage for adopted conventions.** The eval suite tests behavior (routing/evidence/identity), so it's structurally blind to whether an adopted *convention* actually works — a live adoption scored 8/8 on an eval that couldn't have failed on that change. Proposed split: behavioral conventions rely on the "What I can't see from here" entry prompts; mechanically-checkable invariants ("no CSV in module folders," "no module doc references the output dir," "nothing tracked under a gitignored zone") get a lightweight structural lint folded into `/release-check`. Decision pending: this split vs. extending the eval suite itself. Don't bloat the behavioral eval with filesystem invariants.
+  - **Empirically confirmed (`2026-05-29c` release-check):** a full `/release-check` of three new doc-convention patterns + the `/gtm-upgrade` rebuild scored **8/8 — and could not have failed on any of it.** The *consistency agent* was the only check that actually vetted the changes (caught orphaned-reference risk, confirmed rule↔blueprint alignment). This is concrete evidence the behavioral eval is the wrong instrument for convention coverage. Leaning: make the consistency/structural check in `/release-check` the home for convention invariants, and add a small set of mechanical assertions to it (orphaned skill/path references, every CHANGELOG "Reference" path resolves, no stale renamed-skill mentions) — keep the behavioral eval for behavior. Open question is whether to *also* grow the behavioral eval for the few conventions that do produce observable behavior.
 - **Untested paths:** a methodology entry that invalidates existing operator data (the genuinely dangerous case); batched review when an instance is many entries behind; missing-prerequisite handling (`Depends on` an entry that was skipped).
+
+### Extracting clean context from unfinished sessions
+
+Sessions often end before the work resolves — mid-diagnosis, mid-decision, mid-build. The chat holds a mix of durable insight (worth keeping) and ephemeral back-and-forth (noise, dead ends already superseded). There's no codified discipline for triaging what to persist and where, so it's improvised each time.
+
+A good pattern has emerged in practice — **layered persistence, most-durable first:**
+- **Module artifact** (`engine/`, `demand/`, …) — the durable findings: what was concluded, what was ruled out, open hypotheses, the decisive next test. The real output; ideally written *as you go*, not reconstructed at wrap-up.
+- **`status.md`** — a session log entry: what happened, decisions, next steps.
+- **`todo.md` / open tasks** — reconcile *stale* items so they reflect the new state, not the pre-session assumption; make the next concrete action explicit.
+- **Handover** (`/handover`) — a continuation message pointing at the artifact and the open fork.
+- **Memory** — durable preferences/working-style, not task state.
+
+The key judgment is durable-vs-ephemeral: an unresolved fork should be captured *with its alternatives and the test that would decide it*; superseded attempts and dead ends can be dropped. The best outcome is that most context is *already* in the repo because it was written as the work happened — wrap-up then just reconciles stale state and points the way forward.
+
+Could be a skill (`/wrap-up`?) or an extension of `/handover`: detect stale todo/status state, verify open decisions are captured with their alternatives, separate durable findings from ephemera, route each to the right layer, then generate the handover. `/handover` today produces the continuation message; this is the broader *extract-and-reconcile* step that should precede it.
 
 ## Hooks
 
