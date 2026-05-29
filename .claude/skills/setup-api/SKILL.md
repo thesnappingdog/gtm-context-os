@@ -70,7 +70,7 @@ Bootstrap `scripts/` module if it doesn't exist (use AGENTS.md blueprint). Creat
 The script should:
 - Read credentials from `.env`
 - Pull data from the API
-- Write output to the appropriate location (transcripts → `demand/pull-analyses/`, metrics → the relevant campaign folder, contacts → a CSV or directly to a target tool)
+- Write output to the appropriate location: repo state (transcripts → `demand/pull-analyses/`, metrics → the relevant campaign folder) goes to module folders; transient data (contact CSVs, enrichment results) goes to `_output/`
 - Be runnable with `uv run scripts/{name}.py`
 
 ### Step 5: Validate
