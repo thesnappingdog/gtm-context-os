@@ -39,6 +39,21 @@ Every `dev` → `main` merge **must** add one entry per coherent pattern changed
 
 ---
 
+## Releases
+
+Condensed index of what shipped under each `main` tag. Newest first. Each release groups the pattern entries (detailed below) that an instance would consider. This is the "what changed" summary; the entries are the "how to adopt it."
+
+### `2026-05-29b` — pipeline artifacts, upgrade path, OS namespace
+
+The template's first upgrade-path release. Three patterns:
+- **`output-artifact-boundary`** — separate repo state from transient pipeline artifacts; transient output goes in a gitignored `_output/`, write-only for agents.
+- **`transient-looking-state`** *(depends on the above)* — a file in the artifact zone can still be *state* (append-only logs, cumulative records); audit before gitignoring or you lose history on the next clone.
+- **`gtm-os-namespace`** — consolidate editor-agnostic OS machinery under `.gtm-os/`; the eval harness moves from `eval/` to `.gtm-os/eval/`.
+
+Also in this release (template-internal, not adoption entries): the `CHANGELOG.md` upgrade channel itself, the `/upgrade` skill, and the adoption-ledger convention.
+
+---
+
 ## Entries
 
 ### [2026-05-29] `_output/` artifact boundary
