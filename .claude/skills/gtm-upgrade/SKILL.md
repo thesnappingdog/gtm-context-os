@@ -40,29 +40,25 @@ The branch makes everything *technically* recoverable, but a destructive change 
 
 ### Step 2: Work out what's new — two sources, not one
 1. **The CHANGELOG (curated intent).** Read the template's `CHANGELOG.md`. Each entry has a stable `ID` and explains what changed, why, how to assess fit, and how to adapt. This is the *explanation layer*.
-2. **The real file diff (catches drift).** Compare the template's *system* files against this instance's — `AGENTS.md`, `.claude/rules/`, `.claude/skills/`, `.gtm-os/`, blueprints. The CHANGELOG can lag reality; the real diff surfaces template improvements that were never written up as entries. Surface these as **uncatalogued differences** alongside the changelog entries.
+2. **The real file diff (catches drift).** The CHANGELOG can lag reality; comparing actual files surfaces template improvements never written up as entries. **Probe, don't dump** — a naive `diff -r` of two structurally-diverged repos is mostly noise (instances rename docs, reorganize sections). Instead, check specific system files for known-divergence signals: does the instance's `AGENTS.md` carry each major section the template's does (synthesis spec, conventions, blueprints)? Does `.claude/CLAUDE.md`'s skill table list every skill that actually exists? Which `.claude/skills/` and `.claude/rules/` exist in the template but not here? Surface real gaps as **uncatalogued differences** alongside the changelog entries.
+
+   **Exclude template-maintainer machinery** — it exists to *build* the template, not to run an instance, so never propose porting it: the `release-check` skill, the CHANGELOG's "Maintainer discipline" section, `docs/`, `ROADMAP.md`.
 
 Then compute **unconsidered entries**: read this instance's adoption ledger (`.gtm-os/upgrade-log.md`). An entry is *considered* iff its `ID` appears in the ledger. Unconsidered = any upstream entry ID **absent from the ledger — regardless of date**. There is no date watermark; never infer coverage from dates. If the ledger doesn't exist, this is the first upgrade: every entry is unconsidered, and you'll create the ledger at the end.
 
 If there are no unconsidered entries and no uncatalogued differences, tell the operator the instance is current and stop.
 
-### Step 3: Create the review branch + checkpoint
-Before changing anything:
-- Create a branch: `gtm-upgrade-<today>` (use the current date).
-- Commit a checkpoint of the current state if the working tree isn't already clean, so there's a guaranteed restore point.
-All subsequent changes land on this branch.
-
-### Step 4: Assess each item against THIS instance
-For each unconsidered entry (and each uncatalogued difference), in severity order (high → low):
+### Step 3: Assess each item against THIS instance (read-only)
+No branch yet — assessment is read-only, so nothing is created if the operator decides not to proceed. For each unconsidered entry (and each uncatalogued difference), in severity order (high → low):
 1. Read its **How to assess fit**, then actually inspect the instance — read the relevant files, check the structure. Don't assess from the entry text alone.
 2. Read the entry's **Reference** files in the fetched template if you need the full intent.
-3. Decide **Adopt** / **Adapt** (applies but lands differently here — describe the difference) / **Skip** (doesn't apply — give the reason).
+3. Decide **Adopt** / **Adapt** (applies but lands differently here — describe the difference) / **Skip** (doesn't apply, or it's maintainer-only machinery — give the reason).
 4. Check **Depends on**: don't propose adopting something whose prerequisite this instance skipped or hasn't adopted — flag it.
 5. Classify each proposed change as **destructive** or **safe** per the rule above, naming the actual files/analyses/indexes it would touch or invalidate.
 
 **Updating this skill is just one of the items.** The newest version of `gtm-upgrade` is in the fetched template — if it's newer, treat adopting it as an ordinary (safe) item. That's how the instance stays current without any special self-refresh mechanism.
 
-### Step 5: Present the plan
+### Step 4: Present the plan
 Show a per-item plan, grouped, **destructive items clearly flagged**:
 
 ```
@@ -86,16 +82,18 @@ Show a per-item plan, grouped, **destructive items clearly flagged**:
 - [id] ... — reason it doesn't apply here.
 ```
 
-### Step 6: Apply on the branch
+### Step 5: Create the branch, then apply
+Only after the operator has seen the plan:
+- Create a branch `gtm-upgrade-<today>` (use the current date). Commit a checkpoint first if the working tree isn't already clean, so there's a guaranteed restore point. All changes land here.
 - **Safe items:** apply directly to the branch.
 - **Destructive items:** stop on each one, restate the plain-language consequence, and apply only after the operator explicitly acks that specific item. If they decline, skip it and record the decision.
 
 Make every change *in this instance's idiom* — respect `AGENTS.md` (check-before-you-create, evidence chains, index maintenance).
 
-### Step 7: Verify
+### Step 6: Verify
 Run `/run-eval` (and any domain-specific eval fixtures the instance has). Report results plainly. If something regressed, surface it — don't bury it. Note that the behavioral eval is structurally blind to convention adoption, so passing eval is necessary, not sufficient — the operator's diff review is the real check.
 
-### Step 8: Record decisions in the ledger
+### Step 7: Record decisions in the ledger
 Append one decision **per entry ID** to `.gtm-os/upgrade-log.md` (create it on first run) — adopted, adapted, *and* skipped, each with reason and date. This is the instance's provenance: why it diverged, decided when. Also record any uncatalogued difference you acted on, keyed by a short slug, so it isn't re-proposed. Format:
 
 ```markdown
@@ -105,18 +103,23 @@ Append one decision **per entry ID** to `.gtm-os/upgrade-log.md` (create it on f
 One decision per template CHANGELOG entry ID. An entry is **considered** iff its ID appears below.
 "Unconsidered" = any upstream entry ID absent here, regardless of date. No date watermark — coverage is the set of IDs present.
 
-## Decisions
+## CHANGELOG entries
 
 ### output-artifact-boundary — ADAPTED — 2026-05-29
 Kept existing exports/ rather than renaming to _output/ (scripts hardcode it); adopted write-only discipline.
 
 ### gtm-os-namespace — SKIPPED — 2026-05-29
 <reason it doesn't apply here>
+
+## Uncatalogued differences (caught by the real file diff, not in the CHANGELOG)
+
+### claude-md-skill-table — ADOPTED — 2026-05-29
+<what was stale and what you fixed>
 ```
 
-### Step 9: Hand off for review
+### Step 8: Hand off for review
 Tell the operator the work is on branch `gtm-upgrade-<today>`. They review the diff and either merge it or discard the branch (discard = zero cost — nothing touched their working state). Clean up the temp template checkout.
 
 ## First-time bootstrap (existing instances)
 
-An instance cloned before this skill existed won't have it. It can't be pushed in — the operator pulls it once. The simplest install is one sentence to the agent: *"install the gtm-upgrade skill from the template."* The agent fetches `.claude/skills/gtm-upgrade/SKILL.md` from the public repo and writes it into `.claude/skills/gtm-upgrade/`. After that first install, every future run re-fetches the template and keeps the skill current as an ordinary item (Step 4) — so the bootstrap is one-time, ever. New clones ship the skill and need no bootstrap.
+An instance cloned before this skill existed won't have it. It can't be pushed in — the operator pulls it once. The simplest install is one sentence to the agent: *"install the gtm-upgrade skill from the template."* The agent fetches `.claude/skills/gtm-upgrade/SKILL.md` from the public repo and writes it into `.claude/skills/gtm-upgrade/`. After that first install, every future run re-fetches the template and keeps the skill current as an ordinary item (Step 3) — so the bootstrap is one-time, ever. New clones ship the skill and need no bootstrap.
