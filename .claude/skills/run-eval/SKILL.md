@@ -23,7 +23,7 @@ This eval runs inside Claude Code — no external API key or SDK needed. You pro
 
 ### Step 1: Load Tests
 
-Read `eval/tests.md`. If a specific test was requested (e.g., `/run-eval T3`), filter to just that test. Otherwise run all.
+Read `.gtm-os/eval/tests.md`. If a specific test was requested (e.g., `/run-eval T3`), filter to just that test. Otherwise run all.
 
 ### Step 2: Scan Repo State
 
@@ -89,7 +89,7 @@ For critical failures, flag prominently:
 
 ### Step 5: Log Results
 
-Append results to `eval/results.md`:
+Append results to `.gtm-os/eval/results.md`:
 
 ```markdown
 ### {date} — {score}
@@ -97,7 +97,7 @@ Repo state: {summary}
 Failures: {list or "none"}
 ```
 
-Create `eval/results.md` if it doesn't exist.
+Create `.gtm-os/eval/results.md` if it doesn't exist.
 
 ### Step 6: Suggest Fixes (if failures)
 
@@ -115,7 +115,7 @@ For each failure:
 
 ## Adding Tests
 
-Add new test cases to `eval/tests.md` following the existing format. Each test needs:
+Add new test cases to `.gtm-os/eval/tests.md` following the existing format. Each test needs:
 - A prompt (what the operator types)
 - Must criteria (all required for PASS)
 - Must not criteria (any = FAIL)

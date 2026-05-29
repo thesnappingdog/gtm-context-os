@@ -63,7 +63,7 @@ Launch two agents simultaneously:
 Once the bootstrap agent finishes, launch the eval agent:
 
 **Agent 3 — Eval** (works in worktree):
-- Read `eval/tests.md` and `.claude/skills/run-eval/SKILL.md` from the worktree
+- Read `.gtm-os/eval/tests.md` and `.claude/skills/run-eval/SKILL.md` from the worktree
 - The worktree now has a populated `context.md` from the bootstrap step
 - Execute all 8 test cases following the eval skill instructions
 - For dynamic tests (T3, T6, T7): construct domain-appropriate prompts from the bootstrapped `context.md`
@@ -158,7 +158,7 @@ You are running the eval suite in an isolated worktree at {WORKTREE_PATH}.
 
 This worktree has a populated context.md (bootstrapped from a real website). Your job: run all 8 eval tests and report results.
 
-1. Read {WORKTREE_PATH}/eval/tests.md for test definitions
+1. Read {WORKTREE_PATH}/.gtm-os/eval/tests.md for test definitions
 2. Read {WORKTREE_PATH}/.claude/skills/run-eval/SKILL.md for the eval process
 3. Scan repo state in the worktree (context.md status, demand/ contents, which modules exist)
 4. Process each test case following the eval skill instructions
