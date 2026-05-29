@@ -9,7 +9,9 @@ Local tools for API integrations, data imports/exports, and manual operations. R
 - Use Python with `uv run` — no global installs, no virtualenv needed
 - Each script is standalone — runs independently, no shared state
 - Read credentials from `.env`, never hardcode
-- Output goes to the appropriate module folder (metrics → campaigns/, transcripts → demand/)
+- Repo state goes to the appropriate module folder (PULL analyses → demand/, metrics → campaigns/)
+- Transient pipeline output (enrichment CSVs, scored lists, intermediate data) goes to `_output/` — never into module folders
+- When writing script code, route output paths to `_output/` for transient data — the convention applies to scripts you write, not just your direct file operations
 - Use inline `# /// script` metadata for dependencies:
 
 ```python

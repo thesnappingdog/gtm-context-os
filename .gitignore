@@ -22,6 +22,9 @@ __pycache__/
 _intake/*
 !_intake/_processed.json
 
+# Pipeline output (transient, regeneratable)
+_output/
+
 # Eval results (local, append-only)
 eval/results.md
 
