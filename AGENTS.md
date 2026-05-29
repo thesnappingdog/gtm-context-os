@@ -134,6 +134,38 @@ Before creating any new structure (file, folder, module):
 2. Check if existing structure covers the need
 3. Only create if there's a genuine gap
 
+### Document Architecture
+
+Structure documents for AI consumption, not narrative flow. Every file should answer one clear question and be named for that question.
+
+**Applies to:** Primarily `engine/` and `scripts/` where multi-stage pipelines live, but the principles apply whenever any module's files grow beyond simple single-purpose docs. Reference-style files that serve as lookup tables (like `messaging/angles.md` or `messaging/objections.md`) don't need splitting just because they're long — they're one concern.
+
+**Principles:**
+
+1. **One concern per file.** If a workflow spans multiple stages with different triggers, providers, or cadences, each stage is a separate document. End each doc at its output boundary — the account pipeline ends at "scored company list," not at "emails sent."
+
+2. **Name files for the question they answer.** `account-scoring-pipeline.md` tells the agent exactly what system is described. `scoring-model.md` is ambiguous — there could be multiple scoring models. Use kebab-case. Be specific enough that an agent scanning a directory listing can route correctly from filenames alone without reading the file.
+
+3. **Optimize for partial loading.** Assume the agent reads 1-2 files per task, not the whole module. A monolithic doc forces loading irrelevant content. Smaller docs let the agent compose only what it needs — messaging + personalization for copy work, pipeline + scoring for debugging.
+
+4. **Cross-reference by filename using repo-root-relative paths, don't duplicate.** When one doc depends on another's output, link to it (`see engine/account-enrichment.md`). Don't copy content across files — that creates staleness drift. A broken cross-reference is visible; stale duplicated content is invisible.
+
+5. **Keep an overview table at module level.** Each module's `README.md` should include a table mapping filenames to their scope once the module has 3+ content files. This is the agent's routing map — it reads the README first and then loads only the files it needs. At bootstrap time when only 1-2 files exist, the prose description from the blueprint is sufficient.
+
+**Module-level overview files** (like `engine/architecture.md`) are the exception to Principle 2's specificity rule. These are the routing overview described in Principle 5 — they provide the big picture that the single-concern files don't. Keep them as high-level maps with cross-references, not as monolithic docs that contain all the detail.
+
+**When to split an existing document:**
+- It covers multiple pipeline stages with different tooling or cadences
+- Different tasks need different sections of it (some need scoring, others need enrichment, others need activation)
+- Updating one section risks silently breaking assumptions in another
+
+**When NOT to split:**
+- The content is genuinely one concern viewed from multiple angles (a reference table, a style guide, a framework description)
+- The document is short enough that loading it whole is cheaper than the overhead of cross-references
+- Splitting would create files too thin to be useful on their own
+
+Don't rename existing files to match these conventions unless the operator asks. Apply the principles when creating new files or when the operator requests restructuring.
+
 ---
 
 ## Module Blueprints
