@@ -24,6 +24,10 @@ Local tools for API integrations, data imports/exports, and manual operations. R
 - Scripts are tools, not frameworks. Each one does one thing.
 - When a script produces output that maps to a state file, update the appropriate JSON index.
 
+## Lifecycle
+
+Scripts go create → consolidate → retire → graduate. When two scripts overlap, fold them into one and **delete** the loser — don't keep superseded near-duplicates. Record what replaced a retired script (commit message, and the engine dev-notes if one exists). Keep `scripts/README.md` a list of *live* scripts only. If an ad-hoc need for a retired script resurfaces, prefer a thin CLI wrapper around the surviving script over reviving the dead one.
+
 ## Graduation
 
 When a script is deployed to run on a schedule, deployed to a cloud environment, or becomes production code that other systems depend on, it belongs in `workflows/` — not here. If you stop running it and something breaks, it's a workflow.

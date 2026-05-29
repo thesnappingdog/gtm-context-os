@@ -58,6 +58,17 @@ Run `/quickstart` (Claude Code) or ask "help me get started" (any editor).
 
 See `SETUP.md` for detailed requirements and configuration.
 
+## Staying Up to Date
+
+The template keeps evolving — new skills, conventions, and framework improvements ship over time. Because you disconnected from the template repo, your instance is fully yours: updates are **opt-in and adapted to your structure**, never force-merged over your work.
+
+Updates ship as *patterns*, not files. The template publishes a `CHANGELOG.md` describing each change as a pattern with its rationale. To pull improvements in:
+
+- **Claude Code:** run `/gtm-upgrade`. Your agent fetches the latest template, checks each new pattern against your actual repo, and proposes — per item — what to adopt, adapt to your layout, or skip. Changes land on a review branch and it pauses before anything destructive, so you review the diff and merge (or discard) when ready. Decisions are recorded so the next `/gtm-upgrade` only surfaces what's new. (Don't have the skill yet? Just ask the agent to *"install the gtm-upgrade skill from the template"* — one-time.)
+- **Any editor:** ask *"Check the GTM Context OS template at https://github.com/thesnappingdog/gtm-context-os for new patterns and propose what applies to this repo."* Same advisory flow.
+
+What it will **never** do: touch your content (`context.md`, `demand/`, `segments/`, …), impose the template's folder names, or change anything without your approval. The template is a source of ideas, not a remote you sync to.
+
 ## Structure
 
 ```
@@ -76,6 +87,7 @@ scripts/               # API scripts, data pulls, automation
 workflows/             # Production-grade automated workflows (graduated from scripts/)
 
 _output/               # Transient pipeline output (gitignored)
+.gtm-os/               # OS machinery — eval harness, upgrade ledger (editor-agnostic)
 .claude/               # Claude Code skills and scoped rules
 .mcp.json              # MCP server connections (CRM, enrichment, research)
 .env                   # API keys (gitignored)

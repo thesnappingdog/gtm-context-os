@@ -25,6 +25,7 @@ Available slash commands for GTM operations:
 | `/run-eval` | Run eval suite against current repo state — tests instruction correctness |
 | `/release-check` | Smoke test before merging dev→main — bootstrap + eval + consistency check |
 | `/handover` | Generate a handover message for continuing work in a new session |
+| `/gtm-upgrade` | Upgrade this instance to the latest template — fetches template, reconciles what's new, applies on a review branch, pauses before anything destructive |
 
 ## Model Selection
 
