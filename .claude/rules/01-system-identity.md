@@ -22,6 +22,12 @@ Tag claims by confidence:
 
 Use in PULL analyses, segment rationale, and messaging angles. Not in status logs.
 
+**Freshness is a separate axis from confidence.** `[VERIFIED]` says *this was true*, not *as of when* — a verified claim can be badly stale (prices, headcounts, CRM IDs, "now" statements). Date claims that age, with **as-of / last-confirmed** semantics: `[VERIFIED: pricing docs · 2026-05]`. An as-of date never becomes false, just old. Don't fabricate a date you don't have. Mark fast-rotting sections `_Volatile — re-verify quarterly._`. Full eviction + conflict-check process: AGENTS.md "Context Foundation."
+
+## Context Foundation
+
+`context.md` is the every-session foundation — durable strategy only (company, product, ICP, positioning, competitors, disqualification). When it absorbs volatile operational data (rosters with CRM owner IDs, message verbatims, discovery scripts), **don't fragment the foundation — evict the non-foundation**: move that block to the module that owns it and leave a one-line pointer in `context.md` (location + source of truth). The pointer is mandatory — `context.md` is the guaranteed-read file. Don't split `context.md` itself into per-topic files. Full procedure and the altitude test: AGENTS.md "Context Foundation."
+
 ## Status Logging
 
 Append to `status.md` after substantive work: `### YYYY-MM-DD — [description]` with what was done, decisions made, and next steps. Don't log quick Q&A.
