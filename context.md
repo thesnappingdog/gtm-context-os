@@ -1,5 +1,10 @@
 # Company Context
 
+<!-- This is the FOUNDATION — read every session. Keep it durable strategy only.
+     Volatile operational data (sales rosters, CRM owner IDs, message verbatims,
+     discovery scripts) belongs in its module, with a pointer left here. Date claims
+     that age: [VERIFIED: source · YYYY-MM]. See AGENTS.md "Context Foundation". -->
+
 ## Company
 
 **Name:**

@@ -26,7 +26,7 @@ No external runtime, database, or deployment is required. The repo IS the system
 
 | File | Purpose | When to read |
 |------|---------|-------------|
-| `context.md` | Business understanding — ICP, positioning, competitors, product, buying patterns | Every session. This is the foundation. |
+| `context.md` | Business understanding — ICP, positioning, competitors, product, buying patterns. Durable strategy only; volatile operational data (rosters, IDs, scripts) lives in its module — see *Context Foundation* below | Every session. This is the foundation. |
 | `demand/` | PULL analyses, research evidence, buyer insights, synthesis | When analyzing calls, qualifying demand, grounding decisions in evidence |
 | `status.md` | Operational log — decisions, progress, next steps | Start of every session (check what happened last). End of every substantive session (append what happened). |
 | `demand/pull-framework.md` | The PULL methodology for analyzing demand | When running demand analysis or ingesting sales call transcripts |
@@ -41,6 +41,34 @@ Tag claims and insights by confidence level:
 - `[UNVERIFIABLE]` — Judgment call, hypothesis, or assumption that can't be confirmed from available data
 
 Use attribution in PULL analyses, segment rationale, and messaging angles. Don't use it in status logs or operational notes.
+
+**Freshness is a separate axis from confidence.** `[VERIFIED]` says *this was true* — it never says *as of when*. A claim can be verified and badly stale: prices, headcounts, CRM IDs, and "currently/now" statements rot while the tag still reads VERIFIED. So date the claims that age:
+
+- `[VERIFIED: pricing docs · 2026-05]` — the date is **as-of / last-confirmed**, not valid-until. It records when the claim was last checked true. An as-of date never becomes false; it just gets old — and "old" is exactly the signal you want. Don't fabricate a date you don't have: an undated `[VERIFIED]` is honest, and is a prompt to confirm-and-date the next time you touch it.
+- For sections that rot fast (rosters, pricing, anything live-sourced), add a section-level marker: `_Volatile — re-verify quarterly._` (use the real cadence). It tells the next agent what to re-check first.
+
+A fact can be high-confidence *and* stale. Treat an old date on a volatile claim as a re-verify trigger, not a guarantee.
+
+### Context Foundation: keep it strategic, evict the operational
+
+`context.md` is the **foundation** — read every session. It should hold durable, slow-changing strategy: company, product, ICP, positioning, competitors, disqualification rules, buying patterns. Over time it tends to *absorb* operational data that belongs elsewhere (rosters with CRM owner IDs, raw message verbatims, discovery scripts, current-project scope). That data rots fast and dilutes the foundation — and when a fact is updated in one place but its copy is left behind, the file starts to contradict itself.
+
+**Principle: don't fragment the foundation — evict the non-foundation.** Do *not* split `context.md` into `icp.md` / `positioning.md` / etc.: those belong together and should load together every session, so chunking the foundation is pure cost. Instead move *volatile, operational* content out to the module that owns it, and leave a pointer behind. Size is not the trigger — a 14k-char `context.md` is ~3.5k tokens, trivial to read. Altitude and freshness are the triggers.
+
+**The altitude test** — for any block in `context.md`, ask:
+- Does it change on a faster clock than the surrounding strategy? (a roster shifts monthly; positioning yearly)
+- Is its source of truth a live system or another module? (CRM owner IDs come from the API; message language comes from `demand/`)
+- Is it consulted only in specific tasks, not every session? (discovery scripts, owner IDs)
+
+If yes, it's operational — evict it. **Foundation stays; operational leaves.** This is instance-dependent, not a fixed list: for a 3-person founder-led company the sales roster genuinely *is* foundational. Judge by volatility and source-of-truth.
+
+**The eviction procedure** (an instance can run this itself):
+1. Identify the operational block and its right home **in this instance's structure** — don't assume folder names; some instances have no `engine/`, some put discovery questions in `demand/` vs `messaging/`.
+2. Move it there intact, with its attribution.
+3. **Leave a one-line pointer in `context.md`** naming the new location and the source of truth — e.g. "Seller roster + CRM owner IDs: `engine/seller-roster.md` (live-sourced from the CRM API)." The pointer is mandatory: `context.md` is the guaranteed-read file, so an agent doing the task must be able to reach the evicted data from there. Eviction without a pointer trades a freshness problem for a discoverability problem.
+4. If the evicted data is live-sourced, say so where it lands ("source of truth is the API; this is a cached snapshot").
+
+**Conflict & freshness check** (run periodically; `/gtm-os-health` automates it where available): scan `context.md` for (a) two statements that disagree about the same fact — a headcount stated twice with different numbers, a value prop that contradicts a product rule — and (b) `[VERIFIED]` claims that are undated or past their volatile cadence. **Surface conflicts to the operator to adjudicate — never silently pick a winner**, since the "current" value is ground truth only the operator holds. Undated volatile claims are re-verify prompts, not errors.
 
 ### Status Logging
 
