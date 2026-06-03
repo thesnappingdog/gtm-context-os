@@ -86,7 +86,9 @@ content/               # Blog, LinkedIn, marketing
 scripts/               # API scripts, data pulls, automation
 workflows/             # Production-grade automated workflows (graduated from scripts/)
 
-_output/               # Transient pipeline output (gitignored)
+samples/               # Committed, PII-safe representative outputs (golden extracts, baselines)
+_output/               # Transient pipeline scratch — disposable (gitignored)
+_retained/             # Durable but private full/real datasets — never committed (gitignored; manifest tracked)
 .gtm-os/               # OS machinery — eval harness, upgrade ledger (editor-agnostic)
 .claude/               # Claude Code skills and scoped rules
 .mcp.json              # MCP server connections (CRM, enrichment, research)

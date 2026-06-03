@@ -25,8 +25,13 @@ _intake/*
 # Pipeline output (transient, regeneratable)
 _output/
 
-# Maintainer-internal docs — local only, not shipped with the template
-docs/
+# Retained datasets — durable but private (full/real data, contact records, PII).
+# Data never commits; the manifest tracks what's down there and why.
+_retained/*
+!_retained/manifest.md
+
+# Temporary cross-session handoff breadcrumb (read then deleted; never ships)
+.session-handoff.md
 
 # Eval results (local, append-only)
 .gtm-os/eval/results.md
