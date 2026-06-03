@@ -68,7 +68,12 @@ If yes, it's operational — evict it. **Foundation stays; operational leaves.**
 3. **Leave a one-line pointer in `context.md`** naming the new location and the source of truth — e.g. "Seller roster + CRM owner IDs: `engine/seller-roster.md` (live-sourced from the CRM API)." The pointer is mandatory: `context.md` is the guaranteed-read file, so an agent doing the task must be able to reach the evicted data from there. Eviction without a pointer trades a freshness problem for a discoverability problem.
 4. If the evicted data is live-sourced, say so where it lands ("source of truth is the API; this is a cached snapshot").
 
-**Conflict & freshness check** (run periodically; `/gtm-os-health` automates it where available): scan `context.md` for (a) two statements that disagree about the same fact — a headcount stated twice with different numbers, a value prop that contradicts a product rule — and (b) `[VERIFIED]` claims that are undated or past their volatile cadence. **Surface conflicts to the operator to adjudicate — never silently pick a winner**, since the "current" value is ground truth only the operator holds. Undated volatile claims are re-verify prompts, not errors.
+**Conflict & freshness check** (run periodically — `/gtm-os-health` automates it). Scan `context.md` for:
+- **(a) Conflicts** — two statements that disagree about the same fact: a headcount stated twice with different numbers, a value prop that contradicts a product rule. This is the real payload — it catches the contradictions a growing file accretes.
+- **(b) Cached-vs-source drift** — where a pointer names a source of truth (e.g. "source of truth: `demand/synthesis.md`", "live-sourced from the CRM API"), check the cached values still match it. The pointer tells you exactly what to diff, so this lens is reliable, not guesswork.
+- **(c) Age** — dated claims listed oldest-first, so the eye lands on the most likely-stale.
+
+**Surface (a) and (b) to the operator to adjudicate — never silently pick a winner**, since the "current" value is ground truth only the operator holds. For (c) there is **no expiry rule**: only *dated* claims are considered (dating is the opt-in decay signal — undated facts are never flagged), age is shown, and the operator judges whether it's stale. Don't try to decide per-fact when something becomes obsolete.
 
 ### Status Logging
 
