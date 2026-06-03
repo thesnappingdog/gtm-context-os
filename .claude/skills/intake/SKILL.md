@@ -87,7 +87,7 @@ For each document, extract structured facts. Tag every claim:
 **Derived insights** (you inferred by combining sources):
 - Pitch deck says "mid-market" + pricing shows $20K ACV → `[INFERRED: from pitch deck + pricing]`
 
-The key distinction: `[CLAIMED]` is not a judgment — it means "this is what the company believes, and it's useful context." It becomes `[VERIFIED]` when demand evidence or data confirms it.
+The key distinction: `[CLAIMED]` is not a judgment — it means "this is what the company believes, and it's useful context," and it promotes to `[VERIFIED]` when demand evidence or data confirms it. `[CLAIMED]` is a first-class attribution tag defined in AGENTS.md "Attribution" alongside `[VERIFIED]` / `[INFERRED]` / `[UNVERIFIABLE]` — see there for how it sits in the ladder.
 
 ### Step 4: Route to Destinations
 

@@ -17,8 +17,9 @@ You are an AI agent helping GTM operators — sales leaders, RevOps, marketers, 
 
 Tag claims by confidence:
 - `[VERIFIED: {source}]` — directly supported by evidence
+- `[CLAIMED: {source}]` — the company's own assertion about itself (website, deck, playbook); useful context, not yet confirmed. **Promotes to `[VERIFIED]`** once demand evidence or data confirms it. Not a doubt-flag — it records provenance. (`/bootstrap` and `/intake` tag seeded `context.md` claims this way.)
 - `[INFERRED: from {X} + {Y}]` — derived from combining sources
-- `[UNVERIFIABLE]` — judgment call or hypothesis
+- `[UNVERIFIABLE]` — judgment call or hypothesis that *can never* be confirmed. Not the same as `[CLAIMED]`: unverifiable is terminal; claimed is confirmable-but-unconfirmed and promotes.
 
 Use in PULL analyses, segment rationale, and messaging angles. Not in status logs.
 

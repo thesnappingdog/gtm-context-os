@@ -43,6 +43,11 @@ Every `dev` → `main` merge **must** add one entry per coherent pattern changed
 
 Condensed index of what shipped under each `main` tag. Newest first. Each release groups the pattern entries (detailed below) that an instance would consider. This is the "what changed" summary; the entries are the "how to adopt it."
 
+### `2026-06-04` — `[CLAIMED]` attribution tag canonized
+
+One methodology entry, closing a gap between the seeding skills and the canon:
+- **`claimed-attribution-tag`** — `[CLAIMED: {source}]` (the company's own unconfirmed assertion, promotable to `[VERIFIED]`) becomes a first-class attribution tag defined in the canon, no longer only inside `/bootstrap` and `/intake`. An agent meeting the tag mid-session now has a definition without loading a skill, and won't misread it as the terminal `[UNVERIFIABLE]`.
+
 ### `2026-05-29c` — engineering artifact patterns + upgrade-path v2
 
 Three engineering artifact conventions, mined from a live instance's pipeline-hardening work:
@@ -64,6 +69,38 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 ---
 
 ## Entries
+
+### [2026-06-04] `[CLAIMED]` is a first-class attribution tag
+
+- **ID:** claimed-attribution-tag
+- **Category:** methodology
+- **Severity:** medium
+- **Depends on:** none
+
+**What changed**
+The attribution vocabulary gains a fourth, canonized tag: `[CLAIMED: {source}]` — the company's own assertion about itself (website, pitch deck, playbook): useful context, not yet independently confirmed, and **promotable to `[VERIFIED]`** once demand evidence or data confirms it. It is now defined in the canon's Attribution section alongside `[VERIFIED]` / `[INFERRED]` / `[UNVERIFIABLE]`. The key framing: `[CLAIMED]` marks *provenance* (who asserted it), the other three mark *confidence* — which is why a claim can be both made and later verified. `[CLAIMED]` is explicitly distinguished from `[UNVERIFIABLE]`: claimed is confirmable-but-unconfirmed and promotes; unverifiable is terminal and never promotes.
+
+**Why**
+The seeding skills (`/bootstrap`, `/intake`) already wrote `[CLAIMED]` into `context.md` — the guaranteed-read foundation file — and one skill defined it, but the canon (the always-loaded rules + the source-of-truth Attribution section) defined only the other three tags. An agent working mid-session from the canon, without having loaded those skills, would meet a `[CLAIMED]` tag with no definition and have to guess. The dangerous wrong guess is `[CLAIMED]` ≈ `[UNVERIFIABLE]`, which is backwards: it freezes a promotable claim as permanently unconfirmable and invites discarding useful context as junk. Canonizing the tag makes every agent behave identically and correctly the moment it meets the tag, with no skill load required.
+
+**How to assess fit**
+Does your instance seed `context.md` (or anything else) from company-authored material — a website crawl, a pitch deck, a playbook — and tag it to mark "this is the company's claim, not confirmed"? If you use `/bootstrap` or `/intake`, you already produce `[CLAIMED]` tags and this applies. If your instance only ever records `[VERIFIED]`/`[INFERRED]`/`[UNVERIFIABLE]` and never seeds from marketing material, the tag is harmless to define and simply goes unused.
+
+**How to adapt (not copy)**
+Add `[CLAIMED]` to wherever *your* instance defines its attribution vocabulary (the canon doc the agent always reads), with two load-bearing properties stated: (1) it is *provenance, not a confidence judgment*; (2) it *promotes to `[VERIFIED]`* and is *not* a synonym for `[UNVERIFIABLE]`. The exact wording and file are yours; the distinction is the pattern. If you maintain a single full definition plus skills that use the tag, keep the full definition in one place and have the skills point to it — two full definitions drift apart.
+
+**Downstream risks / migration**
+- If your instance, before this entry, had agents interpret an in-context `[CLAIMED]` tag as `[UNVERIFIABLE]` (the natural wrong guess), any decision made on that reading was treating promotable company context as terminal-unconfirmable. Re-reading those `[CLAIMED]` claims under the corrected definition may reclassify how they inform segments/messaging — none of the data changes, but its standing does.
+- No tag is renamed or removed and no file is reformatted, so existing `[VERIFIED]`/`[INFERRED]`/`[UNVERIFIABLE]` tags are untouched. This is additive to the vocabulary.
+
+**What I can't see from here**
+- Your instance may have improvised a *different* marker for the same idea (`[ASSUMED]`, `[MARKETING]`, an untagged "per their site" note). If so, reconcile to one tag rather than running two vocabularies — and decide whether to rewrite the old marker or just stop minting it. A repo-wide grep for stray attribution-like brackets in `context.md` will surface these; the template author can't see what you coined.
+- If you ever ran a health/lint check that flagged `[CLAIMED]` as an unknown tag, update that check to accept it now that it's canon.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Attribution"; `.claude/rules/01-system-identity.md` → "Attribution"; `.claude/skills/bootstrap/SKILL.md` and `.claude/skills/intake/SKILL.md` (producers); `SETUP.md` (Step 2, operator-facing mention).
+
+---
 
 ### [2026-05-29] `_output/` artifact boundary
 
