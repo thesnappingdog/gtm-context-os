@@ -44,18 +44,21 @@ Tell the user exactly where to find the key (from the integration reference: whi
 ### Step 4: Set Up Integration
 
 **If MCP server available** (noted in integration reference):
-Add to `.mcp.json`:
+Add the server under `mcpServers` in `.mcp.json` — merge into the object `/setup-env` created (`{ "mcpServers": {} }`), don't replace it:
 ```json
 {
-  "{tool}": {
-    "command": "npx",
-    "args": ["-y", "{mcp-package-name}"],
-    "env": {
-      "{TOOL}_API_KEY": "${.env key name}"
+  "mcpServers": {
+    "{tool}": {
+      "command": "npx",
+      "args": ["-y", "{mcp-package-name}"],
+      "env": {
+        "{TOOL}_API_KEY": "${{TOOL}_API_KEY}"
+      }
     }
   }
 }
 ```
+(`{TOOL}_API_KEY` is the `.env` key from Step 3; `${{TOOL}_API_KEY}` interpolates it — e.g. `HUBSPOT_API_KEY` → `${HUBSPOT_API_KEY}`.)
 
 **If script needed:**
 Bootstrap `scripts/` module if it doesn't exist (use AGENTS.md blueprint). Create a script at `scripts/pull-{tool}-{data}.py` using the inline dependency pattern:
