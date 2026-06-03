@@ -37,8 +37,11 @@ No external runtime, database, or deployment is required. The repo IS the system
 
 Tag claims and insights by confidence level:
 - `[VERIFIED: {source}]` — Directly supported by evidence (transcript quote, data point, metric)
+- `[CLAIMED: {source}]` — Asserted by the company about itself (website, pitch deck, playbook) — useful context, not yet independently confirmed. **Promotable:** becomes `[VERIFIED]` when demand evidence or data confirms it. Not a judgment — it records *who said it and that it's unconfirmed*, not that it's doubtful.
 - `[INFERRED: from {X} + {Y}]` — Derived from combining multiple sources
-- `[UNVERIFIABLE]` — Judgment call, hypothesis, or assumption that can't be confirmed from available data
+- `[UNVERIFIABLE]` — Judgment call, hypothesis, or assumption that *can never* be confirmed from available data. Distinct from `[CLAIMED]`: a claim is confirmable-but-unconfirmed and promotes; unverifiable is terminal.
+
+`[CLAIMED]` is provenance (the company's own assertion), the other three are confidence — that's why a claim can be both made and later verified. The natural lifecycle is `[CLAIMED]` → `[VERIFIED]` once buyer evidence or data confirms it (this is what `/bootstrap` and `/intake` produce when seeding `context.md` from marketing material).
 
 Use attribution in PULL analyses, segment rationale, and messaging angles. Don't use it in status logs or operational notes.
 
@@ -128,7 +131,7 @@ When a full batch of transcripts has been analyzed, produce two synthesis delive
 
 The comprehensive scorecard and pattern analysis across all PULL analyses. Structure:
 
-- **Executive Summary** — total calls, demand distribution (strong/moderate/weak/none with counts and percentages), headline findings
+- **Executive Summary** — total calls, demand distribution by tier (counts and percentages — tier names are owned by `pull-framework.md`), headline findings
 - **Full Scorecard** — table per tier with company, prospect, role, PULL score, key signal, blocker
 - **Demand Distribution** — visual distribution chart, broken out by batch if multiple batches exist
 - **Pattern Analysis** — strongest demand signals (predict close), stall patterns (predict no close), feature gaps mentioned (table with frequency/impact), competitive landscape (table with mention counts and positioning), buyer type distribution, regional distribution, trigger classification
@@ -690,43 +693,62 @@ scripts/
 
 Local tools for API integrations, data imports/exports, and manual operations. Run these from your terminal when you need them.
 
+## Scripts
+
+| Script | What it does | Talks to |
+|--------|-------------|----------|
+| `{name}.py` | one line | {external system, or "local data"} |
+
+Lists only *live* scripts — a retired one disappears from the table (the per-script docstring is the detail; the table is the navigation surface). Optionally add a **Note** for provenance and the current graduation candidate.
+
 ## Conventions
 - Use Python with `uv run` (no global installs, no virtualenv setup needed)
 - Each script is standalone — runs independently, no shared state
-- Scripts read config from `.env` (API keys, endpoints)
-- Repo state goes to the appropriate module folder (PULL analyses → demand/pull-analyses/, campaign docs → campaigns/)
-- Transient pipeline output (enrichment CSVs, scored lists, intermediate data) goes to `_output/`
-- Include a docstring explaining what the script does, what API it talks to, and what it outputs
+- Read credentials from `.env`, never hardcode
+- Output routing: repo state → the right module folder; transient → `_output/`
+- Every script opens with the standard header (below)
 
-## Common Script Patterns
+## Script header
 
-### Pull data from an API
+The opening docstring is the operator-facing interface — it's what makes a script safe to hand off or graduate. Open every script with the same shape:
+
 ```python
-#!/usr/bin/env python3
-"""Pull [data type] from [service] and write to [output location]."""
-import os, requests, json
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["requests"]
+# ///
+"""
+One-line purpose.
+
+Talks to: {external system, or "local data only"}.
+In:  {input source}  →  Out: {output path} ({_output / samples / _retained / module folder}).
+Write-safety: {read-only | requires --commit to write | local only}.
+
+Usage:
+  uv run scripts/{name}.py --dry-run
+  uv run scripts/{name}.py --commit
+"""
 from pathlib import Path
 
-API_KEY = os.environ["SERVICE_API_KEY"]
-# ... fetch, transform, write
-```
-
-### Import leads from CSV
-```python
-#!/usr/bin/env python3
-"""Import leads from CSV into [sequencing tool]."""
-import csv, os, requests
-
-# Read CSV, validate, POST to API
+ROOT = Path(__file__).resolve().parent.parent   # anchor paths to the repo root, not cwd
+OUT  = ROOT / "_output" / "{name}.csv"           # derive every tier path from ROOT
 ```
 ```
 
 **Conventions:**
 - Scripts are tools, not frameworks. Each one does one thing.
-- Always read credentials from `.env`, never hardcode.
+- Always read credentials from `.env`, never hardcode. Idiom: read from the environment first, fall back to parsing `.env`, and if still missing, exit with an error naming the exact variable (`{TOOL}_API_KEY`). On Claude Code the same key may already live in `.mcp.json` for an MCP server — a script may read it from there rather than forcing the operator to duplicate it.
+- Anchor every path to a `ROOT` constant at the top of the file (`ROOT = Path(__file__).resolve().parent.parent`) and derive `_output/`, `samples/`, and module-folder paths from it. This is what makes the output-routing convention reliable when a script runs from a different directory.
+- **Write-safety — when a script mutates an external system of record** (CRM, sequencer, datastore). A read-only script is safe by construction; a writer needs guardrails (gated on writes — none of this applies to read-only scripts):
+  - **Default to a dry-run.** Without an explicit `--commit` flag, print what *would* change and write nothing. The mutating path is opt-in, never the default.
+  - **Graduated rollout.** Support `--limit N` then `--all`, so you can prove the write on a handful of records before the full set.
+  - **Idempotent by natural key.** Upsert on a stable key (e.g. email, an external ID) so a re-run updates in place instead of duplicating.
+  - **Snapshot before you overwrite.** When an import overwrites existing fields, run a read-only backup script first and route its output to a durable home (`_retained/` if it carries PII, with a manifest line), so the change is recoverable.
+
+  A write to a system of record is the one place where "just run it and see" is expensive — these cost a few lines and make the operation reversible and rerunnable.
+- Name scripts in tool/concern families and document a multi-step chain as numbered steps (source → filter → enrich). When a chain hardens, fold the heavy logic into one pipeline script that exposes its phases as subcommands (`run`, `classify`, `score`, …) — that consolidated script is the natural graduation candidate to `workflows/`.
 - When a script produces output that maps to a state file (campaign metrics, transcript analyses), update the appropriate JSON index.
 - When a script produces transient data (enrichment results, scored account lists, intermediate CSVs), write to `_output/`. Never dump pipeline artifacts into module folders.
-- Document what each script does at the top of the file — the next operator may not have written it.
 - Use `uv run script.py` to execute (handles dependencies automatically with inline `# /// script` metadata).
 
 **Inline dependency example:**
