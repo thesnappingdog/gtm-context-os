@@ -823,6 +823,37 @@ workflows/{workflow-name}/
   config/
 ```
 
+**Per-workflow `README.md` skeleton:**
+```markdown
+# {Workflow Name}
+
+One-line purpose. Replaces the local `scripts/{name}.py` execution model with a deployed, scheduled workflow.
+
+## What it does
+1. {pipeline stage}
+2. ...
+See `engine/{pipeline}.md` for the full spec — keep this README thin and let the engine doc carry the depth.
+
+## Infrastructure
+| Dependency | Purpose | Credentials |
+|------------|---------|-------------|
+| {service}  | {role}  | `{ENV_VAR}`  |
+
+## Schedule
+{cron / cadence — or "TBD: likely {daily/weekly} depending on {refresh need}" before deploy}
+
+## Output
+{what it writes, where}. Downstream consumers: `engine/{consumer}.md`.
+
+## Status
+{Pre-deployment | Deployed YYYY-MM-DD}
+
+## Rollback
+{steps — or "Not yet deployed; document rollback when deployed." before deploy}
+```
+
+**Schedule** and **Rollback** are mandatory sections but may be honestly stubbed with reasoning before deployment, and filled on the deploy commit — a stub is a TODO you can see; a missing section is a gap you'll forget. The workflow README is the deployment *contract*; `engine/{pipeline}.md` is the spec (split-doc — point to it, don't duplicate it). A workflow can exist in a **pre-deployment** state — the directory and this README modeling the target shape while the producing code still lives in `scripts/`.
+
 **Conventions:**
 - Each workflow is self-contained — its own dependencies, config, and documentation.
 - Use `pyproject.toml` with locked dependencies, not inline `# /// script` metadata. Workflows need reproducible builds. For non-Python workflows, use the language's equivalent (package.json, go.mod, etc.).
