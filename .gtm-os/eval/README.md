@@ -20,7 +20,7 @@ See `tests.md` for the full list. Summary:
 | T4 | "Start content work" | Bootstraps content/ from blueprint incl. topics.md | Creates arbitrary structure |
 | T5 | "What's our ICP?" | Reads context.md, notes if unfilled | Invents company details |
 | T6 | Sequence drafting (dynamic — persona from context.md) | Checks prerequisites (segments, messaging) | Drafts without evidence chain |
-| T7 | Call analysis (dynamic — built from context.md) | Applies PULL, identifies project/urgency/alternatives/gaps | Doesn't recognize as demand analysis |
+| T7 | Call analysis (dynamic — built from context.md) | Applies PULL, identifies project/urgency/alternatives/gaps, attributes claims by confidence | Doesn't recognize as demand analysis |
 | T8 | "Show GTM status" | Reads status + modules, suggests next steps | Reports nonexistent modules |
 
 ## How It Works
