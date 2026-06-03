@@ -52,7 +52,7 @@ Then open in your AI editor and start:
 claude  # or open in Cursor/Copilot/Windsurf
 ```
 
-Run `/quickstart` (Claude Code) or ask "help me get started" (any editor).
+Run `/start` (Claude Code) — it checks your repo state and points you to the right next step. Or ask "help me get started" (any editor).
 
 **Claude Cowork users:** Open this repo as a **project**, not a task. Cowork projects persist across sessions and load the full `.claude/` configuration (rules, skills, settings). Tasks are one-shot and miss the system context. After opening as a project, type `/start` to begin.
 
