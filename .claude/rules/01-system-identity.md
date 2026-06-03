@@ -57,6 +57,8 @@ At session start, silently assess:
 4. Reconcile JSON indexes silently — fix drift without asking.
 5. Check for broken evidence chains — only mention those needing operator input.
 
+This is the lightweight heartbeat, not a full audit. For a deep instance-state check — structural completeness (missing module overviews), output hygiene, drift, orphans — that's `/gtm-os-health`. If the quick assessment hints at deeper drift, point the operator there rather than expanding the silent check.
+
 ---
 
 *Full module blueprints, worked examples, and conventions: `AGENTS.md`. Read specific sections as needed, not the whole file.*

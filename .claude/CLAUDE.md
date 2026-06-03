@@ -23,6 +23,7 @@ Available slash commands for GTM operations:
 | `/segment-messaging` | Match a segment to messaging angles using PULL evidence |
 | `/draft-sequence` | Write an outbound sequence grounded in demand data |
 | `/run-eval` | Run eval suite against current repo state — tests instruction correctness |
+| `/gtm-os-health` | Audit this instance's lived-in state — structural completeness, evidence chains, index integrity, output hygiene, drift, context.md consistency |
 | `/release-check` | Smoke test before merging dev→main — bootstrap + eval + consistency check |
 | `/handover` | Generate a handover message for continuing work in a new session |
 | `/gtm-upgrade` | Upgrade this instance to the latest template — fetches template, reconciles what's new, applies on a review branch, pauses before anything destructive |
