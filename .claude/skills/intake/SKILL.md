@@ -116,8 +116,8 @@ When updating context.md, merge with existing content. Don't overwrite — add, 
 - Case study quotes or proof points → `messaging/angles.md` proof points
 
 **→ segments/ (bootstrap if needed)**
-- Named segments or personas → `segments/{name}.md`
-- Targeting criteria → `segments/segments.json`
+- Named segments or personas → `segments/{name}.md` (targeting criteria, hypothesis, and rationale live in this markdown file)
+- Segment index entry (id, name, status, pull_evidence) → `segments/segments.json`
 
 **→ campaigns/ (bootstrap if needed)**
 - Past campaign data → `campaigns/campaigns.json` + relevant campaign folder
