@@ -13,6 +13,7 @@ Local tools for API integrations, data imports/exports, and manual operations. R
 - Transient pipeline output (enrichment CSVs, scored lists, intermediate data) goes to `_output/` — never into module folders
 - When writing script code, route output paths to `_output/` for transient data — the convention applies to scripts you write, not just your direct file operations
 - `_output/` is the script default; promoting a run's output to `samples/` (committed, PII-safe) or `_retained/` (durable, private) is a deliberate act, never a script's automatic write target. See AGENTS.md "Pipeline Artifacts and Output"
+- `_output/` is write-only for agents: don't browse, search, or read it back to inform your work — its contents are ephemeral and unreliable (stale, partial, or from a different run). Only read an `_output/` path the operator explicitly points you to. (Scripts you write may chain intermediate files through `_output/` within a single pipeline run — that's plumbing, not a state read.)
 - Use inline `# /// script` metadata for dependencies:
 
 ```python
