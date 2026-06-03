@@ -51,6 +51,7 @@ Run each category. For every finding, classify it: **OK**, **auto-fixed** (safe 
 **4. Output hygiene** — is output following the three-tier convention? (See AGENTS.md "Pipeline Artifacts and Output".)
 - Scratch dir (`_output/`/renamed): numbered-iteration siblings (`foo.csv`, `foo2.csv`, `foo3.csv`), underscore-"protected" files (the "protect this file" anti-pattern), or a large stale pile? Flag and recommend promote-or-purge — never auto-delete.
 - `_retained/`: any file present with no corresponding line in `_retained/manifest.md`? Manifest missing entirely? Flag — gitignored data with no tracked record is how `_retained/` rots.
+- Tracked-under-gitignored: no tracked file should live inside a gitignored zone (the scratch dir, `_retained/`) except a whitelisted manifest. Run `git ls-files _output _retained` (substitute the renamed scratch dir from Step 1) — any hit other than `_retained/manifest.md` is a file committed under a gitignored zone, which a clone silently loses (or leaks, if it carries PII under `_retained/`). Flag CRITICAL under `_retained/` (same PII concern as `samples/`), MED otherwise — recommend extracting genuine repo-state into a tracked doc/index first; never auto-delete.
 - `samples/`: any committed file containing contact-PII patterns? Run the same grep `/release-check` uses:
   ```bash
   git ls-files 'samples/**' | xargs -r grep -lE \
