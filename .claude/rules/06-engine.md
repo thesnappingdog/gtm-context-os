@@ -21,6 +21,7 @@ Pipeline architecture, enrichment workflows, AI prompts, and integration documen
 - Pipeline run artifacts (enrichment CSVs, scored batches, intermediate files) never go in `engine/` — they go in `_output/` (disposable scratch). A representative, PII-safe output worth keeping graduates to `samples/`; a full or PII-bearing dataset goes in `_retained/` (logged in its manifest) or an external store — never committed. See AGENTS.md "Pipeline Artifacts and Output"
 - When hardening a pipeline, keep findings in a sibling `engine/{pipeline}-dev-notes.md` (priority-ranked P0–P3, each with Status / Files / Problem / Decision/Fix / Follow-up) — not in the canonical doc. It records why fixes were made, which deferrals await evidence, and which scripts are in-pipeline vs not (the scope boundary that decides what graduates)
 - `integrations/` has two doc genres: API *references* (auth, endpoints) and — when debugging a misbehaving tool — a *diagnosis* doc (dated verdict · expected vs. observed · ruled-out · hypotheses · decisive test · fix options)
+- A persistent datastore is an optional third `integrations/` genre — when scripts need durable state across runs, document it as `integrations/{datastore}.md` (role · connection · read-vs-write path · schema conventions · migrations). Schema is tracked as version-stamped DDL migrations (in a top-level `{datastore}/migrations/` while scripts-tier); data is never committed; a datastore alone doesn't trigger graduation. See AGENTS.md "Module: engine" + `engine/integrations/datastore.md`
 
 ---
 
