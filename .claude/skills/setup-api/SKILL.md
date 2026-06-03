@@ -58,7 +58,7 @@ Add the server under `mcpServers` in `.mcp.json` — merge into the object `/set
   }
 }
 ```
-(`{TOOL}_API_KEY` is the `.env` key from Step 3; `${{TOOL}_API_KEY}` interpolates it — e.g. `HUBSPOT_API_KEY` → `${HUBSPOT_API_KEY}`.)
+(`{TOOL}_API_KEY` is the `.env` key from Step 3; `${{TOOL}_API_KEY}` interpolates it — e.g. `APOLLO_API_KEY` → `${APOLLO_API_KEY}`. Use the exact env-var name from the integration reference read in Step 2 — not every tool uses an `_API_KEY` suffix: HubSpot uses `HUBSPOT_ACCESS_TOKEN`, Gong uses `GONG_ACCESS_KEY`/`GONG_SECRET_KEY`.)
 
 **If script needed:**
 Bootstrap `scripts/` module if it doesn't exist (use AGENTS.md blueprint). Create a script at `scripts/pull-{tool}-{data}.py` using the inline dependency pattern:
