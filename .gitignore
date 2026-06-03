@@ -30,6 +30,9 @@ _output/
 _retained/*
 !_retained/manifest.md
 
+# Note: a datastore's migrations are schema-as-code and ARE tracked (the opposite of the
+# data tiers above) — a {datastore}/migrations/ dir and its .sql files commit; the data never does.
+
 # Temporary cross-session handoff breadcrumb (read then deleted; never ships)
 .session-handoff.md
 

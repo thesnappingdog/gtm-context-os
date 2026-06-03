@@ -24,6 +24,7 @@ If user named a specific tool, proceed. If they named a category, ask which tool
 - **Enrichment:** Clay, Apollo, Clearbit, ZoomInfo, Exa
 - **Sequencing:** Lemlist, Instantly, Smartlead, Apollo Sequences, HeyReach
 - **Research:** Exa, Perplexity
+- **Datastore (persistent state):** Postgres, Supabase, a hosted warehouse — for structured state scripts read/write across runs. Document it with the datastore genre (`engine/integrations/datastore.md`), not the API-reference template below; most instances never need one.
 
 ### Step 2: Load Integration Reference
 
