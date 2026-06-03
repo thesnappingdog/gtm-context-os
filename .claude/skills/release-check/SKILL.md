@@ -17,7 +17,7 @@ Automated release gate for merging `dev` → `main`. Runs three checks in an iso
 | Agent | What | Needs worktree? | Depends on |
 |-------|------|-----------------|------------|
 | **Bootstrap** | Populates context.md from a real website in a clean worktree | Yes | Nothing |
-| **Consistency** | Checks AGENTS.md against scoped rules, blueprints, Document Architecture | No | Nothing |
+| **Consistency** | Checks AGENTS.md against scoped rules, blueprints, Document Architecture; PII gate on committed `samples/` | No | Nothing |
 | **Eval** | Runs all 8 eval tests against the bootstrapped worktree | Yes | Bootstrap |
 
 ## Process
@@ -56,6 +56,12 @@ Launch two agents simultaneously:
   - **Convention consistency**: Are graduation criteria consistent between scripts and workflows? Are JSON index schemas consistent between rules and AGENTS.md?
   - **Skill coherence**: Do skills reference files and modules that exist? Do they follow conventions described in AGENTS.md?
   - **Cross-references**: Do files reference other files that actually exist?
+  - **PII gate on committed samples**: No contact PII may be committed under `samples/`. Run a grep over tracked files in `samples/` for contact patterns and flag any hit as CRITICAL:
+    ```bash
+    git ls-files 'samples/**' | xargs -r grep -lE \
+      '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|\+?[0-9][0-9 ().-]{7,}[0-9]' 2>/dev/null
+    ```
+    Any file listed is a likely PII leak — it belongs in `_retained/` (gitignored), not `samples/`. (Empty/absent `samples/` → pass.)
 - Report: list of contradictions, inconsistencies, or gaps found. If clean, say so.
 
 ### Step 3: Run Eval (After Bootstrap Completes)

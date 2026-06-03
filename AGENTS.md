@@ -26,7 +26,7 @@ No external runtime, database, or deployment is required. The repo IS the system
 
 | File | Purpose | When to read |
 |------|---------|-------------|
-| `context.md` | Business understanding — ICP, positioning, competitors, product, buying patterns | Every session. This is the foundation. |
+| `context.md` | Business understanding — ICP, positioning, competitors, product, buying patterns. Durable strategy only; volatile operational data (rosters, IDs, scripts) lives in its module — see *Context Foundation* below | Every session. This is the foundation. |
 | `demand/` | PULL analyses, research evidence, buyer insights, synthesis | When analyzing calls, qualifying demand, grounding decisions in evidence |
 | `status.md` | Operational log — decisions, progress, next steps | Start of every session (check what happened last). End of every substantive session (append what happened). |
 | `demand/pull-framework.md` | The PULL methodology for analyzing demand | When running demand analysis or ingesting sales call transcripts |
@@ -41,6 +41,39 @@ Tag claims and insights by confidence level:
 - `[UNVERIFIABLE]` — Judgment call, hypothesis, or assumption that can't be confirmed from available data
 
 Use attribution in PULL analyses, segment rationale, and messaging angles. Don't use it in status logs or operational notes.
+
+**Freshness is a separate axis from confidence.** `[VERIFIED]` says *this was true* — it never says *as of when*. A claim can be verified and badly stale: prices, headcounts, CRM IDs, and "currently/now" statements rot while the tag still reads VERIFIED. So date the claims that age:
+
+- `[VERIFIED: pricing docs · 2026-05]` — the date is **as-of / last-confirmed**, not valid-until. It records when the claim was last checked true. An as-of date never becomes false; it just gets old — and "old" is exactly the signal you want. Don't fabricate a date you don't have: an undated `[VERIFIED]` is honest, and is a prompt to confirm-and-date the next time you touch it.
+- For sections that rot fast (rosters, pricing, anything live-sourced), add a section-level marker: `_Volatile — re-verify quarterly._` (use the real cadence). It tells the next agent what to re-check first.
+
+A fact can be high-confidence *and* stale. Treat an old date on a volatile claim as a re-verify trigger, not a guarantee.
+
+### Context Foundation: keep it strategic, evict the operational
+
+`context.md` is the **foundation** — read every session. It should hold durable, slow-changing strategy: company, product, ICP, positioning, competitors, disqualification rules, buying patterns. Over time it tends to *absorb* operational data that belongs elsewhere (rosters with CRM owner IDs, raw message verbatims, discovery scripts, current-project scope). That data rots fast and dilutes the foundation — and when a fact is updated in one place but its copy is left behind, the file starts to contradict itself.
+
+**Principle: don't fragment the foundation — evict the non-foundation.** Do *not* split `context.md` into `icp.md` / `positioning.md` / etc.: those belong together and should load together every session, so chunking the foundation is pure cost. Instead move *volatile, operational* content out to the module that owns it, and leave a pointer behind. Size is not the trigger — a 14k-char `context.md` is ~3.5k tokens, trivial to read. Altitude and freshness are the triggers.
+
+**The altitude test** — for any block in `context.md`, ask:
+- Does it change on a faster clock than the surrounding strategy? (a roster shifts monthly; positioning yearly)
+- Is its source of truth a live system or another module? (CRM owner IDs come from the API; message language comes from `demand/`)
+- Is it consulted only in specific tasks, not every session? (discovery scripts, owner IDs)
+
+If yes, it's operational — evict it. **Foundation stays; operational leaves.** This is instance-dependent, not a fixed list: for a 3-person founder-led company the sales roster genuinely *is* foundational. Judge by volatility and source-of-truth.
+
+**The eviction procedure** (an instance can run this itself):
+1. Identify the operational block and its right home **in this instance's structure** — don't assume folder names; some instances have no `engine/`, some put discovery questions in `demand/` vs `messaging/`.
+2. Move it there intact, with its attribution.
+3. **Leave a one-line pointer in `context.md`** naming the new location and the source of truth — e.g. "Seller roster + CRM owner IDs: `engine/seller-roster.md` (live-sourced from the CRM API)." The pointer is mandatory: `context.md` is the guaranteed-read file, so an agent doing the task must be able to reach the evicted data from there. Eviction without a pointer trades a freshness problem for a discoverability problem.
+4. If the evicted data is live-sourced, say so where it lands ("source of truth is the API; this is a cached snapshot").
+
+**Conflict & freshness check** (run periodically — `/gtm-os-health` automates it). Scan `context.md` for:
+- **(a) Conflicts** — two statements that disagree about the same fact: a headcount stated twice with different numbers, a value prop that contradicts a product rule. This is the real payload — it catches the contradictions a growing file accretes.
+- **(b) Cached-vs-source drift** — where a pointer names a source of truth (e.g. "source of truth: `demand/synthesis.md`", "live-sourced from the CRM API"), check the cached values still match it. The pointer tells you exactly what to diff, so this lens is reliable, not guesswork.
+- **(c) Age** — dated claims listed oldest-first, so the eye lands on the most likely-stale.
+
+**Surface (a) and (b) to the operator to adjudicate — never silently pick a winner**, since the "current" value is ground truth only the operator holds. For (c) there is **no expiry rule**: only *dated* claims are considered (dating is the opt-in decay signal — undated facts are never flagged), age is shown, and the operator judges whether it's stale. Don't try to decide per-fact when something becomes obsolete.
 
 ### Status Logging
 
@@ -136,35 +169,43 @@ Before creating any new structure (file, folder, module):
 
 ### Pipeline Artifacts and Output
 
-Scripts and pipelines produce two kinds of output: **repo state** and **transient artifacts**.
+Scripts and pipelines produce **repo state** (knowledge that belongs in the repo permanently) and **data outputs** (the files a run produces). State is easy — it goes in module folders. Data outputs are where discipline matters: they sort into three homes by *durability* and *sensitivity*, and getting this wrong is how an output directory rots into a junk drawer of `accounts2.csv`, `accounts_test4.csv`, `accounts_final_v3.csv`.
 
-**Repo state** — structured knowledge that belongs in the repo permanently:
+**Repo state** — structured knowledge, always tracked in module folders:
 - PULL analyses, segment definitions, messaging angles, campaign docs (markdown in module folders)
 - JSON indexes maintained by agents (pull-index.json, segments.json, etc.)
 - API-pulled metrics that update campaign or module docs
-- Reference data used by scripts (lookup tables, mappings — small, rarely changing)
+- Reference data used *as input* by scripts — lookup tables, mappings, small and rarely-changing — fine at module root (e.g. `engine/segment-schema.json`)
 - Pipeline architecture docs, scoring models, enrichment specs (markdown in engine/)
 
-**Transient artifacts** — intermediate and final data products from pipeline runs:
-- Enrichment outputs (enriched account lists, contact CSVs)
-- Intermediate step files (classification results, scoring batches, dedup outputs)
-- Exports for import into external tools (Smartlead CSVs, HubSpot imports)
-- Database files, cached API responses, test outputs
+**Data outputs** — what a run produces. Three homes:
 
-Transient artifacts go in `_output/` at the repo root. This directory is gitignored and disposable — the operator can safely delete everything in it at any time.
+| Home | Tracked? | For | Lifecycle |
+|------|----------|-----|-----------|
+| `_output/` | No (gitignored) | Scratch — intermediate steps, exports for external tools, test runs, the current working extract | Purge freely; overwrite in place |
+| `samples/` | **Yes** (committed) | A representative, **PII-safe** output kept on the record — a golden extract, a schema example, a calibration baseline | Permanent; curated |
+| `_retained/` | No, except `_retained/manifest.md` | The full or real dataset that must stay on record locally but **must never enter git** — contact records, emails, names, phone numbers, bulky customer data | Durable; logged in the manifest |
 
-**Watch for transient-*looking* state.** Some files land among artifacts but are actually repo state — most often an append-only or longitudinal record (a running metrics log, a cumulative export history) that another doc treats as the persistent source of truth. A file being a CSV in the output directory does not make it transient. The test: **if deleting it loses history you can't regenerate, it's state, not an artifact.** Before gitignoring or clearing an output directory, audit it for anything that is actually state and promote that file to a tracked module location first.
+**`_output/` — disposable scratch.**
+- Gitignored and disposable: the operator can delete everything in it at any time. Never cite an `_output/` file as authoritative.
+- **Overwrite in place.** Write the same path each run (`_output/company-extract.csv`); don't accrete `…2`, `…_test4`, `…_p27` siblings. A flat pile of near-duplicate names means you're using `_output/` as memory — promote what matters, clear the rest. A stable current output survives across a dev session simply because you don't delete it; that's your working checkpoint, no extra mechanism needed. Create subdirs when a run needs isolation (`_output/2026-05-29/`).
+- **Write-only for agents.** Do not browse, search, or read files from `_output/` to inform your work — contents are ephemeral and unreliable (stale, partial, or from a different run). Only read a path the operator explicitly points you to. (Scripts you write may chain intermediate files through `_output/` within a single pipeline run — that's plumbing, not a state read.)
+- **Never reference `_output/` files from module docs.** "See `_output/scored-accounts.csv`" is a broken reference waiting to happen.
+- **Route script output paths here too.** A script that writes `output_path = "engine/scored.csv"` violates this even though no agent wrote the file directly.
 
-**Rules:**
-- Scripts write transient output to `_output/`. Create subdirectories as needed (e.g., `_output/enrichment/`, `_output/2026-05-29/`).
-- **Never write transient artifacts into module folders.** `engine/`, `scripts/`, `segments/`, etc. contain docs and indexes — not CSVs, not intermediate JSONs, not pipeline run outputs.
-- **`_output/` is write-only for agents.** Do not browse, search, or read files from `_output/` to inform your work. The contents are ephemeral and unreliable — they may be stale, partial, or from a different run. Only read a file from `_output/` if the operator explicitly points you to a specific file path. This prohibition applies to your reasoning about repo state — scripts you write may chain intermediate files through `_output/` within a single pipeline run.
-- **Never reference `_output/` files from module docs.** If a doc says "see `_output/scored-accounts.csv`", that's a broken reference waiting to happen.
-- **When writing script code**, route output paths according to these conventions. A script that writes `output_path = "engine/scored.csv"` violates this even though the agent didn't write the file directly.
-- If data from a pipeline run needs to persist, extract it into repo state: write a markdown doc, update a JSON index, or add structured reference data to the appropriate module. Don't leave it in `_output/` hoping it survives.
-- If the operator asks you to write transient output to a module folder, suggest `_output/` instead and explain why.
-- **Before gitignoring or clearing an output directory, audit it for transient-looking state** (append-only logs, cumulative records, anything another doc treats as the source of truth). Promote those to a tracked location first — a blanket gitignore silently discards that history on the next clone.
-- For data that needs to outlive the repo entirely (large datasets, production pipeline state), push to an external store (database, CRM, data warehouse) and document the store in `engine/architecture.md`.
+**`samples/` — committed reference.** When an output earns a place on the record — a golden extract you validate segments against, a known-good baseline, a schema example — promote it to `samples/` at the repo root. It must be:
+- **Representative, not a dump** — schema plus a handful of rows, small enough to review in a diff. The full run is not a sample.
+- **PII-safe** — see the PII gate below.
+- **Documented** — ship a one-line provenance note (what produced it, when, why kept) alongside it, so the sample never becomes its own mystery state.
+- Distinct from reference data at module root: a lookup table the pipeline *reads* stays at module root; a representative *output the pipeline produced* goes in `samples/`.
+
+**`_retained/` — durable but private.** The full or real dataset you must keep locally but cannot commit (contact records, customer PII, bulky extracts). Gitignored, but **`_retained/manifest.md` is tracked** — every retained file gets a manifest line (filename · what · when · why kept), mirroring how `_intake/_processed.json` tracks `_intake/`. The manifest is the audit surface: gitignored data with no tracked record of what's down there is exactly how `_retained/` would rot the way `_output/` did. Distinct from `_intake/`: `_intake/` holds **source documents awaiting processing** (input); `_retained/` holds **datasets a run produced** (output). For data that must outlive this local repo or be shared, push to an external store (database, CRM, warehouse) and document it in `engine/architecture.md`.
+
+**The "protect this file" anti-pattern.** If you catch yourself renaming or prefixing a file (`_keep_`, a leading `_`) so it survives a cleanup *inside `_output/`*, stop — marking-to-survive is proof it's not scratch. Promote it out: to `samples/` if it's a redacted representative slice, to `_retained/` (with a manifest line) if it carries PII. The instinct is right; act on it by moving the file, not by smuggling it past the purge.
+
+**PII gate.** Never commit contact records or customer PII to `samples/` — emails, phone numbers, personal names, anything that identifies an individual. If the output you want on record carries PII, either redact/synthesize a representative slice for `samples/`, or keep the real file in `_retained/`. When unsure, treat it as PII. `release-check` greps staged `samples/` files for contact patterns as a backstop, but the gate is yours first.
+
+**Watch for transient-*looking* state.** A CSV sitting in `_output/` is not automatically disposable. The test: **if deleting it loses something you can't regenerate, it's not scratch.** That's the signal to promote — to `samples/` if it's representative and PII-safe, to `_retained/` if it's the full or sensitive set, to a module doc or JSON index if it's really structured knowledge (an append-only metrics log, a cumulative record another doc treats as source of truth). Before gitignoring or clearing any output directory, audit it for this and promote first — a blanket wipe silently discards history on the next clone.
 
 ### Document Architecture
 
