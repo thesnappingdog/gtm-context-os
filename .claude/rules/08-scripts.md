@@ -12,6 +12,7 @@ Local tools for API integrations, data imports/exports, and manual operations. R
 - Repo state goes to the appropriate module folder (PULL analyses → demand/, metrics → campaigns/)
 - Transient pipeline output (enrichment CSVs, scored lists, intermediate data) goes to `_output/` — never into module folders
 - When writing script code, route output paths to `_output/` for transient data — the convention applies to scripts you write, not just your direct file operations
+- `_output/` is the script default; promoting a run's output to `samples/` (committed, PII-safe) or `_retained/` (durable, private) is a deliberate act, never a script's automatic write target. See AGENTS.md "Pipeline Artifacts and Output"
 - Use inline `# /// script` metadata for dependencies:
 
 ```python

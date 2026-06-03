@@ -164,35 +164,43 @@ Before creating any new structure (file, folder, module):
 
 ### Pipeline Artifacts and Output
 
-Scripts and pipelines produce two kinds of output: **repo state** and **transient artifacts**.
+Scripts and pipelines produce **repo state** (knowledge that belongs in the repo permanently) and **data outputs** (the files a run produces). State is easy — it goes in module folders. Data outputs are where discipline matters: they sort into three homes by *durability* and *sensitivity*, and getting this wrong is how an output directory rots into a junk drawer of `accounts2.csv`, `accounts_test4.csv`, `accounts_final_v3.csv`.
 
-**Repo state** — structured knowledge that belongs in the repo permanently:
+**Repo state** — structured knowledge, always tracked in module folders:
 - PULL analyses, segment definitions, messaging angles, campaign docs (markdown in module folders)
 - JSON indexes maintained by agents (pull-index.json, segments.json, etc.)
 - API-pulled metrics that update campaign or module docs
-- Reference data used by scripts (lookup tables, mappings — small, rarely changing)
+- Reference data used *as input* by scripts — lookup tables, mappings, small and rarely-changing — fine at module root (e.g. `engine/segment-schema.json`)
 - Pipeline architecture docs, scoring models, enrichment specs (markdown in engine/)
 
-**Transient artifacts** — intermediate and final data products from pipeline runs:
-- Enrichment outputs (enriched account lists, contact CSVs)
-- Intermediate step files (classification results, scoring batches, dedup outputs)
-- Exports for import into external tools (Smartlead CSVs, HubSpot imports)
-- Database files, cached API responses, test outputs
+**Data outputs** — what a run produces. Three homes:
 
-Transient artifacts go in `_output/` at the repo root. This directory is gitignored and disposable — the operator can safely delete everything in it at any time.
+| Home | Tracked? | For | Lifecycle |
+|------|----------|-----|-----------|
+| `_output/` | No (gitignored) | Scratch — intermediate steps, exports for external tools, test runs, the current working extract | Purge freely; overwrite in place |
+| `samples/` | **Yes** (committed) | A representative, **PII-safe** output kept on the record — a golden extract, a schema example, a calibration baseline | Permanent; curated |
+| `_retained/` | No, except `_retained/manifest.md` | The full or real dataset that must stay on record locally but **must never enter git** — contact records, emails, names, phone numbers, bulky customer data | Durable; logged in the manifest |
 
-**Watch for transient-*looking* state.** Some files land among artifacts but are actually repo state — most often an append-only or longitudinal record (a running metrics log, a cumulative export history) that another doc treats as the persistent source of truth. A file being a CSV in the output directory does not make it transient. The test: **if deleting it loses history you can't regenerate, it's state, not an artifact.** Before gitignoring or clearing an output directory, audit it for anything that is actually state and promote that file to a tracked module location first.
+**`_output/` — disposable scratch.**
+- Gitignored and disposable: the operator can delete everything in it at any time. Never cite an `_output/` file as authoritative.
+- **Overwrite in place.** Write the same path each run (`_output/company-extract.csv`); don't accrete `…2`, `…_test4`, `…_p27` siblings. A flat pile of near-duplicate names means you're using `_output/` as memory — promote what matters, clear the rest. A stable current output survives across a dev session simply because you don't delete it; that's your working checkpoint, no extra mechanism needed. Create subdirs when a run needs isolation (`_output/2026-05-29/`).
+- **Write-only for agents.** Do not browse, search, or read files from `_output/` to inform your work — contents are ephemeral and unreliable (stale, partial, or from a different run). Only read a path the operator explicitly points you to. (Scripts you write may chain intermediate files through `_output/` within a single pipeline run — that's plumbing, not a state read.)
+- **Never reference `_output/` files from module docs.** "See `_output/scored-accounts.csv`" is a broken reference waiting to happen.
+- **Route script output paths here too.** A script that writes `output_path = "engine/scored.csv"` violates this even though no agent wrote the file directly.
 
-**Rules:**
-- Scripts write transient output to `_output/`. Create subdirectories as needed (e.g., `_output/enrichment/`, `_output/2026-05-29/`).
-- **Never write transient artifacts into module folders.** `engine/`, `scripts/`, `segments/`, etc. contain docs and indexes — not CSVs, not intermediate JSONs, not pipeline run outputs.
-- **`_output/` is write-only for agents.** Do not browse, search, or read files from `_output/` to inform your work. The contents are ephemeral and unreliable — they may be stale, partial, or from a different run. Only read a file from `_output/` if the operator explicitly points you to a specific file path. This prohibition applies to your reasoning about repo state — scripts you write may chain intermediate files through `_output/` within a single pipeline run.
-- **Never reference `_output/` files from module docs.** If a doc says "see `_output/scored-accounts.csv`", that's a broken reference waiting to happen.
-- **When writing script code**, route output paths according to these conventions. A script that writes `output_path = "engine/scored.csv"` violates this even though the agent didn't write the file directly.
-- If data from a pipeline run needs to persist, extract it into repo state: write a markdown doc, update a JSON index, or add structured reference data to the appropriate module. Don't leave it in `_output/` hoping it survives.
-- If the operator asks you to write transient output to a module folder, suggest `_output/` instead and explain why.
-- **Before gitignoring or clearing an output directory, audit it for transient-looking state** (append-only logs, cumulative records, anything another doc treats as the source of truth). Promote those to a tracked location first — a blanket gitignore silently discards that history on the next clone.
-- For data that needs to outlive the repo entirely (large datasets, production pipeline state), push to an external store (database, CRM, data warehouse) and document the store in `engine/architecture.md`.
+**`samples/` — committed reference.** When an output earns a place on the record — a golden extract you validate segments against, a known-good baseline, a schema example — promote it to `samples/` at the repo root. It must be:
+- **Representative, not a dump** — schema plus a handful of rows, small enough to review in a diff. The full run is not a sample.
+- **PII-safe** — see the PII gate below.
+- **Documented** — ship a one-line provenance note (what produced it, when, why kept) alongside it, so the sample never becomes its own mystery state.
+- Distinct from reference data at module root: a lookup table the pipeline *reads* stays at module root; a representative *output the pipeline produced* goes in `samples/`.
+
+**`_retained/` — durable but private.** The full or real dataset you must keep locally but cannot commit (contact records, customer PII, bulky extracts). Gitignored, but **`_retained/manifest.md` is tracked** — every retained file gets a manifest line (filename · what · when · why kept), mirroring how `_intake/_processed.json` tracks `_intake/`. The manifest is the audit surface: gitignored data with no tracked record of what's down there is exactly how `_retained/` would rot the way `_output/` did. Distinct from `_intake/`: `_intake/` holds **source documents awaiting processing** (input); `_retained/` holds **datasets a run produced** (output). For data that must outlive this local repo or be shared, push to an external store (database, CRM, warehouse) and document it in `engine/architecture.md`.
+
+**The "protect this file" anti-pattern.** If you catch yourself renaming or prefixing a file (`_keep_`, a leading `_`) so it survives a cleanup *inside `_output/`*, stop — marking-to-survive is proof it's not scratch. Promote it out: to `samples/` if it's a redacted representative slice, to `_retained/` (with a manifest line) if it carries PII. The instinct is right; act on it by moving the file, not by smuggling it past the purge.
+
+**PII gate.** Never commit contact records or customer PII to `samples/` — emails, phone numbers, personal names, anything that identifies an individual. If the output you want on record carries PII, either redact/synthesize a representative slice for `samples/`, or keep the real file in `_retained/`. When unsure, treat it as PII. `release-check` greps staged `samples/` files for contact patterns as a backstop, but the gate is yours first.
+
+**Watch for transient-*looking* state.** A CSV sitting in `_output/` is not automatically disposable. The test: **if deleting it loses something you can't regenerate, it's not scratch.** That's the signal to promote — to `samples/` if it's representative and PII-safe, to `_retained/` if it's the full or sensitive set, to a module doc or JSON index if it's really structured knowledge (an append-only metrics log, a cumulative record another doc treats as source of truth). Before gitignoring or clearing any output directory, audit it for this and promote first — a blanket wipe silently discards history on the next clone.
 
 ### Document Architecture
 
