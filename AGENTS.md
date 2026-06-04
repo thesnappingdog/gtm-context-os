@@ -542,6 +542,9 @@ This is the technical infrastructure layer — how data flows, how accounts get 
 ## Data Sources
 [Where account and contact data comes from]
 
+## State Store (if you run one)
+[Optional — many instances never need one. The durable cross-run datastore, if any: distinct from upstream SOURCES (what you extract from) and from OUTPUT artifacts (`_output/`/`_retained/`). Cross-reference `engine/integrations/{datastore}.md` and its dev-notes.]
+
 ## Enrichment Pipeline
 [How data gets enriched — providers, sequence, fallbacks]
 
