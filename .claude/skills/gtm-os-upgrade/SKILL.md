@@ -1,5 +1,5 @@
 ---
-name: gtm-upgrade
+name: gtm-os-upgrade
 description: "Upgrade this GTM Context OS instance to the latest template developments. Fetches the latest template, reconciles what's new against THIS instance's structure, and applies approved changes on a review branch — pausing before anything destructive. Operator-initiated."
 argument-hint: "[optional: local path to a template checkout, e.g. ../gtm-context-os — defaults to fetching the public repo]"
 ---
@@ -56,7 +56,7 @@ No branch yet — assessment is read-only, so nothing is created if the operator
 4. Check **Depends on**: don't propose adopting something whose prerequisite this instance skipped or hasn't adopted — flag it.
 5. Classify each proposed change as **destructive** or **safe** per the rule above, naming the actual files/analyses/indexes it would touch or invalidate.
 
-**Updating this skill is just one of the items.** The newest version of `gtm-upgrade` is in the fetched template — if it's newer, treat adopting it as an ordinary (safe) item. That's how the instance stays current without any special self-refresh mechanism.
+**Updating this skill is just one of the items.** The newest version of `gtm-os-upgrade` is in the fetched template — if it's newer, treat adopting it as an ordinary (safe) item. That's how the instance stays current without any special self-refresh mechanism.
 
 ### Step 4: Present the plan
 Show a per-item plan, grouped, **destructive items clearly flagged**:
@@ -84,7 +84,7 @@ Show a per-item plan, grouped, **destructive items clearly flagged**:
 
 ### Step 5: Create the branch, then apply
 Only after the operator has seen the plan:
-- Create a branch `gtm-upgrade-<today>` (use the current date). Commit a checkpoint first if the working tree isn't already clean, so there's a guaranteed restore point. All changes land here.
+- Create a branch `gtm-os-upgrade-<today>` (use the current date). Commit a checkpoint first if the working tree isn't already clean, so there's a guaranteed restore point. All changes land here.
 - **Safe items:** apply directly to the branch.
 - **Destructive items:** stop on each one, restate the plain-language consequence, and apply only after the operator explicitly acks that specific item. If they decline, skip it and record the decision.
 
@@ -118,8 +118,8 @@ Kept existing exports/ rather than renaming to _output/ (scripts hardcode it); a
 ```
 
 ### Step 8: Hand off for review
-Tell the operator the work is on branch `gtm-upgrade-<today>`. They review the diff and either merge it or discard the branch (discard = zero cost — nothing touched their working state). Clean up the temp template checkout.
+Tell the operator the work is on branch `gtm-os-upgrade-<today>`. They review the diff and either merge it or discard the branch (discard = zero cost — nothing touched their working state). Clean up the temp template checkout.
 
 ## First-time bootstrap (existing instances)
 
-An instance cloned before this skill existed won't have it. It can't be pushed in — the operator pulls it once. The simplest install is one sentence to the agent: *"install the gtm-upgrade skill from the template."* The agent fetches `.claude/skills/gtm-upgrade/SKILL.md` from the public repo and writes it into `.claude/skills/gtm-upgrade/`. After that first install, every future run re-fetches the template and keeps the skill current as an ordinary item (Step 3) — so the bootstrap is one-time, ever. New clones ship the skill and need no bootstrap.
+An instance cloned before this skill existed won't have it. It can't be pushed in — the operator pulls it once. The simplest install is one sentence to the agent: *"install the gtm-os-upgrade skill from the template."* The agent fetches `.claude/skills/gtm-os-upgrade/SKILL.md` from the public repo and writes it into `.claude/skills/gtm-os-upgrade/`. After that first install, every future run re-fetches the template and keeps the skill current as an ordinary item (Step 3) — so the bootstrap is one-time, ever. New clones ship the skill and need no bootstrap.

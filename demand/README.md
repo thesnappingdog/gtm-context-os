@@ -9,7 +9,7 @@ Evidence-based understanding of who has demand for your product and why.
 - **Notes** (`notes/`) — Raw call notes, meeting summaries, and thin inputs that aren't detailed enough for full PULL analysis. Useful as context and raw material for future analysis when better transcripts arrive.
 - **Research** (`research/`) — Market research, win/loss analyses, buyer behavior data, and other evidence that informs demand understanding but isn't a single-call PULL analysis.
 - **Synthesis** (`synthesis.md`) — Patterns across multiple analyses. Created by the AI after 5+ analyses accumulate — not before, since patterns need data.
-- **Buyer insights** (`buyer-insights.md`) — Synthesized patterns about buyer behavior, triggers, and conversion signals. Emerges after synthesis, when enough evidence exists to generalize.
+- **Key learnings** (`key-learnings.md`) — Actionable distillation of who buys, when, and why: targeting, messaging, and the qualification framework. Produced alongside `synthesis.md` after a full batch of analyses.
 - **Hypothesis** (`hypothesis.md`) — Initial demand hypothesis if no call transcripts are available yet. Created during `/quickstart` as a starting point to validate.
 
 ## How It Works
@@ -18,7 +18,7 @@ Evidence-based understanding of who has demand for your product and why.
 2. `pull-index.json` gets updated automatically as analyses are added
 3. After 5+ analyses, the AI synthesizes patterns into `synthesis.md`
 4. Use `/pull-query` to search analyses for evidence when building segments or messaging
-5. As patterns solidify, `buyer-insights.md` captures generalizable buyer behavior
+5. Alongside `synthesis.md`, `key-learnings.md` distills who buys, when, and why — the actionable layer for targeting and messaging
 
 ## The PULL Framework
 

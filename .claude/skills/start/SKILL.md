@@ -86,7 +86,7 @@ Run `/draft-sequence` to build an outbound sequence for a specific segment + ang
 
 "Your system is running. Here's a quick status:
 
-Run `/gtm-status` for the full picture — segments, campaigns, and what needs attention."
+Run `/gtm-os-status` for the full picture — segments, campaigns, and what needs attention."
 
 ### Step 3: Wait for Direction
 
