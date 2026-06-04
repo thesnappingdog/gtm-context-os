@@ -5,7 +5,7 @@ Editor-agnostic infrastructure that *operates* the system — distinct from your
 | Path | What it is |
 |------|------------|
 | `eval/` | Instruction-correctness test harness — checks that AGENTS.md produces correct agent behavior. Run via `/run-eval` (Claude Code) or by asking any editor to run `.gtm-os/eval/tests.md`. |
-| `upgrade-log.md` | Adoption ledger (created in cloned instances, not the template). Agent-to-agent provenance of which template patterns this instance adopted, adapted, or skipped — and why, recorded one decision per entry ID. Maintained by `/gtm-upgrade`. |
+| `upgrade-log.md` | Adoption ledger (created in cloned instances, not the template). Agent-to-agent provenance of which template patterns this instance adopted, adapted, or skipped — and why, recorded one decision per entry ID. Maintained by `/gtm-os-upgrade`. |
 
 **Conventions:**
 - This directory is read **on demand**, not auto-loaded into context (see `.claudeignore`).

@@ -1,5 +1,5 @@
 ---
-name: gtm-status
+name: gtm-os-status
 description: "Dashboard of current GTM state across all active modules. Use when user asks about status, progress, or what to do next."
 ---
 

@@ -6,7 +6,7 @@ Instances are expected to diverge. We do not ship folder structures or force mig
 
 ## How instances use this
 
-Operators run `/gtm-upgrade` — **operator-initiated, never automatic**. The skill fetches the latest template, reconciles what's new against the actual instance (both this changelog *and* the real file diff, which catches drift never written up as an entry), and applies approved changes on a review branch — pausing before anything destructive. Decisions are recorded per entry ID in the instance's **adoption ledger** (agent-to-agent infrastructure, like the JSON indexes — operators never read or edit it). See `.claude/skills/gtm-upgrade/SKILL.md`.
+Operators run `/gtm-os-upgrade` — **operator-initiated, never automatic**. The skill fetches the latest template, reconciles what's new against the actual instance (both this changelog *and* the real file diff, which catches drift never written up as an entry), and applies approved changes on a review branch — pausing before anything destructive. Decisions are recorded per entry ID in the instance's **adoption ledger** (agent-to-agent infrastructure, like the JSON indexes — operators never read or edit it). See `.claude/skills/gtm-os-upgrade/SKILL.md`.
 
 ## Maintainer discipline (required)
 

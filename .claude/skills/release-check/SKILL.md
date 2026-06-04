@@ -63,7 +63,7 @@ Launch two agents simultaneously:
       '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|\+?[0-9][0-9 ().-]{7,}[0-9]' 2>/dev/null
     ```
     Any file listed is a likely PII leak — it belongs in `_retained/` (gitignored), not `samples/`. (Empty/absent `samples/` → pass.)
-  - **CHANGELOG reference integrity**: `CHANGELOG.md` is the upgrade channel `/gtm-upgrade` consumes — each entry's `**Reference (template implementation)**` line points an upgrade agent at the real files behind the pattern, so a rotted path silently misdirects a future upgrade (the template has renamed paths before: `eval/` → `.gtm-os/eval/`, `/upgrade` → `/gtm-upgrade`). Scope the check to the **Reference content lines** (the line after each standalone `**Reference (template implementation)**` label) — that's the machine-followed pointer layer; the `## Releases` index above it is human prose (it names old/renamed paths on purpose) and is *not* checked. Verify both reference forms. **Backticked repo paths** must resolve to a real file or directory:
+  - **CHANGELOG reference integrity**: `CHANGELOG.md` is the upgrade channel `/gtm-os-upgrade` consumes — each entry's `**Reference (template implementation)**` line points an upgrade agent at the real files behind the pattern, so a rotted path silently misdirects a future upgrade (the template has renamed paths before: `eval/` → `.gtm-os/eval/`, `/upgrade` → `/gtm-upgrade`). Scope the check to the **Reference content lines** (the line after each standalone `**Reference (template implementation)**` label) — that's the machine-followed pointer layer; the `## Releases` index above it is human prose (it names old/renamed paths on purpose) and is *not* checked. Verify both reference forms. **Backticked repo paths** must resolve to a real file or directory:
     ```bash
     # The grep filter gates on a slash or a known extension, so a bare extensionless
     # Reference target (e.g. `LICENSE`, `Makefile`) is silently skipped, not checked.
@@ -178,7 +178,7 @@ Check for:
 5. JSON index schemas match between AGENTS.md and scoped rules
 6. Skills reference files and modules that exist in the repo
 7. No orphaned references to deleted or renamed sections
-8. CHANGELOG reference integrity — each entry's `**Reference (template implementation)**` line is what `/gtm-upgrade` follows to read a pattern's real implementation, so a dead path silently misdirects a future upgrade (paths have been renamed before: `eval/` → `.gtm-os/eval/`, `/upgrade` → `/gtm-upgrade`). Check only the Reference content lines (the `## Releases` index is human prose that names renamed paths on purpose — don't check it):
+8. CHANGELOG reference integrity — each entry's `**Reference (template implementation)**` line is what `/gtm-os-upgrade` follows to read a pattern's real implementation, so a dead path silently misdirects a future upgrade (paths have been renamed before: `eval/` → `.gtm-os/eval/`, `/upgrade` → `/gtm-upgrade`). Check only the Reference content lines (the `## Releases` index is human prose that names renamed paths on purpose — don't check it):
    - Backticked repo paths resolve to a real file/dir:
      ```bash
      # Filter gates on slash/known extension — a bare extensionless target (LICENSE,
