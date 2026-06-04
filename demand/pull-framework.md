@@ -88,16 +88,21 @@ When analyzing a sales call transcript, score each PULL component 0-5:
 | 1 | Barely detectable |
 | 0 | Absent |
 
-**Total score interpretation:**
-- **16-20:** Strong demand — this person would be weird not to buy
-- **11-15:** Moderate demand — real project but timing or urgency unclear
-- **6-10:** Benefit territory — pain exists but no active project
-- **0-5:** No demand — exploring, curious, or wrong fit
+**Classification (the canonical label — this is what `pull-index.json` stores):**
+- **14-20 = DEMAND** — active project, blocked, urgent
+- **8-13 = BENEFIT** — real pain, no urgency
+- **0-7 = NEITHER** — no fit, wrong timing, or information-gathering
 
-**Classification:**
-- 14+ = **DEMAND** (active project, blocked, urgent)
-- 8-13 = **BENEFIT** (real pain, no urgency)
-- 0-7 = **NEITHER** (no fit, wrong timing, or information-gathering)
+**Interpretation sub-bands** nest *inside* the three classes — they add resolution for the synthesis scorecard, they never override the class. Every sub-band stays within one class, so any score yields exactly one label:
+
+| Score | Sub-band | Class |
+|-------|----------|-------|
+| 17-20 | Strong demand — would be weird not to buy | DEMAND |
+| 14-16 | Moderate demand — real project, timing or urgency unclear | DEMAND |
+| 8-13 | Benefit — pain exists but no active project | BENEFIT |
+| 0-7 | No demand — exploring, curious, or wrong fit | NEITHER |
+
+A score never has two truths: the sub-band always rolls up to its class (14 is *Moderate demand* **and** DEMAND, never DEMAND-and-BENEFIT). When in doubt, the class governs.
 
 ---
 
@@ -175,20 +180,22 @@ After a full batch of transcripts has been analyzed, produce two documents. Thes
 
 ## Full Scorecard
 
-### Tier 1: Strong Demand (PULL 16-20) — {N} Prospects
+_Tiers are the interpretation sub-bands (see scoring rubric). Each nests inside one class — Tiers 1-2 are DEMAND, Tier 3 is BENEFIT, Tier 4 is NEITHER — so no tier straddles a classification boundary._
+
+### Tier 1: Strong Demand (PULL 17-20, DEMAND) — {N} Prospects
 
 | Company | Prospect | Role | PULL Score | Key Signal | Blocker |
 |---------|----------|------|------------|------------|---------|
 
-### Tier 2: Moderate Demand (PULL 13-15) — {N} Prospects
+### Tier 2: Moderate Demand (PULL 14-16, DEMAND) — {N} Prospects
 
 {same table}
 
-### Tier 3: Weak Demand (PULL 9-12) — {N} Prospects
+### Tier 3: Benefit (PULL 8-13, BENEFIT) — {N} Prospects
 
 {same table}
 
-### Tier 4: No Demand (PULL 0-8) — {N} Prospects
+### Tier 4: No Demand (PULL 0-7, NEITHER) — {N} Prospects
 
 {same table}
 

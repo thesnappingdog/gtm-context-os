@@ -37,8 +37,11 @@ No external runtime, database, or deployment is required. The repo IS the system
 
 Tag claims and insights by confidence level:
 - `[VERIFIED: {source}]` — Directly supported by evidence (transcript quote, data point, metric)
+- `[CLAIMED: {source}]` — Asserted by the company about itself (website, pitch deck, playbook) — useful context, not yet independently confirmed. **Promotable:** becomes `[VERIFIED]` when demand evidence or data confirms it. Not a judgment — it records *who said it and that it's unconfirmed*, not that it's doubtful.
 - `[INFERRED: from {X} + {Y}]` — Derived from combining multiple sources
-- `[UNVERIFIABLE]` — Judgment call, hypothesis, or assumption that can't be confirmed from available data
+- `[UNVERIFIABLE]` — Judgment call, hypothesis, or assumption that *can never* be confirmed from available data. Distinct from `[CLAIMED]`: a claim is confirmable-but-unconfirmed and promotes; unverifiable is terminal.
+
+`[CLAIMED]` is provenance (the company's own assertion), the other three are confidence — that's why a claim can be both made and later verified. The natural lifecycle is `[CLAIMED]` → `[VERIFIED]` once buyer evidence or data confirms it (this is what `/bootstrap` and `/intake` produce when seeding `context.md` from marketing material).
 
 Use attribution in PULL analyses, segment rationale, and messaging angles. Don't use it in status logs or operational notes.
 
@@ -128,7 +131,7 @@ When a full batch of transcripts has been analyzed, produce two synthesis delive
 
 The comprehensive scorecard and pattern analysis across all PULL analyses. Structure:
 
-- **Executive Summary** — total calls, demand distribution (strong/moderate/weak/none with counts and percentages), headline findings
+- **Executive Summary** — total calls, demand distribution by tier (counts and percentages — tier names are owned by `pull-framework.md`), headline findings
 - **Full Scorecard** — table per tier with company, prospect, role, PULL score, key signal, blocker
 - **Demand Distribution** — visual distribution chart, broken out by batch if multiple batches exist
 - **Pattern Analysis** — strongest demand signals (predict close), stall patterns (predict no close), feature gaps mentioned (table with frequency/impact), competitive landscape (table with mention counts and positioning), buyer type distribution, regional distribution, trigger classification
@@ -539,6 +542,9 @@ This is the technical infrastructure layer — how data flows, how accounts get 
 ## Data Sources
 [Where account and contact data comes from]
 
+## State Store (if you run one)
+[Optional — many instances never need one. The durable cross-run datastore, if any: distinct from upstream SOURCES (what you extract from) and from OUTPUT artifacts (`_output/`/`_retained/`). Cross-reference `engine/integrations/{datastore}.md` and its dev-notes.]
+
 ## Enrichment Pipeline
 [How data gets enriched — providers, sequence, fallbacks]
 
@@ -583,6 +589,7 @@ This is the technical infrastructure layer — how data flows, how accounts get 
 - Pipeline run artifacts (enrichment output CSVs, scored account batches, intermediate processing files) never go in `engine/` — they go in `_output/`. The engine module documents how the pipeline works; it doesn't store what the pipeline produces.
 - **Hardening a pipeline? Keep a dev-notes companion doc.** When you audit or harden a pipeline script, track findings in a sibling `engine/{pipeline}-dev-notes.md` — not inside the canonical doc, which stays clean. Rank findings by priority (P0 must-fix-before-next-run → P3 nice-to-have); give each a fixed shape — **Status** (open / fixed / wontfix / out-of-scope) · **Files** (with line refs) · **Problem** · **Decision/Fix** · **Follow-up**. Use it to record design decisions and *deferrals with the evidence still missing*, and to keep a "Pipeline Stages" scope table (what's in-pipeline vs campaign-execution vs one-off — which decides what graduates). It's how an agent keeps continuity on a hardening effort across sessions and doesn't re-litigate a settled WONTFIX.
 - **`integrations/` has two doc genres.** The pre-populated files are API *references* (auth, endpoints, rate limits — what the tool *is*). When you debug a *misbehaving* integration, write the second kind: an **integration diagnosis** doc. Structure: a dated **bottom-line verdict**; **expected vs. actually-observed** (with real evidence); **ruled-out** hypotheses; remaining **hypotheses**; a **decisive test** to discriminate them; **fix options** with trade-offs. It turns expensive debugging into durable knowledge instead of guesswork re-derived next time.
+- **Persistent datastore — an optional third `integrations/` genre.** Most instances never need one (markdown + JSON indexes are the default state layer). When scripts need durable structured state *across runs* (a cumulative account table, scored cohorts, longitudinal metrics), document the store as `integrations/{datastore}.md` (role · connection · read-vs-write path · schema conventions · migrations · when-it-graduates) — `integrations/datastore.md` ships as the genre skeleton. Its **schema is tracked as code** (ordered, version-stamped DDL migrations, each header-commented) while its **data is never committed** — the opposite of the gitignored `_output/`/`_retained/` tiers. A datastore does not by itself trigger graduation to `workflows/`; while it stays `scripts/`-tier its migrations live in a top-level `{datastore}/migrations/` directory. Keep open hardening items in a sibling `engine/{datastore}-dev-notes.md`.
 
 **Connects to core via:** Pipeline qualifies accounts based on ICP criteria from `context.md` and routes to campaigns
 
@@ -690,43 +697,62 @@ scripts/
 
 Local tools for API integrations, data imports/exports, and manual operations. Run these from your terminal when you need them.
 
+## Scripts
+
+| Script | What it does | Talks to |
+|--------|-------------|----------|
+| `{name}.py` | one line | {external system, or "local data"} |
+
+Lists only *live* scripts — a retired one disappears from the table (the per-script docstring is the detail; the table is the navigation surface). Optionally add a **Note** for provenance and the current graduation candidate.
+
 ## Conventions
 - Use Python with `uv run` (no global installs, no virtualenv setup needed)
 - Each script is standalone — runs independently, no shared state
-- Scripts read config from `.env` (API keys, endpoints)
-- Repo state goes to the appropriate module folder (PULL analyses → demand/pull-analyses/, campaign docs → campaigns/)
-- Transient pipeline output (enrichment CSVs, scored lists, intermediate data) goes to `_output/`
-- Include a docstring explaining what the script does, what API it talks to, and what it outputs
+- Read credentials from `.env`, never hardcode
+- Output routing: repo state → the right module folder; transient → `_output/`
+- Every script opens with the standard header (below)
 
-## Common Script Patterns
+## Script header
 
-### Pull data from an API
+The opening docstring is the operator-facing interface — it's what makes a script safe to hand off or graduate. Open every script with the same shape:
+
 ```python
-#!/usr/bin/env python3
-"""Pull [data type] from [service] and write to [output location]."""
-import os, requests, json
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["requests"]
+# ///
+"""
+One-line purpose.
+
+Talks to: {external system, or "local data only"}.
+In:  {input source}  →  Out: {output path} ({_output / samples / _retained / module folder}).
+Write-safety: {read-only | requires --commit to write | local only}.
+
+Usage:
+  uv run scripts/{name}.py --dry-run
+  uv run scripts/{name}.py --commit
+"""
 from pathlib import Path
 
-API_KEY = os.environ["SERVICE_API_KEY"]
-# ... fetch, transform, write
-```
-
-### Import leads from CSV
-```python
-#!/usr/bin/env python3
-"""Import leads from CSV into [sequencing tool]."""
-import csv, os, requests
-
-# Read CSV, validate, POST to API
+ROOT = Path(__file__).resolve().parent.parent   # anchor paths to the repo root, not cwd
+OUT  = ROOT / "_output" / "{name}.csv"           # derive every tier path from ROOT
 ```
 ```
 
 **Conventions:**
 - Scripts are tools, not frameworks. Each one does one thing.
-- Always read credentials from `.env`, never hardcode.
+- Always read credentials from `.env`, never hardcode. Idiom: read from the environment first, fall back to parsing `.env`, and if still missing, exit with an error naming the exact variable (`{TOOL}_API_KEY`). On Claude Code the same key may already live in `.mcp.json` for an MCP server — a script may read it from there rather than forcing the operator to duplicate it.
+- Anchor every path to a `ROOT` constant at the top of the file (`ROOT = Path(__file__).resolve().parent.parent`) and derive `_output/`, `samples/`, and module-folder paths from it. This is what makes the output-routing convention reliable when a script runs from a different directory.
+- **Write-safety — when a script mutates an external system of record** (CRM, sequencer, datastore). A read-only script is safe by construction; a writer needs guardrails (gated on writes — none of this applies to read-only scripts):
+  - **Default to a dry-run.** Without an explicit `--commit` flag, print what *would* change and write nothing. The mutating path is opt-in, never the default.
+  - **Graduated rollout.** Support `--limit N` then `--all`, so you can prove the write on a handful of records before the full set.
+  - **Idempotent by natural key.** Upsert on a stable key (e.g. email, an external ID) so a re-run updates in place instead of duplicating.
+  - **Snapshot before you overwrite.** When an import overwrites existing fields, run a read-only backup script first and route its output to a durable home (`_retained/` if it carries PII, with a manifest line), so the change is recoverable.
+
+  A write to a system of record is the one place where "just run it and see" is expensive — these cost a few lines and make the operation reversible and rerunnable.
+- Name scripts in tool/concern families and document a multi-step chain as numbered steps (source → filter → enrich). When a chain hardens, fold the heavy logic into one pipeline script that exposes its phases as subcommands (`run`, `classify`, `score`, …) — that consolidated script is the natural graduation candidate to `workflows/`.
 - When a script produces output that maps to a state file (campaign metrics, transcript analyses), update the appropriate JSON index.
 - When a script produces transient data (enrichment results, scored account lists, intermediate CSVs), write to `_output/`. Never dump pipeline artifacts into module folders.
-- Document what each script does at the top of the file — the next operator may not have written it.
 - Use `uv run script.py` to execute (handles dependencies automatically with inline `# /// script` metadata).
 
 **Inline dependency example:**
@@ -753,7 +779,7 @@ This lets any script declare its own dependencies without a global `pyproject.to
 
 **The graduation test:** If you stop running it, does something break? If yes, it's a workflow. If no, it's a script.
 
-**Don't create prematurely.** If you're still iterating on a script and running it manually, keep it in `scripts/` — even if it connects to a database. Only move to `workflows/` when the code is actually deployed or scheduled. Organizing around speculation creates empty structure.
+**Don't create prematurely.** If you're still iterating on a script and running it manually, keep it in `scripts/` — even if it connects to a database. Only move to `workflows/` when the code is actually deployed or scheduled. Organizing around speculation creates empty structure. A persistent datastore + version-controlled migrations can exist while the producing code is still a script: keep those migrations in a top-level `{datastore}/migrations/` directory (a project-wide store many scripts may share). On graduation, migrations for a store a single workflow *owns* move into that workflow's directory; a shared store's stay at root and its reference stays in `engine/integrations/`.
 
 **Bootstrap structure:**
 ```
@@ -801,11 +827,42 @@ workflows/{workflow-name}/
   config/
 ```
 
+**Per-workflow `README.md` skeleton:**
+```markdown
+# {Workflow Name}
+
+One-line purpose. Replaces the local `scripts/{name}.py` execution model with a deployed, scheduled workflow.
+
+## What it does
+1. {pipeline stage}
+2. ...
+See `engine/{pipeline}.md` for the full spec — keep this README thin and let the engine doc carry the depth.
+
+## Infrastructure
+| Dependency | Purpose | Credentials |
+|------------|---------|-------------|
+| {service}  | {role}  | `{ENV_VAR}`  |
+
+## Schedule
+{cron / cadence — or "TBD: likely {daily/weekly} depending on {refresh need}" before deploy}
+
+## Output
+{what it writes, where}. Downstream consumers: `engine/{consumer}.md`.
+
+## Status
+{Pre-deployment | Deployed YYYY-MM-DD}
+
+## Rollback
+{steps — or "Not yet deployed; document rollback when deployed." before deploy}
+```
+
+**Schedule** and **Rollback** are mandatory sections but may be honestly stubbed with reasoning before deployment, and filled on the deploy commit — a stub is a TODO you can see; a missing section is a gap you'll forget. The workflow README is the deployment *contract*; `engine/{pipeline}.md` is the spec (split-doc — point to it, don't duplicate it). A workflow can exist in a **pre-deployment** state — the directory and this README modeling the target shape while the producing code still lives in `scripts/`.
+
 **Conventions:**
 - Each workflow is self-contained — its own dependencies, config, and documentation.
 - Use `pyproject.toml` with locked dependencies, not inline `# /// script` metadata. Workflows need reproducible builds. For non-Python workflows, use the language's equivalent (package.json, go.mod, etc.).
 - Include a `README.md` in each workflow directory: what it does, what infrastructure it depends on, how to deploy, how to monitor, how to roll back.
-- Keep infrastructure documentation (schemas, connection setup, migration history) in the workflow directory. API-level integration reference docs (what the tool is, what endpoints exist) stay in `engine/integrations/`.
+- Keep infrastructure documentation (schemas, connection setup, migration history) in the workflow directory *for a store the workflow owns*; a store shared across scripts keeps its migrations at repo root and its connection reference in `engine/integrations/`. API-level integration reference docs (what the tool is, what endpoints exist) stay in `engine/integrations/`.
 - Changes to workflows affect production. Test changes before deploying and document rollback steps — don't just push and hope.
 - When a workflow produces output that feeds back into the GTM system (scored accounts, enriched contacts), document the output format and destination in the workflow's README.
 - When creating a workflow that implements a pipeline stage, cross-reference it from `engine/architecture.md` so the architecture doc stays current.

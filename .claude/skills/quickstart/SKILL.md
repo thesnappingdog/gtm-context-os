@@ -92,6 +92,6 @@ Ingest 5+ sales call transcripts to validate or refine this hypothesis.
 **Next steps:**
 - Feed more sales calls to build the evidence layer (paste transcripts or use `/setup-api` to connect your call recorder)
 - After 5+ analyses, patterns will emerge for segmentation
-- Use `/gtm-status` anytime to see where things stand"
+- Use `/gtm-os-status` anytime to see where things stand"
 
 Update `status.md` with a setup entry.

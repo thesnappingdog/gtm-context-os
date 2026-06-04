@@ -52,7 +52,7 @@ Then open in your AI editor and start:
 claude  # or open in Cursor/Copilot/Windsurf
 ```
 
-Run `/quickstart` (Claude Code) or ask "help me get started" (any editor).
+Run `/start` (Claude Code) — it checks your repo state and points you to the right next step. Or ask "help me get started" (any editor).
 
 **Claude Cowork users:** Open this repo as a **project**, not a task. Cowork projects persist across sessions and load the full `.claude/` configuration (rules, skills, settings). Tasks are one-shot and miss the system context. After opening as a project, type `/start` to begin.
 
@@ -64,7 +64,7 @@ The template keeps evolving — new skills, conventions, and framework improveme
 
 Updates ship as *patterns*, not files. The template publishes a `CHANGELOG.md` describing each change as a pattern with its rationale. To pull improvements in:
 
-- **Claude Code:** run `/gtm-upgrade`. Your agent fetches the latest template, checks each new pattern against your actual repo, and proposes — per item — what to adopt, adapt to your layout, or skip. Changes land on a review branch and it pauses before anything destructive, so you review the diff and merge (or discard) when ready. Decisions are recorded so the next `/gtm-upgrade` only surfaces what's new. (Don't have the skill yet? Just ask the agent to *"install the gtm-upgrade skill from the template"* — one-time.)
+- **Claude Code:** run `/gtm-os-upgrade`. Your agent fetches the latest template, checks each new pattern against your actual repo, and proposes — per item — what to adopt, adapt to your layout, or skip. Changes land on a review branch and it pauses before anything destructive, so you review the diff and merge (or discard) when ready. Decisions are recorded so the next `/gtm-os-upgrade` only surfaces what's new. (Don't have the skill yet? Just ask the agent to *"install the gtm-os-upgrade skill from the template"* — one-time.)
 - **Any editor:** ask *"Check the GTM Context OS template at https://github.com/thesnappingdog/gtm-context-os for new patterns and propose what applies to this repo."* Same advisory flow.
 
 What it will **never** do: touch your content (`context.md`, `demand/`, `segments/`, …), impose the template's folder names, or change anything without your approval. The template is a source of ideas, not a remote you sync to.
@@ -120,7 +120,7 @@ Works with any AI coding assistant. `AGENTS.md` is the single source of truth; e
 | Aider | Via `read: AGENTS.md` in config |
 | Cline | Add `AGENTS.md` to context files |
 
-Claude Code users get bonus slash commands (`/pull-query`, `/gtm-status`, `/intake`, `/handover`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
+Claude Code users get bonus slash commands (`/pull-query`, `/gtm-os-status`, `/intake`, `/handover`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
 
 ## Development
 
