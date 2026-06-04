@@ -73,6 +73,8 @@ Claude Cowork runs in an isolated Linux VM on your device. This repo is optimize
 
 ### MCP Servers
 
+**Claude Code:** Run `/setup-env` to check Python/uv and scaffold a starter `.env` and `.mcp.json`, then `/setup-api <tool>` (e.g. `/setup-api hubspot`) to wire up a specific integration — it adds the `.mcp.json` entry, the `.env` keys, any pull script, and an integration reference for you. The manual steps below are for other editors.
+
 If you use external tools and want AI access to them, create `.mcp.json`:
 
 ```json

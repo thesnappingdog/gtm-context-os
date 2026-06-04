@@ -18,7 +18,7 @@ Available slash commands for GTM operations:
 | `/setup-env` | Check base technical environment — Python, uv, .env, .mcp.json |
 | `/setup-api` | Connect a specific tool — scaffolds scripts, MCP config, integration docs |
 | `/intake` | Process raw documents into structured knowledge — drop docs in `_intake/`, run to dissect |
-| `/gtm-status` | Dashboard of current GTM state across all modules |
+| `/gtm-os-status` | Dashboard of current GTM state across all modules |
 | `/pull-query` | Search demand analyses for evidence |
 | `/segment-messaging` | Match a segment to messaging angles using PULL evidence |
 | `/draft-sequence` | Write an outbound sequence grounded in demand data |
@@ -26,7 +26,7 @@ Available slash commands for GTM operations:
 | `/gtm-os-health` | Audit this instance's lived-in state — structural completeness, evidence chains, index integrity, output hygiene, drift, context.md consistency |
 | `/release-check` | Smoke test before merging dev→main — bootstrap + eval + consistency check |
 | `/handover` | Generate a handover message for continuing work in a new session |
-| `/gtm-upgrade` | Upgrade this instance to the latest template — fetches template, reconciles what's new, applies on a review branch, pauses before anything destructive |
+| `/gtm-os-upgrade` | Upgrade this instance to the latest template — fetches template, reconciles what's new, applies on a review branch, pauses before anything destructive |
 
 ## Model Selection
 
