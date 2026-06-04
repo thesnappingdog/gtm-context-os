@@ -43,10 +43,19 @@ Every `dev` → `main` merge **must** add one entry per coherent pattern changed
 
 Condensed index of what shipped under each `main` tag. Newest first. Each release groups the pattern entries (detailed below) that an instance would consider. This is the "what changed" summary; the entries are the "how to adopt it."
 
-### `2026-06-04` — `[CLAIMED]` attribution tag canonized
+### `2026-06-04` — operational pre-setup + self-improvement conventions
 
-One methodology entry, closing a gap between the seeding skills and the canon:
-- **`claimed-attribution-tag`** — `[CLAIMED: {source}]` (the company's own unconfirmed assertion, promotable to `[VERIFIED]`) becomes a first-class attribution tag defined in the canon, no longer only inside `/bootstrap` and `/intake`. An agent meeting the tag mid-session now has a definition without loading a skill, and won't misread it as the terminal `[UNVERIFIABLE]`.
+Mined from a live-instance operational harvest plus a recursive self-improvement audit (all customer-clean). Operational pre-setup — going from "context built" to "running a real data pipeline":
+- **`script-write-safety`** — a script that mutates a system of record defaults to a dry-run, requires `--commit`, rolls out gradually (`--limit`/`--all`), upserts idempotently, and snapshots before overwrite.
+- **`script-conventions`** — a standard script header (docstring + `ROOT` path anchor + credential idiom) and a live-scripts README table with tool/concern families that consolidate into a graduation candidate.
+- **`per-workflow-readme`** — a per-workflow README skeleton with honest-stub Schedule/Rollback and a named pre-deployment state.
+- **`datastore-integration-genre`** *(depends on `output-artifact-boundary`)* — a persistent datastore as a third `integrations/` genre, migrations as tracked schema-as-code, and a "a datastore doesn't graduate you" rule.
+
+Methodology + mechanics, from a decision pass over known gaps:
+- **`claimed-attribution-tag`** — `[CLAIMED: {source}]` (the company's own unconfirmed assertion, promotable to `[VERIFIED]`) becomes a first-class canon tag, no longer only inside `/bootstrap` and `/intake`. An agent meeting it mid-session has a definition without loading a skill, and won't misread it as the terminal `[UNVERIFIABLE]`.
+- **`pull-score-band-reconciliation`** — the PULL interpretation/tier bands nest strictly inside the DEMAND/BENEFIT/NEITHER classification (one score → one label); classification thresholds unchanged.
+- **`attribution-presence-enforcement`** *(depends on `claimed-attribution-tag`)* — eval T7 gains a presence tripwire and `/gtm-os-health` a presence lens; the robust check is routed to the trajectory-eval tier.
+- **`skill-naming-convention`** — OS-meta skills take the `gtm-os-` prefix (`/gtm-os-status`, `/gtm-os-upgrade`); GTM-operation skills stay bare.
 
 ### `2026-05-29c` — engineering artifact patterns + upgrade-path v2
 
@@ -99,6 +108,222 @@ Add `[CLAIMED]` to wherever *your* instance defines its attribution vocabulary (
 
 **Reference (template implementation)**
 `AGENTS.md` → "Attribution"; `.claude/rules/01-system-identity.md` → "Attribution"; `.claude/skills/bootstrap/SKILL.md` and `.claude/skills/intake/SKILL.md` (producers); `SETUP.md` (Step 2, operator-facing mention).
+
+---
+
+### [2026-06-04] Script write-safety for system-of-record mutations
+
+- **ID:** script-write-safety
+- **Category:** convention
+- **Severity:** medium (data-loss risk if missed)
+- **Depends on:** none
+
+**What changed**
+A script that mutates an external system of record (CRM, sequencer, datastore) follows four guardrails: default to a **dry-run** (write nothing without an explicit `--commit`), support **`--limit N`/`--all`** for graduated rollout, **upsert idempotently** on a natural key, and **snapshot before overwrite** (a read-only backup run first, routed to a durable home). Gated on writes — read-only scripts are exempt.
+
+**Why**
+The template already contemplated scripts that push to a CRM/sequencer but said nothing about doing it safely. An agent-written import with no dry-run can silently overwrite a live system of record — the only data-loss-class failure mode in the operational layer. These guardrails make the operation reversible and rerunnable for a few lines of code.
+
+**How to assess fit**
+Do you (or will you) run scripts that write to an external system — a CRM import, a sequencer push, a datastore upsert? If yes, applies the first time you write one. Read-only / pull-only instances can skip until they add a writer.
+
+**How to adapt (not copy)**
+The pattern is the four guardrails, not the literal flag names. Express `--commit`/`--limit`/`--all` (or your CLI's equivalent) however your scripts take arguments; the load-bearing parts are dry-run-by-default and snapshot-before-overwrite.
+
+**Downstream risks / migration**
+Additive guidance. Existing writer scripts without a dry-run gate are the ones to retrofit first.
+
+**What I can't see from here**
+- Whether a given script writes to a system of record or only reads is something only you can tell per script — apply the convention to the writers, not to harmless pulls.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: scripts" (Conventions); `.claude/rules/08-scripts.md`; `.claude/skills/setup-api/SKILL.md` (Step 4).
+
+---
+
+### [2026-06-04] Standard script header + scripts navigation conventions
+
+- **ID:** script-conventions
+- **Category:** doc-architecture
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+Scripts get a standard shape and the `scripts/` module gets a navigation surface. Every script opens with a fixed **header** — a docstring (purpose · what it talks to · in→out + which output tier · write-safety state) plus a **`ROOT` path anchor** (`Path(__file__).resolve().parent.parent`) that all tier paths derive from — and a **credential idiom** (env → `.env` → `.mcp.json` fallback, erroring on the exact missing var). `scripts/README.md` becomes a **live-scripts table** (only live scripts; retired ones drop off). Scripts are named in tool/concern **families**, and a hardened multi-step chain consolidates into one pipeline script exposing phases as subcommands — the natural graduation candidate.
+
+**Why**
+The template said only "document what each script does at the top" — no shape — so scripts and the README drifted as they accumulated. The header is the operator-facing interface that makes a script safe to hand off or graduate; the `ROOT` anchor is what makes output-routing reliable from any directory; the table + families give the consolidate/retire lifecycle a concrete surface to act on.
+
+**How to assess fit**
+Do you have (or expect) more than a couple of scripts? If yes, the header + table pay off immediately. A single-script instance can skip the table until the folder grows.
+
+**How to adapt (not copy)**
+Adopt the header *fields* and the `ROOT`-anchor idiom in whatever language your scripts use; keep the README a live-only inventory in your own format. The families/consolidation guidance is gated on "when a chain hardens" — not a mandate to consolidate prematurely.
+
+**Downstream risks / migration**
+Additive. Existing scripts can adopt the header opportunistically on next touch; no rewrite required.
+
+**What I can't see from here**
+- If you already track scripts somewhere else (a wiki, code comments), fold it into the README table rather than running two inventories that drift.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: scripts"; `.claude/rules/08-scripts.md`; `.claude/skills/setup-api/SKILL.md` (Step 4).
+
+---
+
+### [2026-06-04] Per-workflow README skeleton
+
+- **ID:** per-workflow-readme
+- **Category:** doc-architecture
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+The workflows module gains a per-workflow `README.md` **skeleton**: purpose (+ "replaces the local `scripts/X` execution model") · numbered what-it-does (pointing to the engine spec for depth) · an Infrastructure table (dependency · purpose · credentials env-var) · Schedule · Output + downstream consumers · Status · Rollback. **Schedule and Rollback are mandatory but may be honestly stubbed with reasoning before deployment** and filled on the deploy commit. Names the **pre-deployment** holding state — the README modeling the target shape while the producing code still lives in `scripts/`.
+
+**Why**
+The template shipped the workflows index-table header and the per-workflow file listing but never modeled what goes *inside* the README — the highest-friction part of graduation. The honest-stub convention prevents both fabricated deploy docs and silently-missing rollback steps: a stub is a TODO you can see; a missing section is a gap you'll forget.
+
+**How to assess fit**
+Do you graduate scripts into deployed/scheduled workflows? If yes, applies the first graduation. If you never deploy automation, skip — the `workflows/` module stays unused.
+
+**How to adapt (not copy)**
+The pattern is the section set + the honest-stub rule + the split-doc boundary (thin README = deployment contract; engine doc = spec). Section names and order are yours.
+
+**Downstream risks / migration**
+Additive (a doc skeleton). If your workflow READMEs already exist, retrofit the missing sections (especially Rollback) on next touch.
+
+**What I can't see from here**
+- Whether your deployment target needs sections this skeleton omits (a region, a secret-manager ref, a runbook link) — add them; the skeleton is a floor, not a ceiling.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: workflows"; `.claude/rules/10-workflows.md`.
+
+---
+
+### [2026-06-04] Persistent datastore as a third integration genre
+
+- **ID:** datastore-integration-genre
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** output-artifact-boundary
+
+**What changed**
+`engine/integrations/` gains a **third doc genre** (alongside the API *reference* and the integration *diagnosis* doc): a **persistent-datastore reference** — role · connection · read-vs-write staging · schema conventions · migrations · when-it-graduates — shipped as a generic `engine/integrations/datastore.md` skeleton. **Migrations are tracked schema-as-code** (ordered, version-stamped DDL, header-commented) — the opposite of the gitignored `_output/`/`_retained/` *data* tiers. A datastore does **not** by itself trigger graduation to `workflows/`; while it stays `scripts/`-tier its migrations live in a top-level `{datastore}/migrations/` directory. Open hardening items go in a sibling `engine/{datastore}-dev-notes.md`.
+
+**Why**
+The template repeatedly referenced "persistent data stores" and listed `migrations/` as optional, but never said how to set one up, where the schema lives before a workflow exists, or how to document it — and the only `integrations/` genre shipped was API-reference-shaped (wrong for a DB). The gap let an operator conclude "I have a database, so I'm a workflow" (premature graduation), or strand migrations with nowhere to live.
+
+**How to assess fit**
+Do scripts need to read/write structured state *across runs* that has outgrown flat files (a cumulative account table, scored cohorts, longitudinal metrics)? If yes, this applies. If markdown + JSON indexes suffice — most instances — skip; the genre is optional.
+
+**How to adapt (not copy)**
+Document *your* store with the genre's section set, in your stack's idiom (the skeleton uses generic Postgres/Supabase examples — your vendor, connection form, and migration tool are yours). The load-bearing parts: schema-tracked / data-gitignored, the read-then-write staging, and "a datastore doesn't graduate you."
+
+**Downstream risks / migration**
+- If you currently keep schema DDL untracked or hand-edit a live schema, move to tracked, ordered migrations before the schema drifts from the files.
+- This refines the prior "migrations live in the workflow directory" guidance: that's true only for a store a single workflow *owns*; a store shared across scripts keeps its migrations at repo root.
+
+**What I can't see from here**
+- Whether your store is workflow-owned or script-shared determines where its migrations live — only you know the ownership. Classify before you place them.
+- Pooled vs. direct connection, region/latency, and security posture (row-level security) are deployment specifics the template can't choose for you — document them in your reference.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: engine" (Conventions) and "Module: workflows"; `.claude/rules/06-engine.md`; `.claude/rules/10-workflows.md`; `engine/integrations/datastore.md`; `.gitignore`.
+
+---
+
+### [2026-06-04] PULL score-band reconciliation
+
+- **ID:** pull-score-band-reconciliation
+- **Category:** methodology
+- **Severity:** medium
+- **Depends on:** none
+
+**What changed**
+`pull-framework.md` carried three overlapping-but-divergent band sets (a score of 12 was simultaneously "Moderate", "BENEFIT", and "Tier 3 Weak"). The **classification** bands — DEMAND (14-20) / BENEFIT (8-13) / NEITHER (0-7) — are now the single source of truth, and the finer interpretation sub-bands and synthesis scorecard tiers are **re-derived to nest strictly inside them** (Strong 17-20 + Moderate 14-16 = DEMAND; 8-13 = BENEFIT; 0-7 = NEITHER). No sub-band crosses a classification boundary, so any score yields exactly one label.
+
+**Why**
+A borderline call (12, 13, 14) landed on a different label depending on which table the agent read, producing inconsistent `pull-index.json` classifications and scorecard tiers. The classification bands were already the only set propagated downstream, so they were the de-facto truth; the other tables just disagreed with it.
+
+**How to assess fit**
+Have you customized your PULL score bands or tier tables? If your framework doc has interpretation/tier bands that don't line up with your DEMAND/BENEFIT/NEITHER thresholds, this applies. If you only ever use the three classification bands, you're already consistent.
+
+**How to adapt (not copy)**
+Pick your classification thresholds as the anchor and make every finer band nest inside one class. The pattern is "one score → one label," not the specific 14/8/0 cutoffs (yours may differ).
+
+**Downstream risks / migration**
+- **The classification thresholds did not change** (14/8/0), so existing PULL analyses keep their DEMAND/BENEFIT/NEITHER classification — nothing is reclassified. Only the finer *sub-band labels* and scorecard *tier* boundaries shifted; a synthesis regenerated after adopting may move a borderline prospect between tiers (never between classes).
+- If your instance *did* change classification thresholds, that's a different, heavier migration — re-run classification on existing analyses.
+
+**What I can't see from here**
+- If you set your own thresholds, confirm no finer band straddles a class boundary after adopting — the defect is any sub-band spanning the 13/14 (or 7/8) line.
+
+**Reference (template implementation)**
+`demand/pull-framework.md` (scoring rubric + Full Scorecard tiers).
+
+---
+
+### [2026-06-04] Attribution-presence enforcement
+
+- **ID:** attribution-presence-enforcement
+- **Category:** mechanic
+- **Severity:** low
+- **Depends on:** claimed-attribution-tag
+
+**What changed**
+Attribution was load-bearing but unenforced. Two complementary checks now cover it: eval **T7** gains a light **presence** criterion (a described PULL analysis must use the confidence tags — presence, not per-claim density, not dating; a sparse-but-tagged analysis passes), and **`/gtm-os-health` Check 6** gains a flag-only **presence lens** that flags (LOW) an evidence-bearing artifact carrying *zero* confidence tags — the accumulated-corpus case the clean-room eval can't see. The ROADMAP routes the *robust* git-diff version to the trajectory-eval tier.
+
+**Why**
+An agent could quietly stop attributing and every gate stayed green. T7 is the cheap tripwire (does a fresh analysis use the convention at all?); the health lens is the state backstop (did the corpus drift to unattributed?). Deliberately *not* added to the behavioral eval as a structural check — that split keeps the eval behavioral and the state-audit in health, per the "verify is blind to conventions" architecture.
+
+**How to assess fit**
+Do you rely on attribution in PULL analyses / segment rationale / messaging? If yes, both checks apply. If you customized T7 or `/gtm-os-health`, fold the presence checks into your versions.
+
+**How to adapt (not copy)**
+The pattern is presence-not-density, flag-only, four-tag, no-dating-requirement. Express the T7 Must and the health lens in your eval/health docs' own wording; skip pure-template artifacts (`_EXAMPLE.md`, an empty instance) so you don't false-flag.
+
+**Downstream risks / migration**
+Additive checks; nothing reinterprets data. A first health run after adopting may surface old unattributed analyses — that's the point (recommend re-attributing on next touch; never rewrite claims unilaterally).
+
+**What I can't see from here**
+- Your `_EXAMPLE.md` or template fixtures already attribute; make sure your health lens skips them, or it reports a false finding on shipped artifacts.
+
+**Reference (template implementation)**
+`.gtm-os/eval/tests.md` (T7); `.gtm-os/eval/README.md`; `.claude/skills/gtm-os-health/SKILL.md` (Check 6); `ROADMAP.md` (Trajectory evals).
+
+---
+
+### [2026-06-04] OS-meta skill-naming convention
+
+- **ID:** skill-naming-convention
+- **Category:** convention
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+Slash commands follow a two-class naming rule. **GTM-operation skills** — each does one GTM-domain task (querying demand, drafting a sequence) — stay **bare** (`/pull-query`, `/draft-sequence`). **OS-meta skills** — they operate on the OS or the instance itself (auditing instance state, reporting cross-module status, upgrading the instance) — take the **`gtm-os-`** prefix. Two prior `gtm-` outliers are renamed onto the convention: `/gtm-status` → `/gtm-os-status` and `/gtm-upgrade` → `/gtm-os-upgrade`, forming the `gtm-os-{health,status,upgrade}` trio. `run-eval` and `release-check` are grandfathered bare (heavily cross-referenced; the rule resolves outliers, not a retroactive mass-rename).
+
+**Why**
+Three naming styles coexisted (bare, `gtm-os-`, `gtm-`) with no rule connecting them, so a meta command's name had to be memorized rather than derived. The test "does it act on a GTM artifact, or on the OS itself?" lets an agent or operator predict the right command and signals at a glance which commands touch system machinery.
+
+**How to assess fit**
+Do you have skills with mixed prefixes? List `.claude/skills/`. If your meta/system skills use an inconsistent prefix, this applies. If you renamed or added your own skills, decide per skill which class it's in. No Claude Code skills → skip.
+
+**How to adapt (not copy)**
+The pattern is the two-class rule and the `gtm-os-` marker for OS-meta — not a mandate to rename every skill. Rename only your *orphan-styled* meta skills; leave bare GTM-operation skills bare; grandfather heavily-referenced ones. A rename must be **atomic**: directory, SKILL.md `name`, every doc that lists it, and every cross-skill reference change in one commit, or `/`-autocomplete and cross-references break.
+
+**Downstream risks / migration**
+- A skill rename is only complete if atomic. For the upgrade skill specifically, the rename also touches its working-branch name, its one-time bootstrap-install sentence, and its install path — update all together.
+- Operator muscle-memory, external runbooks, or saved prompts that type the old command stop resolving — there is no alias.
+- Historical release notes that name a skill at a past tag stay verbatim (they record the name as it was); don't rewrite history.
+
+**What I can't see from here**
+- **The self-refresh trap for the upgrade skill.** An instance that still has the *old-named* upgrade skill runs it by its old name, and that old skill self-refreshes by fetching the template's *old-named* directory — which no longer exists after this rename. Clean path: install/keep the skill under the new name and remove the old directory in the *same* operation, so the running skill never points at a vanished template path.
+- Whether *your* meta skills are truly OS-meta or GTM-operation is a judgment only you can make for skills you authored — classify by what a skill operates on, not by the word in its name.
+
+**Reference (template implementation)**
+`.claude/CLAUDE.md` (skill table); `.claude/skills/gtm-os-status/`; `.claude/skills/gtm-os-upgrade/`; `.claude/skills/gtm-os-health/SKILL.md` (the self-referential-checks table that motivates the convention).
 
 ---
 
