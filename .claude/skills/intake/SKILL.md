@@ -87,7 +87,7 @@ For each document, extract structured facts. Tag every claim:
 **Derived insights** (you inferred by combining sources):
 - Pitch deck says "mid-market" + pricing shows $20K ACV → `[INFERRED: from pitch deck + pricing]`
 
-The key distinction: `[CLAIMED]` is not a judgment — it means "this is what the company believes, and it's useful context." It becomes `[VERIFIED]` when demand evidence or data confirms it.
+The key distinction: `[CLAIMED]` is not a judgment — it means "this is what the company believes, and it's useful context," and it promotes to `[VERIFIED]` when demand evidence or data confirms it. `[CLAIMED]` is a first-class attribution tag defined in AGENTS.md "Attribution" alongside `[VERIFIED]` / `[INFERRED]` / `[UNVERIFIABLE]` — see there for how it sits in the ladder.
 
 ### Step 4: Route to Destinations
 
@@ -116,8 +116,8 @@ When updating context.md, merge with existing content. Don't overwrite — add, 
 - Case study quotes or proof points → `messaging/angles.md` proof points
 
 **→ segments/ (bootstrap if needed)**
-- Named segments or personas → `segments/{name}.md`
-- Targeting criteria → `segments/segments.json`
+- Named segments or personas → `segments/{name}.md` (targeting criteria, hypothesis, and rationale live in this markdown file)
+- Segment index entry (id, name, status, pull_evidence) → `segments/segments.json`
 
 **→ campaigns/ (bootstrap if needed)**
 - Past campaign data → `campaigns/campaigns.json` + relevant campaign folder

@@ -24,6 +24,7 @@ If user named a specific tool, proceed. If they named a category, ask which tool
 - **Enrichment:** Clay, Apollo, Clearbit, ZoomInfo, Exa
 - **Sequencing:** Lemlist, Instantly, Smartlead, Apollo Sequences, HeyReach
 - **Research:** Exa, Perplexity
+- **Datastore (persistent state):** Postgres, Supabase, a hosted warehouse — for structured state scripts read/write across runs. Document it with the datastore genre (`engine/integrations/datastore.md`), not the API-reference template below; most instances never need one.
 
 ### Step 2: Load Integration Reference
 
@@ -44,21 +45,24 @@ Tell the user exactly where to find the key (from the integration reference: whi
 ### Step 4: Set Up Integration
 
 **If MCP server available** (noted in integration reference):
-Add to `.mcp.json`:
+Add the server under `mcpServers` in `.mcp.json` — merge into the object `/setup-env` created (`{ "mcpServers": {} }`), don't replace it:
 ```json
 {
-  "{tool}": {
-    "command": "npx",
-    "args": ["-y", "{mcp-package-name}"],
-    "env": {
-      "{TOOL}_API_KEY": "${.env key name}"
+  "mcpServers": {
+    "{tool}": {
+      "command": "npx",
+      "args": ["-y", "{mcp-package-name}"],
+      "env": {
+        "{TOOL}_API_KEY": "${{TOOL}_API_KEY}"
+      }
     }
   }
 }
 ```
+(`{TOOL}_API_KEY` is the `.env` key from Step 3; `${{TOOL}_API_KEY}` interpolates it — e.g. `APOLLO_API_KEY` → `${APOLLO_API_KEY}`. Use the exact env-var name from the integration reference read in Step 2 — not every tool uses an `_API_KEY` suffix: HubSpot uses `HUBSPOT_ACCESS_TOKEN`, Gong uses `GONG_ACCESS_KEY`/`GONG_SECRET_KEY`.)
 
 **If script needed:**
-Bootstrap `scripts/` module if it doesn't exist (use AGENTS.md blueprint). Create a script at `scripts/pull-{tool}-{data}.py` using the inline dependency pattern:
+Bootstrap `scripts/` module if it doesn't exist (use AGENTS.md blueprint). Create a script at `scripts/pull-{tool}-{data}.py` using the standard script header (AGENTS.md "Module: scripts" — docstring + `ROOT` path anchor + inline deps):
 
 ```python
 # /// script
@@ -68,9 +72,10 @@ Bootstrap `scripts/` module if it doesn't exist (use AGENTS.md blueprint). Creat
 ```
 
 The script should:
-- Read credentials from `.env`
+- Read credentials from `.env` (env first, then `.env`; on Claude Code the key may already be in `.mcp.json`)
 - Pull data from the API
 - Write output to the appropriate location: repo state (transcripts → `demand/pull-analyses/`, metrics → the relevant campaign folder) goes to module folders; transient data (contact CSVs, enrichment results) goes to `_output/`
+- **If it writes back to a system of record** (CRM, sequencer): follow the write-safety convention in AGENTS.md "Module: scripts" — default to a dry-run, require `--commit`, and snapshot before overwriting
 - Be runnable with `uv run scripts/{name}.py`
 
 ### Step 5: Validate

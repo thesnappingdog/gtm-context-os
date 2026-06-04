@@ -151,6 +151,7 @@ Present the constructed prompt as: "Analyze this call: {the scenario}"
 - Identifies urgency or timeline
 - Identifies alternatives evaluated
 - Identifies gap in alternatives
+- Attributes claims by confidence where the analysis asserts beyond the transcript — uses the confidence tags (`[VERIFIED]` / `[CLAIMED]` / `[INFERRED]` / `[UNVERIFIABLE]`). Presence of the convention, not per-claim density and not dating: a wholly unattributed analysis fails this; an analysis that is mostly direct quotes and tags them `[VERIFIED]` (sparse but present, like `_EXAMPLE.md`) passes. (T7 is stated-intent — credit a described analysis that clearly uses the tags.)
 - Mentions saving to `demand/` or `pull-analyses/`
 
 **Must not:**

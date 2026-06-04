@@ -13,6 +13,10 @@ Local tools for API integrations, data imports/exports, and manual operations. R
 - Transient pipeline output (enrichment CSVs, scored lists, intermediate data) goes to `_output/` — never into module folders
 - When writing script code, route output paths to `_output/` for transient data — the convention applies to scripts you write, not just your direct file operations
 - `_output/` is the script default; promoting a run's output to `samples/` (committed, PII-safe) or `_retained/` (durable, private) is a deliberate act, never a script's automatic write target. See AGENTS.md "Pipeline Artifacts and Output"
+- `_output/` is write-only for agents: don't browse, search, or read it back to inform your work — its contents are ephemeral and unreliable (stale, partial, or from a different run). Only read an `_output/` path the operator explicitly points you to. (Scripts you write may chain intermediate files through `_output/` within a single pipeline run — that's plumbing, not a state read.)
+- Every script opens with the standard header: a docstring (purpose · talks-to · in→out + which tier · write-safety state) and a `ROOT = Path(__file__).resolve().parent.parent` anchor that all tier paths derive from, so it runs correctly from any directory. Credential idiom: env first, fall back to parsing `.env`, else exit naming the exact missing var; on Claude Code the key may already live in `.mcp.json` — read it there rather than duplicating
+- **Write-safety** — a script that mutates an external system of record (CRM, sequencer, datastore) defaults to a dry-run and requires `--commit` to write; support `--limit N`/`--all` for graduated rollout, upsert idempotently on a natural key, and snapshot before overwriting. Read-only scripts need none of this. Full convention: AGENTS.md "Module: scripts"
+- Name scripts in tool/concern families; when a multi-step chain hardens, consolidate it into one pipeline script exposing phases as subcommands — the natural graduation candidate to `workflows/`. `scripts/README.md` is a live-scripts table (only live scripts; retired ones drop off)
 - Use inline `# /// script` metadata for dependencies:
 
 ```python

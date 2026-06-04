@@ -51,6 +51,7 @@ Run each category. For every finding, classify it: **OK**, **auto-fixed** (safe 
 **4. Output hygiene** — is output following the three-tier convention? (See AGENTS.md "Pipeline Artifacts and Output".)
 - Scratch dir (`_output/`/renamed): numbered-iteration siblings (`foo.csv`, `foo2.csv`, `foo3.csv`), underscore-"protected" files (the "protect this file" anti-pattern), or a large stale pile? Flag and recommend promote-or-purge — never auto-delete.
 - `_retained/`: any file present with no corresponding line in `_retained/manifest.md`? Manifest missing entirely? Flag — gitignored data with no tracked record is how `_retained/` rots.
+- Tracked-under-gitignored: no tracked file should live inside a gitignored zone (the scratch dir, `_retained/`) except a whitelisted manifest. Run `git ls-files _output _retained` (substitute the renamed scratch dir from Step 1) — any hit other than `_retained/manifest.md` is a file committed under a gitignored zone, which a clone silently loses (or leaks, if it carries PII under `_retained/`). Flag CRITICAL under `_retained/` (same PII concern as `samples/`), MED otherwise — recommend extracting genuine repo-state into a tracked doc/index first; never auto-delete.
 - `samples/`: any committed file containing contact-PII patterns? Run the same grep `/release-check` uses:
   ```bash
   git ls-files 'samples/**' | xargs -r grep -lE \
@@ -68,6 +69,7 @@ Run each category. For every finding, classify it: **OK**, **auto-fixed** (safe 
 - **Conflicts (the payload):** scan for two statements that disagree about the same fact — a headcount stated in one section and contradicted in another, a positioning claim that violates a product rule. Report each as a candidate: quote both statements with their locations and ask which is current. Don't pick a winner. This is the check that catches the contradictions a growing file accretes.
 - **Cached-vs-source drift:** where a pointer in `context.md` names a source of truth (e.g. "source of truth: `demand/synthesis.md`", "live-sourced from the CRM API"), diff the cached values against that source and flag divergence. The pointer tells you exactly what to compare, so this lens is reliable — not open-ended contradiction-hunting.
 - **Age:** list dated `[VERIFIED: … · YYYY-MM]` claims oldest-first, so the eye lands on the most likely-stale. **No expiry rule** — undated facts are never flagged (dating is the opt-in decay signal), and an old date is a prompt to re-confirm, not an error. Don't decide per-fact when something becomes obsolete.
+- **Attribution presence:** attribution is load-bearing in the evidence-grounded artifacts (`demand/` PULL analyses, segment rationale, messaging angles — see AGENTS.md "Attribution"). Where Age checks whether *dated* tags have gone stale, this checks whether the convention is *applied at all*: scan those artifacts for any use of the confidence tags (`[VERIFIED]` / `[CLAIMED]` / `[INFERRED]` / `[UNVERIFIABLE]`). Flag (LOW) an artifact that makes evidence claims with **zero** confidence tags — the corpus may have drifted to unattributed. Count them; don't adjudicate any single claim, don't demand a density, and don't demand dating (dating stays opt-in). Skip pure-template artifacts: the shipped `_EXAMPLE.md` already attributes, and a near-empty instance with no real analyses is OK, not a finding.
 
 ### Step 3: Report
 
@@ -90,6 +92,8 @@ Present a health report. Overall verdict first, then findings grouped by categor
   → Promote the keeper, purge the rest.
 - [MED] context.md conflict: "~7 SMB sellers" (Company) vs 8 CCMs listed (Organization) — same fact, two values.
   → Surface both; ask the operator which is current. Don't auto-resolve.
+- [LOW] 3 of 9 PULL analyses make evidence claims with no `[VERIFIED]`/`[CLAIMED]`/`[INFERRED]`/`[UNVERIFIABLE]` tags — attribution convention may have lapsed.
+  → List the files; recommend re-attributing on next touch. Don't edit claims unilaterally.
 
 ### OK
 - Evidence chains intact · indexes reconciled · status.md current · context.md consistent
