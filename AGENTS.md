@@ -688,6 +688,7 @@ See topics.md for demand-derived topic clusters.
 scripts/
   README.md
 ```
+`scripts/ops.py` (the operational dispatcher) is *not* part of the bootstrap — it's added later, when the first recurring operation is promoted into it. See "The `ops` dispatcher" below.
 
 **Initial files:**
 
@@ -769,6 +770,79 @@ This lets any script declare its own dependencies without a global `pyproject.to
 
 **Lifecycle — consolidate and retire, don't accumulate.** Scripts go create → consolidate → retire → graduate. When two scripts overlap, fold them into one and **delete** the loser — don't leave a graveyard of half-broken near-duplicates. Record what superseded a retired script (in the commit message, and the engine dev-notes if one exists). `scripts/README.md` lists only *live* scripts; retired ones disappear from it. If an ad-hoc need for a retired script resurfaces, prefer a thin CLI wrapper around the script that replaced it over reviving the dead one.
 
+**The `ops` dispatcher — your operational surface.** Some scripts aren't one-shots — they're *recurring operations* you run on a cadence by hand (a weekly report, a sourcing run, a data refresh). These are the instance's **operational mode** made concrete, and they're easy to lose in a flat folder of one-off scripts — an agent that can't see them re-creates one that already exists. `ops` is the cure: a thin dispatcher that is the single, curated registry of recurring operations. `ops list` answers "what can this instance *do*."
+
+- **It's a router, not a framework.** `scripts/ops.py` holds an `OPERATIONS` table mapping a subcommand to a standalone script, and shells out with `uv run` (passthrough args). Every registered script stays a normal standalone script — still runnable directly (`uv run scripts/weekly_progress.py`), still owning its inline deps. `ops weekly-progress --dry-run` and `uv run scripts/weekly_progress.py --dry-run` are the same run. No shared state, no import coupling.
+- **Created on first promotion, not at bootstrap.** A fresh `scripts/` is just `README.md`; an empty dispatcher is noise. `scripts/ops.py` materializes the first time an operation is promoted into it.
+- **Promotion is the operator's call — suggest, never auto-register.** When a script starts looking like a robust, recurring operation (run on a cadence, given a name, here to stay), *offer* to add it ("this looks like a recurring op — want it in `ops`?"). Register only on a yes. Don't codify one-shots or exploratory scripts — the value of `ops` is that it's curated. Registering is adding one row to `OPERATIONS` and giving the script a clean entrypoint.
+- **Check before you create.** Before writing a new operational script, run `ops list` (the recurring set) and scan `scripts/README.md` (the full catalog). The registry exists so you never duplicate an operation that already exists.
+- **It de-risks graduation.** Giving an operation a clean `ops` entrypoint already factors its logic into something callable — exactly what a `workflows/` version later wraps. The `ops` entry and a deployed workflow can share one core (see the workflows module).
+
+`scripts/ops.py` skeleton (copy when the first operation is promoted):
+
+```python
+#!/usr/bin/env python3
+"""
+ops — the operational CLI for this instance. Routes to registered, recurring operations.
+
+Talks to: nothing directly — it shells out to standalone scripts in this folder.
+In:  a subcommand name + passthrough args  →  Out: whatever the target script writes.
+Write-safety: read-only (a router); each operation keeps its own --commit guardrails.
+
+Usage:
+  uv run scripts/ops.py list              # what can this instance do?
+  uv run scripts/ops.py <name> [args...]  # run a registered operation
+  # convenience: alias ops="uv run scripts/ops.py"
+
+Register an operation ONLY when the operator approves it (never automatically): add a
+row to OPERATIONS below. The script it points to stays directly runnable on its own.
+"""
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent   # repo root
+SCRIPTS = ROOT / "scripts"
+
+# subcommand -> (script filename, one-line description, recurring?)
+# Recurring = run on a cadence by hand. One-shots stay unregistered.
+OPERATIONS = {
+    # "weekly-progress": ("weekly_progress.py", "Weekly outbound report -> campaigns/metrics/", True),
+}
+
+
+def cmd_list() -> int:
+    if not OPERATIONS:
+        print("No operations registered yet.")
+        print("Promote one by adding a row to OPERATIONS in scripts/ops.py (operator-approved only).")
+        return 0
+    width = max(len(name) for name in OPERATIONS)
+    for name in sorted(OPERATIONS):
+        script, desc, _recurring = OPERATIONS[name]
+        missing = "" if (SCRIPTS / script).exists() else f"   [MISSING: {script}]"
+        print(f"  {name.ljust(width)}  {desc}{missing}")
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    if not argv or argv[0] in ("list", "help", "-h", "--help"):
+        return cmd_list()
+    name, rest = argv[0], argv[1:]
+    if name not in OPERATIONS:
+        print(f"Unknown operation: {name}\n")
+        cmd_list()
+        return 2
+    script = SCRIPTS / OPERATIONS[name][0]
+    if not script.exists():
+        print(f"Registered script is missing: {script}")
+        return 1
+    return subprocess.run(["uv", "run", str(script), *rest]).returncode
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+```
+
 **Graduation:** Some scripts outgrow the local toolbox. When a script is deployed to run on a schedule (cron, cloud trigger), deployed to a cloud environment, or is production code that other systems depend on, it belongs in `workflows/` — not `scripts/`. A script that connects to a database but is still run manually stays in `scripts/` until it's actually deployed. See the workflows module below.
 
 ---
@@ -777,7 +851,9 @@ This lets any script declare its own dependencies without a global `pyproject.to
 
 **Activate when:** A script graduates from manual local execution to deployed automation — it runs on a schedule, is deployed to a cloud environment, or is production code that other systems depend on.
 
-**The graduation test:** If you stop running it, does something break? If yes, it's a workflow. If no, it's a script.
+**The graduation test — who runs it?** If *you* still type the command, it's a script (and if you run it on a cadence, register it in `ops`). If it runs *without you* — on a schedule, deployed to the cloud, triggered by another system — it's a workflow. Note what the test is *not*: "would something break if it stopped?" is true of load-bearing scripts too — a weekly report breaks your reporting if you skip it, yet it's still a hand-run script. The discriminator is **unattended execution**, not importance.
+
+**Graduation is often a fork, not a move.** An operation can legitimately exist as *both* a local script (hand-run, registered in `ops`) and a deployed workflow at the same time — especially when the two run in different contexts (e.g. a local version that leans on an active agent session vs. a headless cloud version that can't). Factor the shared logic into a callable core; let a thin `ops` entrypoint and a thin workflow entrypoint each wrap it. Graduation then means "extract the core and add a scheduled wrapper," not necessarily "delete the script." The `ops` entry has usually already done the core-extraction for you.
 
 **Don't create prematurely.** If you're still iterating on a script and running it manually, keep it in `scripts/` — even if it connects to a database. Only move to `workflows/` when the code is actually deployed or scheduled. Organizing around speculation creates empty structure. A persistent datastore + version-controlled migrations can exist while the producing code is still a script: keep those migrations in a top-level `{datastore}/migrations/` directory (a project-wide store many scripts may share). On graduation, migrations for a store a single workflow *owns* move into that workflow's directory; a shared store's stay at root and its reference stays in `engine/integrations/`.
 

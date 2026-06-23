@@ -6,7 +6,7 @@ Production-grade automated workflows that have graduated from `scripts/`. These 
 
 ## Graduation Test
 
-If you stop running it, does something break? If yes, it's a workflow. If no, it belongs in `scripts/`.
+Who runs it? If you still type the command, it's a script (register recurring ones in `ops`). If it runs unattended — scheduled, deployed, or triggered by another system — it's a workflow. *Not* the test: "would something break if it stopped?" — that's true of load-bearing hand-run scripts too. The discriminator is unattended execution, not importance. Graduation can be a fork rather than a move: a script and its deployed counterpart can coexist, sharing a callable core.
 
 ## Key Structure
 
