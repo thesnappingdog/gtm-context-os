@@ -17,6 +17,7 @@ Local tools for API integrations, data imports/exports, and manual operations. R
 - Every script opens with the standard header: a docstring (purpose · talks-to · in→out + which tier · write-safety state) and a `ROOT = Path(__file__).resolve().parent.parent` anchor that all tier paths derive from, so it runs correctly from any directory. Credential idiom: env first, fall back to parsing `.env`, else exit naming the exact missing var; on Claude Code the key may already live in `.mcp.json` — read it there rather than duplicating
 - **Write-safety** — a script that mutates an external system of record (CRM, sequencer, datastore) defaults to a dry-run and requires `--commit` to write; support `--limit N`/`--all` for graduated rollout, upsert idempotently on a natural key, and snapshot before overwriting. Read-only scripts need none of this. Full convention: AGENTS.md "Module: scripts"
 - Name scripts in tool/concern families; when a multi-step chain hardens, consolidate it into one pipeline script exposing phases as subcommands — the natural graduation candidate to `workflows/`. `scripts/README.md` is a live-scripts table (only live scripts; retired ones drop off)
+- **The `ops` dispatcher** — `scripts/ops.py` is the curated registry of recurring, hand-run operations; `ops list` is "what can this instance do." Promotion is operator-explicit: when a script looks like a robust recurring op, *suggest* adding it ("want it in `ops`?"), never auto-register. Before writing a new operational script, check `ops list` and `scripts/README.md` so you don't duplicate one that already exists. Created on first promotion, not at bootstrap. Full pattern: AGENTS.md "Module: scripts"
 - Use inline `# /// script` metadata for dependencies:
 
 ```python
@@ -35,7 +36,7 @@ Scripts go create → consolidate → retire → graduate. When two scripts over
 
 ## Graduation
 
-When a script is deployed to run on a schedule, deployed to a cloud environment, or becomes production code that other systems depend on, it belongs in `workflows/` — not here. If you stop running it and something breaks, it's a workflow.
+When a script is deployed to run on a schedule, deployed to a cloud environment, or becomes production code that other systems depend on, it belongs in `workflows/` — not here. The test is **who runs it**: if you still type the command it's a script (register recurring ones in `ops`); if it runs unattended it's a workflow. "Something would break if it stopped" is true of load-bearing scripts too, so it doesn't discriminate. Graduation can be a fork, not a move — a hand-run script and a deployed workflow can coexist, sharing a callable core.
 
 ---
 
