@@ -43,6 +43,11 @@ Every `dev` → `main` merge **must** add one entry per coherent pattern changed
 
 Condensed index of what shipped under each `main` tag. Newest first. Each release groups the pattern entries (detailed below) that an instance would consider. This is the "what changed" summary; the entries are the "how to adopt it."
 
+### `2026-06-12` — operational CLI surface (`ops`)
+
+Mined from a live-instance scan: the instance had grown several recurring, hand-run terminal operations that were getting lost in a flat script folder (one was nearly rebuilt from scratch because the agent didn't see it already existed).
+- **`ops-operational-cli`** *(depends on `script-conventions`)* — a thin `ops` dispatcher (`scripts/ops.py`) becomes the curated, self-listing registry of recurring hand-run operations; `ops list` answers "what can this instance do," and an agent consults it before creating a new operational script. Promotion is operator-explicit (suggest, never auto-register). Also sharpens the `scripts`↔`workflows` graduation test from "would something break?" to "who runs it — you or a schedule?", and names graduation as sometimes a *fork* (script + workflow coexisting on a shared core) rather than a move.
+
 ### `2026-06-04` — operational pre-setup + self-improvement conventions
 
 Mined from a live-instance operational harvest plus a recursive self-improvement audit (all customer-clean). Operational pre-setup — going from "context built" to "running a real data pipeline":
@@ -78,6 +83,36 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 ---
 
 ## Entries
+
+### [2026-06-12] `ops` — a curated operational CLI surface
+
+- **ID:** ops-operational-cli
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** script-conventions
+
+**What changed**
+Recurring, hand-run operations (a weekly report, a sourcing run, a data refresh) get a single curated home: a thin dispatcher, `ops`, whose `OPERATIONS` table is the registry and whose `ops list` answers "what can this instance *do*." It's a router, not a framework — it shells out to standalone scripts with `uv run` (passthrough args), so every registered script stays directly runnable and keeps its own inline deps. The dispatcher is created lazily, on the first promotion, not at scripts bootstrap. Promotion is operator-explicit: an agent *suggests* adding a script when it looks like a robust recurring op, and never auto-registers. The same change sharpens the `scripts`↔`workflows` boundary — the graduation test moves from "would something break if it stopped?" (true of load-bearing scripts too) to "**who runs it** — you, or a schedule?", and graduation is named as sometimes a *fork* (a hand-run script and a deployed workflow coexisting on a shared core) rather than a move.
+
+**Why**
+Two failures. (1) A flat script folder mixes throwaway/test scripts, dormant one-shots, and the two or three operations you actually run every week — and the recurring set, the highest-value-to-not-duplicate, doesn't stand out. An agent asked to "do the weekly report" can miss that the script already exists and rebuild it. A registry the agent consults before creating kills that. (2) The old graduation test conflated *load-bearing* with *deployed* — a weekly report breaks your reporting if you skip it, so "something breaks" wrongly labels it a workflow, while the rest of the same doc said manually-run scripts stay in `scripts/`. The execution-mode test removes the contradiction.
+
+**How to assess fit**
+Do you run any operation from the terminal *on a cadence, by hand* — and does your `scripts/` folder (or its equivalent) hold more than a handful of files, mixing one-shots with things you re-run? If yes, you have the discoverability problem `ops` solves. If every script is genuinely run-once-and-discard, you don't need the registry yet.
+
+**How to adapt (not copy)**
+The pattern is "a single curated, self-listing registry of the recurring operations, consulted before creating a new one — populated only on explicit approval." Express it however your instance is organized: the literal template form is a `scripts/ops.py` with an `OPERATIONS` dict and subprocess routing, but a Makefile/justfile target list, a `console_scripts` group, or a documented command index serves the same role. Keep two properties: it stays *curated* (you opt operations in; agents don't auto-add), and it's the *first thing checked* before a new operational script is written.
+
+**Downstream risks / migration**
+- No files move and nothing is renamed; existing scripts are untouched until you choose to register one. Adopting is additive.
+- If your instance wrote down the old "if it stops, something breaks → workflow" test anywhere (a local rules file, a README), update it. Under the corrected test a load-bearing *hand-run* script is still a script — so re-check anything you previously moved to `workflows/` on the old reading.
+
+**What I can't see from here**
+- Whether you already have an improvised version of this (a `Makefile`, a "common commands" section, shell aliases). If so, fold it into one surface rather than adding a second — two registries is worse than none.
+- Whether any operation you'd register mutates a system of record. `ops` is a read-only router and adds no guardrails of its own; the *target* script still owns its `--commit`/dry-run safety. Confirm that before treating an `ops <name>` run as safe.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: scripts" (the `ops` dispatcher subsection + the `ops.py` skeleton); `AGENTS.md` → "Module: workflows" (the reworked graduation test + the fork note); `.claude/rules/08-scripts.md`; `.claude/rules/10-workflows.md`.
 
 ### [2026-06-04] `[CLAIMED]` is a first-class attribution tag
 
