@@ -57,7 +57,7 @@ At session start, silently assess:
 1. Does `context.md` have content beyond the template?
 2. Are there PULL analyses in `demand/`?
 3. Is `status.md` current?
-4. Reconcile JSON indexes silently — fix drift without asking.
+4. Reconcile JSON indexes silently — fix drift without asking, if this session holds write authority; otherwise report the drift instead of fixing it. Same logic applies to other agent-maintained state.
 5. Check for broken evidence chains — only mention those needing operator input.
 6. Resuming after a gap, or acting on another session's unverified claims? Live-probe external dependencies (one cheap read each) before trusting recorded state — tokens expire, free tiers auto-pause, caches go stale.
 
