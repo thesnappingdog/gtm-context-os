@@ -62,7 +62,14 @@ If `.mcp.json` doesn't exist and user is on Claude Code, create a starter:
 
 Tell the user: "MCP servers will be added here as you connect tools via `/setup-api`."
 
-### Step 5: Report
+### Step 5: Activate the Push Leak Sweep
+
+Per-clone setup for the leak sweep (see AGENTS.md "Push Leak Sweep and Sensitive Terms"):
+
+1. Activate the native git hook: `git config core.hooksPath .githooks` (guards pushes typed in a terminal; the agent-side hook in `.claude/settings.json` needs no setup).
+2. If `.gtm-os/sensitive-terms.txt` doesn't exist, ask the operator: "Any names or terms that must never be pushed to this repo — customer names, codenames? I'll keep them in a local-only blocklist that blocks pushes containing them." Write one term per line. Skip the question if the repo has no remote.
+
+### Step 6: Report
 
 ```
 Environment Status:
