@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Cross-OS onboarding
+
+- **ID:** cross-os-onboarding
+- **Category:** mechanic
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+The repo ships a root `.gitattributes` (normalizes text to LF on checkout) and an OS-aware environment setup: `/setup-env` Step 2 lists per-OS install commands (macOS/brew, Windows/winget, Linux/apt) instead of assuming brew, plus a Windows notes line covering the `npx` shim issue.
+
+**Why**
+A real Windows collaborator's onboarding broke three separate ways: CRLF checkout turned their first commit into a whole-repo diff, the setup instructions assumed Homebrew and had no Windows path, and an MCP server launched via `npx` failed to start — Windows resolves `npx` to a `.cmd` shim that process-spawn can't invoke directly, so the launch silently died.
+
+**How to assess fit**
+Could anyone ever clone this instance onto a non-macOS machine? Does the instance already have a `.gitattributes`?
+
+**How to adapt (not copy)**
+Add `.gitattributes` before the first cross-OS collaborator joins. If the repo already has CRLF content, run a one-time renormalization (`git add --renormalize .`) as its own dedicated commit, separate from other changes. Wrap any `npx`-launched MCP server's command with `cmd /c` on Windows.
+
+**Downstream risks / migration**
+A renormalization commit touches every affected file at once — keep it as a standalone commit so `git blame` stays usable on surrounding history.
+
+**What I can't see from here**
+Whether the instance's existing checkouts have `core.autocrlf` set inconsistently across machines — each collaborator should re-clone or renormalize locally after adopting this, rather than assume their existing working copy is already clean.
+
+**Reference (template implementation)**
+`.gitattributes`, `.claude/skills/setup-env/SKILL.md` (Step 2).
+
 ### [2026-08-12] External-data reliability contract
 
 - **ID:** external-data-reliability
