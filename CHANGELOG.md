@@ -110,7 +110,7 @@ False positives block pushes — short or common words in the term list will mat
 Whether secrets or sensitive terms are *already* in the repo's history — this gate only checks outgoing new commits. Run the sweep's patterns over full history (`git log -p | grep -E ...`) once at adoption; anything already pushed needs rotation (secrets) or a history decision (names), not just a gate.
 
 **Reference (template implementation)**
-`.githooks/pre-push`, `.claude/settings.json` (hooks block), `SETUP.md` ("Push Leak Sweep").
+`.githooks/pre-push`, `.claude/settings.json` (hooks block), `AGENTS.md` ("Push Leak Sweep and Sensitive Terms" — including the agent duty to maintain the term list and to never edit it to get a push through), `.claude/skills/setup-env/SKILL.md` (Step 5 seeds the per-clone term list), `SETUP.md` ("Push Leak Sweep").
 
 ### [2026-08-12] Cross-agent skill mirror
 

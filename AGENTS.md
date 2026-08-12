@@ -214,6 +214,12 @@ Scripts and pipelines produce **repo state** (knowledge that belongs in the repo
 
 **Watch for transient-*looking* state.** A CSV sitting in `_output/` is not automatically disposable. The test: **if deleting it loses something you can't regenerate, it's not scratch.** That's the signal to promote — to `samples/` if it's representative and PII-safe, to `_retained/` if it's the full or sensitive set, to a module doc or JSON index if it's really structured knowledge (an append-only metrics log, a cumulative record another doc treats as source of truth). Before gitignoring or clearing any output directory, audit it for this and promote first — a blanket wipe silently discards history on the next clone.
 
+### Push Leak Sweep and Sensitive Terms
+
+`.githooks/pre-push` blocks any push whose outgoing commits contain secret-looking patterns (API keys, tokens, private-key blocks — no configuration needed) or terms listed in `.gtm-os/sensitive-terms.txt` (one per line; matched whole-word, case-insensitive). The term list is this instance's blocklist of names that must never reach the remote — customer names in a repo others can see, unreleased codenames. It is **gitignored by design**: committing the list would publish the very names it protects. That makes it *per-clone* — a fresh clone starts with an empty list, so each operator seeds their own (`/setup-env` prompts for this).
+
+Agent duties: when the operator flags something as confidential ("keep X out of the repo", "never push customer names"), add it to `.gtm-os/sensitive-terms.txt` in the same operation — the file is yours to maintain, like the JSON indexes. If the sweep blocks a push you initiated, report the findings to the operator; never edit the term list to get a push through.
+
 ### Document Architecture
 
 Structure documents for AI consumption, not narrative flow. Every file should answer one clear question and be named for that question.
