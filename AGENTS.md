@@ -969,6 +969,8 @@ See `engine/{pipeline}.md` for the full spec — keep this README thin and let t
 - When creating a workflow that implements a pipeline stage, cross-reference it from `engine/architecture.md` so the architecture doc stays current.
 - When a workflow is decommissioned, remove its directory and update the workflows README table. If it reverts to manual use, move the core logic back to `scripts/`.
 
+**The write boundary.** A scheduled workflow writes files — analyses, index updates, pulled data — and stops there; it never runs `git commit` or `git push`. Committing stays a human-reviewed act in a later interactive session, where the operator (with their agent) reviews the accumulated diff and composes the commit message. This resolves three concerns: write safety (nothing becomes repo state unreviewed), audit trail (the message is written by someone who actually looked at the diff, so it can't silently misdescribe what happened — the failure mode of a job that keeps committing "new analysis" messages after its own pipeline silently broke), and conflict with human sessions (new output arrives as a reviewable diff, not a fait accompli already on main). Tradeoff: unattended output piles up uncommitted if the operator stays away — tracked in the working tree, never lost, but not yet repo state until someone reviews it.
+
 **Connects to core via:** Workflows implement the pipelines documented in `engine/architecture.md`. They pull data from sources defined in engine, process it through scoring/enrichment/qualification logic, and route outputs to campaigns or other modules. `engine/` is the map, `workflows/` is the territory.
 
 ---
