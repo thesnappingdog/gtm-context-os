@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Upgrade-run hygiene: REMOVED ledger status, checkpoint, default-branch reset
+
+- **ID:** upgrade-run-hygiene
+- **Category:** mechanic
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+Three small mechanics for `/gtm-os-upgrade` runs: (1) the adoption ledger's status vocabulary gains **REMOVED** — for template-maintainer machinery deleted from a customer instance, recorded with exactly what was deleted so future upgrade runs don't re-propose it; (2) the run now commits a checkpoint at the very start (a bare commit, if the tree isn't already clean) as a rollback point that predates the run itself; (3) the completion step gains a reminder to reset the remote's default branch after merge, if the hosting provider repointed it at the upgrade branch.
+
+**Why**
+All three came out of live-instance dogfood: a run had no way to record "we deliberately removed this, don't add it back"; a run-start checkpoint closes the gap between starting the run and creating the review branch; and a live instance's `origin/HEAD` sat on a merged upgrade branch for weeks because nothing prompted a check.
+
+**How to assess fit**
+Any instance that runs `/gtm-os-upgrade` benefits — these are process mechanics, not structural changes.
+
+**How to adapt (not copy)**
+The REMOVED status is vocabulary — add it to however the instance's ledger already records decisions. The checkpoint and default-branch reset are procedure, not file shape.
+
+**Downstream risks / migration**
+None — REMOVED entries must name exactly what was removed, or future runs can't honor "do not re-propose."
+
+**What I can't see from here**
+Whether the instance's hosting provider even has a default-branch concept — bare remotes don't, so skip that step if not applicable.
+
+**Reference (template implementation)**
+`.claude/skills/gtm-os-upgrade/SKILL.md` (Step 1, Step 7, Step 8).
+
 ### [2026-08-12] Graduation test: any unattended scheduler counts, infra is not the test
 
 - **ID:** local-scheduler-graduation
