@@ -61,6 +61,8 @@ Add the server under `mcpServers` in `.mcp.json` — merge into the object `/set
 ```
 (`{TOOL}_API_KEY` is the `.env` key from Step 3; `${{TOOL}_API_KEY}` interpolates it — e.g. `APOLLO_API_KEY` → `${APOLLO_API_KEY}`. Use the exact env-var name from the integration reference read in Step 2 — not every tool uses an `_API_KEY` suffix: HubSpot uses `HUBSPOT_ACCESS_TOKEN`, Gong uses `GONG_ACCESS_KEY`/`GONG_SECRET_KEY`.)
 
+**Pin fast-moving SDK dependencies.** Before committing a `uvx`/`npx`-launched MCP server entry, check whether it declares an unbounded dependency on a still-evolving SDK (e.g. `mcp>=1.0.0` with no ceiling). If so, pin it in the committed config (e.g. `--with "mcp<2"` for a `uvx` command, or the equivalent version pin for `npx`) and note why next to the pin — an unbounded transitive dependency breaks every fresh clone silently the day the SDK majors.
+
 **If script needed:**
 Bootstrap `scripts/` module if it doesn't exist (use AGENTS.md blueprint). Create a script at `scripts/pull-{tool}-{data}.py` using the standard script header (AGENTS.md "Module: scripts" — docstring + `ROOT` path anchor + inline deps):
 
@@ -84,6 +86,7 @@ Test the connection:
 - If MCP: confirm server starts and can make a basic read
 - If script: run it and confirm data comes back
 - If auth fails: diagnose (wrong key format, missing scopes, expired token)
+- **If MCP fails with transport error `-32000`:** this is opaque by design and usually does NOT mean auth — it means the server process died at launch (most often a dependency break). Run the server's launch command by hand in a terminal and read stderr to find the real cause.
 
 ### Step 6: Confirm
 
