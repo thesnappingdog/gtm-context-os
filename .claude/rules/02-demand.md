@@ -38,6 +38,8 @@ Both use actual buyer language (direct quotes, not paraphrases). Templates are i
 
 See `demand/pull-framework.md` for the full scoring rubric, analysis template, and worked examples.
 
+Each PULL dimension is scored against **its own behavioral anchor ladder** (observable events, checkable against the transcript) — never a shared adjective scale. Watch the two drift-prone dimensions: U scores the forcing function and its date (never a category-level necessity true of the whole market); the second L scores the buyer's current alternative (never your own product's gaps — those are Key Risks). Anchor changes follow the framework's Calibration discipline: dated note, declared non-comparability, no rescoring the back catalogue.
+
 ---
 
 *Source of truth: AGENTS.md, "Core Files" and "Synthesis Trigger" sections.*
