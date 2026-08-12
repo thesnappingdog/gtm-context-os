@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] customers.md: the won-accounts roster as a named eviction pattern
+
+- **ID:** customers-roster-convention
+- **Category:** doc-architecture
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+Once an instance has closed customers, a root-level `customers.md` (won accounts: name + one-line note/evidence pointer) becomes a named pattern — an application of the existing Context Foundation eviction rule: `context.md` keeps the count and notable clusters plus a pointer, the roster itself lives in `customers.md`. It serves three reads: disqualification (don't re-prospect won logos), expansion evidence (won-deal analyses as proof), and prospecting-by-adjacency (seed list for finding similar accounts). Trigger is the first closed customer — it is not scaffolded empty at bootstrap.
+
+**Why**
+Won accounts are exactly the kind of operational data the Context Foundation eviction rule already targets (fast-changing, needed only in specific tasks), but without a named destination an agent has no default place to put them — they either bloat `context.md` or scatter across module folders. Naming the file gives the eviction a fixed target and the three reads a home.
+
+**How to assess fit**
+Does the instance have closed customers listed inside `context.md` (an eviction candidate) or scattered across other files?
+
+**How to adapt (not copy)**
+Location and shape are free — the load-bearing part is one small roster file with evidence pointers, plus a `context.md` pointer to it. This is an optional-file pattern, not a new always-present Core File.
+
+**Downstream risks / migration**
+None real.
+
+**What I can't see from here**
+Whether the CRM is the natural source of truth instead — if the roster would just mirror the CRM, keep only the pointer + clusters in `context.md` and skip the file.
+
+**Reference (template implementation)**
+`AGENTS.md`, "Context Foundation: keep it strategic, evict the operational" (under "Operational Conventions").
+
 ### [2026-08-12] Ephemeral work is conversation-only
 
 - **ID:** ephemeral-work-conversation-only
