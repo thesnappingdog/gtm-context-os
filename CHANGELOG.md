@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Graduation test: any unattended scheduler counts, infra is not the test
+
+- **ID:** local-scheduler-graduation
+- **Category:** convention
+- **Severity:** low
+- **Depends on:** ops-operational-cli
+
+**What changed**
+The scripts→workflows graduation test — "who runs it, you or a schedule" — is clarified: *any* unattended scheduler qualifies, not just a hosted/cloud one. launchd or cron on a persistent local machine counts exactly like a hosted runtime or a different platform's scheduler entirely. Infrastructure choice is not the test.
+
+**Why**
+A live instance ships launchd `.plist` + `run.sh` workflow pairs and even an Apps Script runtime; all correctly belong in `workflows/` even though none of them are "cloud" in the deployed-SaaS sense the graduation wording could be read to imply.
+
+**How to assess fit**
+Does the instance run cron/launchd jobs that are still filed under `scripts/`?
+
+**How to adapt (not copy)**
+Reclassify by the who-runs-it test alone; the workflow README skeleton applies regardless of runtime.
+
+**Downstream risks / migration**
+None.
+
+**What I can't see from here**
+Whether a "scheduled" job is actually still hand-triggered in practice — check the schedule is real before graduating it.
+
+**Reference (template implementation)**
+`AGENTS.md`, "Module: workflows" (the graduation test); `.claude/rules/10-workflows.md` (Graduation Test).
+
 ### [2026-08-12] customers.md: the won-accounts roster as a named eviction pattern
 
 - **ID:** customers-roster-convention
