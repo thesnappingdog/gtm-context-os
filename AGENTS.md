@@ -182,6 +182,10 @@ Before creating any new structure (file, folder, module):
 2. Check if existing structure covers the need
 3. Only create if there's a genuine gap
 
+### Ephemeral Work Stays in Conversation
+
+One-off outputs built *from* the repo's context for a transient purpose — call prep, a prospect research brief, an ad-hoc summary — are conversation-only: don't write them into module folders, don't commit them, don't log them to `status.md`. If a working file is genuinely needed, use scratch space, not the repo. Persist only what becomes durable evidence — e.g. a PULL analysis once the call happened and produced a transcript. The test: does it carry evidential weight beyond the moment, or is it just today's prep?
+
 ### Pipeline Artifacts and Output
 
 Scripts and pipelines produce **repo state** (knowledge that belongs in the repo permanently) and **data outputs** (the files a run produces). State is easy — it goes in module folders. Data outputs are where discipline matters: they sort into three homes by *durability* and *sensitivity*, and getting this wrong is how an output directory rots into a junk drawer of `accounts2.csv`, `accounts_test4.csv`, `accounts_final_v3.csv`.
