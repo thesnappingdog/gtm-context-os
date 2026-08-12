@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Cross-agent skill mirror
+
+- **ID:** cross-agent-skill-mirror
+- **Category:** mechanic
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+The skills in `.claude/skills/` are exposed to Codex (and any agent reading the cross-agent SKILL.md standard) via a committed relative symlink `.agents/skills` → `.claude/skills`. `AGENTS.md` gains a short "Works in any agent" note naming the layers: `AGENTS.md` = agent-agnostic brain, `.claude/` = Claude Code layer, `.agents/skills` = shared mirror. `.claude/skills/` stays canonical — skills are edited there, never through the mirror.
+
+**Why**
+Operators increasingly run the same instance from more than one coding agent (e.g. Codex for precision coding). Without the mirror, a Codex session sees `AGENTS.md` but none of the skills, so it silently rebuilds or skips workflows the instance already has. Codex discovers repo-level skills at `.agents/skills` and supports symlinked skill folders; skill frontmatter (`name` + `description`) is the same standard both agents read, so one symlink closes the gap with no sync machinery.
+
+**How to assess fit**
+Does anyone operate this instance from an agent other than Claude Code, or might they? If strictly Claude Code-only, skip — the symlink is inert but pointless.
+
+**How to adapt (not copy)**
+If the instance keeps skills in the standard location, the same one-line symlink works: `mkdir -p .agents && ln -s ../.claude/skills .agents/skills` (relative link, so clones work). If skills were customized or relocated, point the symlink at wherever the instance's skills actually live. Also note in the instance's `AGENTS.md` which skills are Claude Code-bound (anything orchestrating parallel sub-agents) vs. agent-portable.
+
+**Downstream risks / migration**
+On Windows, git symlinks require developer mode / `core.symlinks=true`; without it the checkout materializes a plain text file and Codex sees no skills — a copy or junction is the fallback. Claude Code-specific skills will also be listed in Codex; their descriptions may auto-trigger there and degrade (no sub-agent runtime). Keep such skills' descriptions honest about where they run.
+
+**What I can't see from here**
+Whether the instance's skills have accreted references to Claude Code-only tooling (Task/agent spawning, MCP servers configured only in `.mcp.json`) that would fail confusingly in another agent — skim each skill's body before advertising it cross-agent, and confirm the symlink survives a fresh clone on the operators' actual platforms.
+
+**Reference (template implementation)**
+`.agents/skills` (symlink), `AGENTS.md` ("Works in any agent, not just Claude Code").
+
 ### [2026-08-12] Model selection as capability tiers
 
 - **ID:** model-capability-tiers
