@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Pre-push leak sweep
+
+- **ID:** pre-push-leak-sweep
+- **Category:** mechanic
+- **Severity:** medium
+- **Depends on:** none
+
+**What changed**
+A leak sweep runs before any `git push`: it scans the outgoing commits (added lines of everything not yet on a remote) for secret-looking patterns (API keys, tokens, private-key blocks) and for instance-specific sensitive terms, and blocks the push on a hit. One script (`.githooks/pre-push`) serves three entry points: a Claude Code PreToolUse hook in the shipped `.claude/settings.json` (zero setup — guards agent-initiated pushes), an optional native git pre-push hook (`git config core.hooksPath .githooks`, guards human pushes), and manual invocation. The term list lives in a **gitignored** `.gtm-os/sensitive-terms.txt` — deliberately local, because committing the names you're keeping out of the repo would itself be the leak.
+
+**Why**
+A push publishes; a leak caught after push is already cached and indexed. Point-in-time discipline (release-check sweeps, careful review) doesn't cover ad-hoc pushes — the failure mode is an agent or operator pushing a routine change that happens to carry a customer name or a pasted key. A standing gate at the push boundary makes the sweep automatic instead of remembered.
+
+**How to assess fit**
+Does this instance push to any remote another party could ever see (public repo, org-shared repo, vendor access)? Even for fully private repos, the secret-pattern half still applies — credentials don't belong in git history regardless of visibility.
+
+**How to adapt (not copy)**
+Adopt the mechanism (sweep outgoing commits at the push boundary, block on hit), then localize the term list: customer names, internal codenames, unreleased product names. Keep the term file out of version control. If the instance's agent config differs, wire the same script into whatever pre-push interception the tooling offers; the script itself is agent-agnostic bash.
+
+**Downstream risks / migration**
+False positives block pushes — short or common words in the term list will match inside larger words' boundaries less often than you'd fear (whole-word matching), but generic terms ("acme") can still fire; keep the list specific. The Claude Code hook only takes effect in new sessions (settings are read at session start). The native git hook requires the one-time `core.hooksPath` config per clone — until run, only agent pushes are guarded.
+
+**What I can't see from here**
+Whether secrets or sensitive terms are *already* in the repo's history — this gate only checks outgoing new commits. Run the sweep's patterns over full history (`git log -p | grep -E ...`) once at adoption; anything already pushed needs rotation (secrets) or a history decision (names), not just a gate.
+
+**Reference (template implementation)**
+`.githooks/pre-push`, `.claude/settings.json` (hooks block), `SETUP.md` ("Push Leak Sweep").
+
 ### [2026-08-12] Cross-agent skill mirror
 
 - **ID:** cross-agent-skill-mirror
