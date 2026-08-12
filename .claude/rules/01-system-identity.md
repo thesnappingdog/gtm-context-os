@@ -33,6 +33,8 @@ Use in PULL analyses, segment rationale, and messaging angles. Not in status log
 
 Append to `status.md` after substantive work: `### YYYY-MM-DD — [description]` with what was done, decisions made, and next steps. Don't log quick Q&A.
 
+Past entries are point-in-time — footnote corrections forward in a new entry, never rewrite an old one. When a period closes, roll it into `archive/status-{period}.md` verbatim, leaving a pointer. Full rules: AGENTS.md "Status Logging."
+
 ## Evidence Chain
 
 Downstream work must reference upstream evidence:
