@@ -84,6 +84,36 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Model selection as capability tiers
+
+- **ID:** model-capability-tiers
+- **Category:** convention
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+Model-selection guidance is stated as capability tiers (default / strategic / quick) with a single dated current-mapping line, instead of hardcoded model names scattered in prose.
+
+**Why**
+Hardcoded model names go stale every model generation; instances that cloned the old section are now silently pointing at previous-generation models. One mapping line makes rotation a one-line edit.
+
+**How to assess fit**
+Does the instance's `CLAUDE.md` (or any doc/skill/script) name specific models? More than one place?
+
+**How to adapt (not copy)**
+Restate as tiers, keep exactly one dated mapping line, route all other references to the tier names.
+
+**Downstream risks / migration**
+Scripts or workflow configs that pin model IDs (API calls) should keep pinning explicit IDs — this convention is for guidance prose, not API parameters. Don't collapse a pinned model ID in a script into a tier reference.
+
+**What I can't see from here**
+Whether the instance has model names embedded in run configs/cron jobs that prose changes won't reach — grep for model names repo-wide before declaring adoption done.
+
+**Reference (template implementation)**
+`.claude/CLAUDE.md` (Model Selection section).
+
+---
+
 ### [2026-06-12] `ops` — a curated operational CLI surface
 
 - **ID:** ops-operational-cli
