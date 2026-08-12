@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] MCP dependency pinning
+
+- **ID:** mcp-dependency-pinning
+- **Category:** convention
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+`/setup-api` (where MCP server entries actually get authored) now carries a convention: before committing a `uvx`/`npx`-launched MCP server config, check whether it declares an unbounded dependency on a still-evolving SDK (e.g. `mcp>=1.0.0` with no ceiling) and pin it in the committed config if so (e.g. `--with "mcp<2"`). It also documents the diagnostic for MCP transport error `-32000`: opaque by design, usually means the server process died at launch (a dependency break), not auth — the way to see the real cause is to run the server's launch command by hand and read stderr. The same pin-the-SDK caution gets one line in `AGENTS.md`'s integrations section so it survives outside the skill.
+
+**Why**
+The live failure: `mcp-server-bigquery` declared `mcp>=1.0.0` with no ceiling. `mcp` 2.0 shipped and broke the server. Every fresh clone hit an opaque `-32000` until someone ran the launch command by hand and read stderr to find the real cause. The fix has to land in the *committed* config/skill, not a gitignored local file — otherwise other clones never receive it.
+
+**How to assess fit**
+Does this instance's MCP setup (inline in `/setup-api`, or a committed `.mcp.json`/`.mcp.json.example` if the instance has since added one) launch any server via `uvx`/`npx` with an unpinned fast-moving SDK dependency?
+
+**How to adapt (not copy)**
+Pin in whichever file is committed and actually reaches new clones — for this template that's the skill itself, since MCP config is scaffolded inline rather than shipped as a tracked example file. Note the pin's reason next to it. Record the `-32000`-means-run-it-by-hand diagnostic once, wherever the instance documents MCP troubleshooting.
+
+**Downstream risks / migration**
+Pins go stale — without the reason noted next to a pin, a future agent can't tell whether it's still needed or safe to lift once the SDK stabilizes.
+
+**What I can't see from here**
+Which MCP servers this instance actually runs and what their real SDK constraints are — audit the instance's live `.mcp.json` entries at adoption time; this entry can't know them.
+
+**Reference (template implementation)**
+`.claude/skills/setup-api/SKILL.md` (Step 4 pin note, Step 5 `-32000` diagnostic), `AGENTS.md` → "Module: engine" (integrations doc-genre bullet).
+
 ### [2026-08-12] Cross-OS onboarding
 
 - **ID:** cross-os-onboarding
