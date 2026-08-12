@@ -26,6 +26,10 @@ No external runtime, database, or deployment is required. The repo IS the system
 
 This file is the agent-agnostic brain — Codex and other AGENTS.md-reading agents get the full system from it directly. The `.claude/` directory is the Claude Code layer: scoped rules (auto-loaded excerpts of this file — Claude Code convenience, never new content) and skills. Skills are shared across agents via the `.agents/skills` symlink → `.claude/skills` (the cross-agent SKILL.md standard location; Codex invokes them with `$skill-name` or auto-triggers on description match). `.claude/skills/` stays the canonical home — edit skills there, never through the mirror. Caveat: skills that orchestrate parallel sub-agents (`/bootstrap`, `/release-check`, `/run-eval`) are built on Claude Code's agent runtime and should be run there; single-thread skills (analysis, drafting, intake) work anywhere.
 
+### Roles and write authority
+
+By default this system assumes a single operator, which is why rules like JSON-index reconciliation default to "fix drift silently" — the session that reads a file is assumed to be the session authorized to write it. When a second human joins the instance as a restricted contributor, don't edit base rules to carve out their role. Instead add a separate, later-loading scoped rule file (e.g. `.claude/rules/NN-contributor-mode.md`, `globs: *`) that determines the session's role early and overrides specific base-rule behaviors for the restricted role, short-circuiting immediately for the privileged role. Role detection: a gitignored marker file wins; fall back to VCS identity (`git config user.email`); unknown identity defaults to least privilege. This keeps base rules universal and upgrade-friendly — template updates to base rules never collide with instance-specific role carve-outs, because the carve-outs live in a separate file.
+
 ## Core Files (Always Present)
 
 | File | Purpose | When to read |
@@ -108,7 +112,7 @@ JSON index files (e.g., `segments.json`, `campaigns.json`, `pull-index.json`) ar
 - **Update them automatically** as a side effect of work — when you create a segment markdown file, update segments.json in the same operation. Don't ask permission.
 - **Keep schemas minimal** — only store what you need to navigate relationships. IDs, names, statuses, and links to other entities. Don't store data that requires the operator to manually paste it back.
 - **Markdown is for humans** — rationale, context, nuance, quotes, buyer language live in `.md` files. JSON is for you to query and link.
-- **Reconcile on session start** — if indexes look out of sync with the markdown files, fix them silently.
+- **Reconcile on session start** — if indexes look out of sync with the markdown files, fix them silently, if this session holds write authority over the index; a read-only session reports drift instead of fixing it.
 
 **Pull index schema** (`demand/pull-index.json`):
 ```json

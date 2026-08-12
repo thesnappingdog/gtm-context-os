@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Write authority: qualify silent-reconcile + name the role-override pattern
+
+- **ID:** write-authority-qualifier
+- **Category:** mechanic
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+Silent-reconcile (and silent-fix behavior generally) is now qualified by write authority: a session fixes drift silently only if it holds write authority over the file in question; a session without write authority reports the drift instead of fixing it. Separately, the role-conditional override-rule pattern is named as the sanctioned way to add roles to an instance without forking base rules: a later-loading, scoped rule file (e.g. `.claude/rules/NN-contributor-mode.md`, `globs: *`) determines the session's role early — a gitignored marker file wins, falling back to VCS identity, unknown identity defaulting to least privilege — and overrides specific base-rule behaviors for the restricted role, short-circuiting immediately for the privileged role.
+
+**Why**
+Base rules were written for a single operator and silently assume reader = writer. The first multi-user instance had to discover and resolve the contradiction itself: its contributor sessions are read-only on shared context and indexes, but the base "reconcile silently" rule would have had them silently fix files they're forbidden to touch. Its contributor mode instead suspends index reconciliation and reports drift. Naming the pattern means the next multi-user instance doesn't have to rediscover it — and template upgrades to base rules won't collide with instance role carve-outs, because the carve-outs live in a separate file, not patched into the base rule.
+
+**How to assess fit**
+Single-operator instances: adopt the qualifier — it's inert until a second role exists, so it costs nothing. Multi-user instances: does any base rule instruct behavior a restricted role can't perform? Are role carve-outs currently patched directly into base rules (an upgrade collision risk)?
+
+**How to adapt (not copy)**
+The qualifier clause is drop-in wherever a rule says "fix silently." The override-rule file's shape adapts to however the instance actually detects roles — the load-bearing parts are: a separate file (not an edit to the base rule), an early role short-circuit, a least-privilege default for unknown identity, and base rules left untouched.
+
+**Downstream risks / migration**
+None for single-operator instances. For multi-user instances, an over-broad override rule could suppress reconciliation for the operator too if the short-circuit isn't first in the file — the privileged-role check must run before any restricted-role logic.
+
+**What I can't see from here**
+How the instance identifies humans in practice — shared machines, shared git identities, service accounts committing on someone's behalf. Verify the role-detection fallback (marker file → VCS identity → least privilege) actually distinguishes its people before relying on it.
+
+**Reference (template implementation)**
+`.claude/rules/09-json-indexes.md` (Rules); `.claude/rules/01-system-identity.md` (Startup Check); `AGENTS.md`, "JSON Indexes — AI-Maintained Infrastructure" and "Roles and write authority" (under "How This System Works").
+
 ### [2026-08-12] Workflow write boundary: scheduled jobs write files, humans commit
 
 - **ID:** workflow-write-boundary
