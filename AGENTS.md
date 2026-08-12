@@ -86,6 +86,8 @@ If yes, it's operational — evict it. **Foundation stays; operational leaves.**
 
 **Surface (a) and (b) to the operator to adjudicate — never silently pick a winner**, since the "current" value is ground truth only the operator holds. For (c) there is **no expiry rule**: only *dated* claims are considered (dating is the opt-in decay signal — undated facts are never flagged), age is shown, and the operator judges whether it's stale. Don't try to decide per-fact when something becomes obsolete.
 
+**The customers roster — a named eviction target (optional, not a Core File).** Once an instance has closed customers, a root-level `customers.md` (won accounts: name + one-line note/evidence pointer) is the eviction pattern above applied to won-account data specifically: `context.md` keeps the count and notable clusters plus a pointer, the roster itself lives in `customers.md`. It serves three reads: disqualification (don't re-prospect won logos), expansion evidence (won-deal analyses as proof), and prospecting-by-adjacency (seed list for finding similar accounts). Trigger: the first closed customer — don't scaffold it empty at bootstrap.
+
 ### Status Logging
 
 Append to `status.md` at the end of any substantive work session:
