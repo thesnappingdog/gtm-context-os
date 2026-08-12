@@ -30,9 +30,13 @@ Available slash commands for GTM operations:
 
 ## Model Selection
 
-- **Default (orchestration, execution):** Sonnet
-- **Strategic work (PULL analyses, positioning, novel thinking):** Opus agents
-- **Quick lookups:** Haiku
+Think in capability tiers — models rotate, tiers don't:
+
+- **Default (orchestration, execution):** current mid-tier workhorse
+- **Strategic work (PULL analyses, positioning, novel thinking):** current top-tier model
+- **Quick lookups:** current fastest/cheapest tier
+
+Current mapping (as of 2026-08): default = Sonnet 5 · strategic = Opus 5 (or the top model available to you) · quick = Haiku 4.5. When a new model generation ships, update this mapping line — nothing else in the repo names models.
 
 ## Write-to-File Pattern for Bulk Analysis
 
