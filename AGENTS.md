@@ -22,6 +22,10 @@ When an operator asks you to do something that requires a module that doesn't ex
 
 No external runtime, database, or deployment is required. The repo IS the system. AI operates on files. Scripts run locally when needed for API integrations.
 
+### Works in any agent, not just Claude Code
+
+This file is the agent-agnostic brain — Codex and other AGENTS.md-reading agents get the full system from it directly. The `.claude/` directory is the Claude Code layer: scoped rules (auto-loaded excerpts of this file — Claude Code convenience, never new content) and skills. Skills are shared across agents via the `.agents/skills` symlink → `.claude/skills` (the cross-agent SKILL.md standard location; Codex invokes them with `$skill-name` or auto-triggers on description match). `.claude/skills/` stays the canonical home — edit skills there, never through the mirror. Caveat: skills that orchestrate parallel sub-agents (`/bootstrap`, `/release-check`, `/run-eval`) are built on Claude Code's agent runtime and should be run there; single-thread skills (analysis, drafting, intake) work anywhere.
+
 ## Core Files (Always Present)
 
 | File | Purpose | When to read |
