@@ -110,7 +110,7 @@ Rotation moves content that other docs may deep-link to — grep for links into 
 Whether this instance has any automation (scripts, dashboards) that parses `status.md` directly — check consumers before the first rotation, since a script expecting entries at a fixed offset would break silently.
 
 **Reference (template implementation)**
-`AGENTS.md` → "Status Logging" (footnote + rotation), "Document Architecture" (root `archive/` genre + re-entry ritual); `.claude/rules/01-system-identity.md` → "Status Logging".
+`AGENTS.md` → "Status Logging" (footnote + rotation), "Document Architecture" (root archive genre + re-entry ritual); `.claude/rules/01-system-identity.md` → "Status Logging".
 
 ### [2026-08-12] Dependency liveness probe
 
