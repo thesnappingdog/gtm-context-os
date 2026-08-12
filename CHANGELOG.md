@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] PULL rubric: per-dimension behavioral anchors
+
+- **ID:** pull-rubric-behavioral-anchors
+- **Category:** methodology
+- **Severity:** high
+- **Depends on:** pull-score-band-reconciliation
+
+**What changed**
+Each PULL dimension is scored against its own 0-5 ladder of behavioral anchors — observable events checkable against the transcript — replacing the single adjective scale ("crystal clear / strong / vague / weak / absent") that applied identically to all four dimensions. The two drift-prone dimensions carry named anti-pattern guards: Unavoidable scores the forcing function and its date, never a category-level necessity true of the whole market; Lacking scores the buyer's current alternative, never your own product's gaps. A Calibration discipline governs rubric changes: dated note, declared pre/post non-comparability, no silent rescoring of the back catalogue.
+
+**Why**
+A shared adjective scale is not reproducible: it makes the scorer invent what each number means for each dimension, per session, and different sessions (different days, different model generations) invent differently. Measured on a live instance when 27 calls were accidentally scored twice by independent runs: 2/27 identical totals, 2.5-point mean gap on a 20-point scale, and 11/27 flipped their DEMAND/BENEFIT/NEITHER classification — meaning which action bucket a prospect landed in depended on which run scored it. ~70% of the variance sat in Unavoidable (inflated by justifications true of every ICP account) and Lacking (scored against the vendor's gaps — the wrong company). The failure is invisible in normal use: no call is ever scored twice, every individual score looks plausible, and aggregates absorb the noise — it only surfaces near band boundaries, which is exactly where segments and sequences trigger.
+
+**How to assess fit**
+Does the instance's scoring rubric use adjective/clarity anchors shared across dimensions? Is the corpus scored across multiple sessions or model generations (it almost certainly is)? Are decisions triggered at band thresholds?
+
+**How to adapt (not copy)**
+Adopt the structure, not the template's specific anchors: per-dimension ladders of observable events, sharpened with the instance's own domain events (its deal triggers, its buyers' actual alternatives); anti-pattern guards on whichever dimensions the instance's own mis-scorings concentrate in; the Calibration discipline verbatim. The template's ladders are a sound domain-neutral starting point.
+
+**Downstream risks / migration**
+Adopting changes score semantics: totals scored under the old rubric are not comparable to new ones. Date the switch in a calibration note, mark the seam in synthesis so aggregates don't mix eras, and do NOT rescore existing analyses — rescoring silently rewrites the evidence base that segments and messaging already cite. If legacy precision must be stated, estimate the noise band (the measured instance used ±2 points) rather than fabricating comparability.
+
+**What I can't see from here**
+Whether downstream artifacts (segments' pull_evidence, messaging angles, active campaigns) cite specific pre-change scores or classifications that sat near a band boundary — grep for cited scores of 13-15 before adopting, and re-examine only those *if a live decision depends on one*, as a deliberate operator call, not a bulk rescore. Also whether any automation ingests scores assuming continuity — a scheduled synthesis or dashboard needs the seam date.
+
+**Reference (template implementation)**
+`demand/pull-framework.md` ("PULL Analysis: Scoring a Sales Call" — the four ladders + "Calibration discipline"); `.claude/rules/02-demand.md` (Methodology).
+
 ### [2026-08-12] Point-in-time record discipline
 
 - **ID:** point-in-time-record-discipline
