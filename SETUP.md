@@ -96,6 +96,14 @@ Common integrations people add:
 - CRM access (for deal and contact context)
 - Pipeline tools (for table management and enrichment)
 
+### Push Leak Sweep
+
+A leak sweep (`.githooks/pre-push`) blocks pushes whose outgoing commits contain secret-looking patterns (API keys, tokens, private keys) or terms you list in the gitignored `.gtm-os/sensitive-terms.txt` (customer names, codenames — one per line; the file is local by design). Claude Code runs it automatically before any `git push`. To also guard pushes you type yourself, activate it as a native git hook once per clone:
+
+```
+git config core.hooksPath .githooks
+```
+
 ### Environment Variables
 
 If using MCP or scripts with API keys, create `.env`:

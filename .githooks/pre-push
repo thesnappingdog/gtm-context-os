@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Leak sweep on outgoing commits — blocks a push that would publish secrets or
+# sensitive terms. Scans only commits not yet on any remote, added lines only.
+#
+# Runs as any of:
+#   - native git pre-push hook:   git config core.hooksPath .githooks   (one-time)
+#   - Claude Code PreToolUse hook on `git push` (wired in .claude/settings.json, no setup)
+#   - manually:                   bash .githooks/pre-push [--self-test]
+#
+# Secret patterns are universal. Instance-specific terms (customer names, internal
+# codenames) go in .gtm-os/sensitive-terms.txt — one per line, matched as whole
+# words, case-insensitive. That file is GITIGNORED on purpose: committing the
+# names you're trying to keep out of the repo would itself be the leak.
+set -u
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+SECRETS='sk-ant-[A-Za-z0-9-]{10,}|sk-[A-Za-z0-9]{24,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN[A-Z ]* PRIVATE KEY|eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}'
+TERMS_FILE=".gtm-os/sensitive-terms.txt"
+
+if [ "${1:-}" = "--self-test" ]; then
+  # split strings so the fixtures don't trip the sweep when this file is scanned elsewhere
+  fake="+aws_key = AK""IA1234567890ABCDEF"
+  grep -qE "$SECRETS" <<<"$fake" || { echo "self-test FAIL: secret pattern missed" >&2; exit 1; }
+  grep -qE "$SECRETS" <<<"+just a normal doc line" && { echo "self-test FAIL: false positive" >&2; exit 1; }
+  echo "self-test OK"
+  exit 0
+fi
+
+# Outgoing = commits on HEAD that no remote has. Excludes this script (it contains
+# the very patterns it hunts). ponytail: scans HEAD's history only — pushing a
+# different ref than HEAD isn't covered; extend to parse pre-push stdin refs if that
+# ever becomes a real workflow.
+out=$(git log -p HEAD --not --remotes -- . ":(exclude).githooks" 2>/dev/null | grep '^+' | grep -v '^+++')
+[ -z "$out" ] && exit 0
+
+fail=0
+hits=$(grep -iEn "$SECRETS" <<<"$out")
+if [ -n "$hits" ]; then
+  { echo "LEAK SWEEP — secret-looking pattern in outgoing commits:"; echo "$hits"; } >&2
+  fail=1
+fi
+if [ -s "$TERMS_FILE" ]; then
+  terms=$(grep -v '^\s*$' "$TERMS_FILE" | paste -sd'|' -)
+  hits=$(grep -iEn "\\b($terms)\\b" <<<"$out")
+  if [ -n "$hits" ]; then
+    { echo "LEAK SWEEP — sensitive term (from $TERMS_FILE) in outgoing commits:"; echo "$hits"; } >&2
+    fail=1
+  fi
+fi
+
+if [ "$fail" = 1 ]; then
+  echo "Push blocked. Fix the commits (rebase/amend), or if a hit is a false positive, adjust $TERMS_FILE and retry." >&2
+  exit 2
+fi
+exit 0
