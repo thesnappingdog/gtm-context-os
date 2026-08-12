@@ -792,6 +792,7 @@ This lets any script declare its own dependencies without a global `pyproject.to
 - **Created on first promotion, not at bootstrap.** A fresh `scripts/` is just `README.md`; an empty dispatcher is noise. `scripts/ops.py` materializes the first time an operation is promoted into it.
 - **Promotion is the operator's call — suggest, never auto-register.** When a script starts looking like a robust, recurring operation (run on a cadence, given a name, here to stay), *offer* to add it ("this looks like a recurring op — want it in `ops`?"). Register only on a yes. Don't codify one-shots or exploratory scripts — the value of `ops` is that it's curated. Registering is adding one row to `OPERATIONS` and giving the script a clean entrypoint.
 - **Check before you create.** Before writing a new operational script, run `ops list` (the recurring set) and scan `scripts/README.md` (the full catalog). The registry exists so you never duplicate an operation that already exists.
+- **A natural early entry.** For an instance with several integrations, a `check-deps` op — one cheap authenticated call per external dependency, reporting dead/expired/paused ones — is a natural first thing to promote into `ops`.
 - **It de-risks graduation.** Giving an operation a clean `ops` entrypoint already factors its logic into something callable — exactly what a `workflows/` version later wraps. The `ops` entry and a deployed workflow can share one core (see the workflows module).
 
 `scripts/ops.py` skeleton (copy when the first operation is promoted):
@@ -972,6 +973,7 @@ At the start of each session, silently assess:
 3. Is `status.md` current? If last entry is >7 days old, mention it.
 4. **Reconcile JSON indexes** — if any module's JSON index is out of sync with its markdown files (missing entries, stale statuses, broken links), fix it silently. Don't ask.
 5. Do any existing modules have broken evidence chains? (e.g., segments without PULL evidence links, campaigns pointing to deleted segments)
+6. Resuming after a gap (days+), or about to act on another session's unverified claims about external systems? Live-probe each dependency first — one cheap authenticated read per API/datastore — before trusting recorded state. Status/roadmap record what was true as-of writing; tokens expire, free tiers auto-pause, caches go stale on their own clock.
 
 Raise issues naturally, not as a checklist. Fix index drift silently — only mention it if you find broken evidence chains that need operator input.
 
