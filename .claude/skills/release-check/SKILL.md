@@ -17,7 +17,7 @@ Automated release gate for merging `dev` → `main`. Runs three checks in an iso
 | Agent | What | Needs worktree? | Depends on |
 |-------|------|-----------------|------------|
 | **Bootstrap** | Populates context.md from a real website in a clean worktree | Yes | Nothing |
-| **Consistency** | Checks AGENTS.md against scoped rules, blueprints, Document Architecture; verifies CHANGELOG `Reference` paths + anchors resolve; PII gate on committed `samples/` | No | Nothing |
+| **Consistency** | Checks AGENTS.md against scoped rules, blueprints, Document Architecture; verifies CHANGELOG `Reference` paths + anchors resolve; verifies convention changes on `dev` carry a CHANGELOG entry; PII gate on committed `samples/` | No | Nothing |
 | **Eval** | Runs all 8 eval tests against the bootstrapped worktree | Yes | Bootstrap |
 
 ## Process
@@ -86,6 +86,11 @@ Launch two agents simultaneously:
       | sort -u | while read -r s; do grep -E "^#{1,4} " AGENTS.md | grep -qiF "$s" || echo "NO HEADING: $s"; done
     ```
     Any `NO HEADING:` line means the anchor rotted (heading renamed/removed) — flag as CRITICAL with its entry. (All Reference paths and anchors resolving → pass.)
+  - **Changelog discipline**: `CHANGELOG.md` is the upgrade channel instances consume — the `/gtm-os-upgrade` file-diff is a backstop, not the channel. A convention change that ships to `main` with no CHANGELOG entry (this has happened — `context-foundation-eviction` shipped with no entry and was only caught by that backstop on a live instance) silently breaks the channel. Diff what `dev` is about to merge against `main` for convention-bearing changes:
+    ```bash
+    git diff main...dev -- AGENTS.md .claude/rules/
+    ```
+    Read the diff for anything that introduces or changes a **convention or pattern** — new/changed rules, blueprint sections, conventions — as opposed to a typo/wording/formatting fix. For each convention-bearing hunk, verify `CHANGELOG.md` contains a corresponding new entry: an `- **ID:**` slug present on `dev`'s `CHANGELOG.md` but absent from `main`'s (`git diff main...dev -- CHANGELOG.md` to see what's new). A convention-bearing diff with no matching new CHANGELOG entry is CRITICAL — name the file/section that changed and the fact that no entry covers it. Judgment call on "convention-bearing" is expected — err toward flagging; the maintainer can waive a false positive when reviewing the report.
 - Report: list of contradictions, inconsistencies, or gaps found. If clean, say so.
 
 ### Step 3: Run Eval (After Bootstrap Completes)
@@ -198,6 +203,11 @@ Check for:
        | sort -u | while read -r s; do grep -E "^#{1,4} " AGENTS.md | grep -qiF "$s" || echo "NO HEADING: $s"; done
      ```
    Any `BROKEN:` or `NO HEADING:` line is CRITICAL — name the CHANGELOG entry it appears under.
+9. Changelog discipline — every dev→main merge must add one CHANGELOG entry per pattern changed (`CHANGELOG.md` → "Maintainer discipline (required)"). `CHANGELOG.md` is the upgrade channel `/gtm-os-upgrade` consumes; the file-diff check in `/gtm-os-upgrade` is a backstop that catches drift, not the channel itself — a convention that ships with no entry has already broken the intended path once (`context-foundation-eviction` shipped to `main` with no CHANGELOG entry and was only caught by that backstop on a live instance). Diff what `dev` is about to merge against `main`:
+   ```bash
+   git diff main...dev -- AGENTS.md .claude/rules/
+   ```
+   Read the diff for anything that introduces or changes a **convention or pattern** (new/changed rules, blueprint sections, conventions) — as opposed to a typo, wording, or formatting fix. For each convention-bearing hunk, confirm `CHANGELOG.md` gained a corresponding entry — an `- **ID:**` slug present on `dev` but not on `main` (`git diff main...dev -- CHANGELOG.md`). A convention-bearing diff with no matching new CHANGELOG entry is CRITICAL — name the changed file/section and note that no entry covers it. Treat "convention-bearing" as a judgment call and err toward flagging; the maintainer can waive a false positive when reading the report.
 
 Report: numbered list of issues found, with file paths and specific contradictions. If everything is clean, say "No consistency issues found." Be precise — flag real contradictions, not stylistic differences.
 ```
