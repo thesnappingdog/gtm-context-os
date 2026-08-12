@@ -57,6 +57,7 @@ At session start, silently assess:
 3. Is `status.md` current?
 4. Reconcile JSON indexes silently — fix drift without asking.
 5. Check for broken evidence chains — only mention those needing operator input.
+6. Resuming after a gap, or acting on another session's unverified claims? Live-probe external dependencies (one cheap read each) before trusting recorded state — tokens expire, free tiers auto-pause, caches go stale.
 
 This is the lightweight heartbeat, not a full audit. For a deep instance-state check — structural completeness (missing module overviews), output hygiene, drift, orphans — that's `/gtm-os-health`. If the quick assessment hints at deeper drift, point the operator there rather than expanding the silent check.
 

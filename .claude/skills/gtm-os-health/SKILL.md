@@ -71,6 +71,10 @@ Run each category. For every finding, classify it: **OK**, **auto-fixed** (safe 
 - **Age:** list dated `[VERIFIED: … · YYYY-MM]` claims oldest-first, so the eye lands on the most likely-stale. **No expiry rule** — undated facts are never flagged (dating is the opt-in decay signal), and an old date is a prompt to re-confirm, not an error. Don't decide per-fact when something becomes obsolete.
 - **Attribution presence:** attribution is load-bearing in the evidence-grounded artifacts (`demand/` PULL analyses, segment rationale, messaging angles — see AGENTS.md "Attribution"). Where Age checks whether *dated* tags have gone stale, this checks whether the convention is *applied at all*: scan those artifacts for any use of the confidence tags (`[VERIFIED]` / `[CLAIMED]` / `[INFERRED]` / `[UNVERIFIABLE]`). Flag (LOW) an artifact that makes evidence claims with **zero** confidence tags — the corpus may have drifted to unattributed. Count them; don't adjudicate any single claim, don't demand a density, and don't demand dating (dating stays opt-in). Skip pure-template artifacts: the shipped `_EXAMPLE.md` already attributes, and a near-empty instance with no real analyses is OK, not a finding.
 
+**7. Dependency liveness** — best-effort, needs credentials + network; skip (and say so) if unavailable rather than inferring health.
+- Enumerate external dependencies: `.env` keys, `.mcp.json` server entries, `engine/integrations/*.md`.
+- For each, attempt one cheap authenticated read (a whoami/metadata call — never a write). Report any that are dead, expired, or paused (expired token, auto-paused free-tier DB, unreachable endpoint) — these are exactly what recorded state (status.md, roadmap) can't reflect since it only records what was true as-of writing.
+
 ### Step 3: Report
 
 Present a health report. Overall verdict first, then findings grouped by category, each with severity and a concrete recommended action.

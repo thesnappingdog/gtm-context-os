@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Dependency liveness probe
+
+- **ID:** dependency-liveness-probe
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** none
+
+**What changed**
+A session that resumes after a time gap, or that is about to act on another session's stated-but-unverified claims about external systems, live-probes each external dependency (one cheap authenticated read per API/datastore) before trusting recorded state. `/gtm-os-health` gains a dependency-liveness check that enumerates the instance's dependencies and attempts one cheap read against each, reporting dead/expired/paused ones. A `check-deps` op is suggested as a natural early `ops` entry for instances with several integrations.
+
+**Why**
+Three failure shapes from a live instance, all generic: a token expired mid-work and only surfaced as an opaque auth failure; a free-tier database auto-paused during an idle stretch and the next session's writes silently failed against it; a stale read-through cache almost caused a four-figure-credit paid re-fetch, caught only because the operator dry-ran and diffed hit/miss counts before committing. The pattern: recorded state (status.md, roadmap) has no decay model — it records what was true as-of writing. External systems decay on their own clock regardless: tokens expire, free tiers auto-pause, caches go stale.
+
+**How to assess fit**
+Does the instance depend on external systems that can die while nobody is looking — token TTLs, free tiers that pause, caches with staleness windows? Has it ever resumed after weeks idle?
+
+**How to adapt (not copy)**
+The probe list derives from the instance's own integrations (`.env` keys, `.mcp.json` servers, `engine/integrations/*.md`) — not a fixed list. Wire it as a startup habit (Startup Check bullet), a health check (`/gtm-os-health`), and optionally an `ops` entry, not as a new standalone script family.
+
+**Downstream risks / migration**
+Probes that WRITE anything are not probes — keep them strictly read-only. A probe storm against rate-limited APIs can itself trip 429s, so cap it at one call per dependency.
+
+**What I can't see from here**
+Which of the instance's dependencies have safe cheap read endpoints — pick per-integration probe calls deliberately (an auth'd whoami/metadata read), and confirm none of them count against tight quotas before wiring them in.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Startup Check", "Module: scripts" (`ops` dispatcher paragraph); `.claude/rules/01-system-identity.md` → "Startup Check"; `.claude/skills/gtm-os-health/SKILL.md` (Step 2, check 7).
+
 ### [2026-08-12] MCP dependency pinning
 
 - **ID:** mcp-dependency-pinning
