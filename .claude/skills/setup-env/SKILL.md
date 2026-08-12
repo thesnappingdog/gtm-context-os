@@ -30,17 +30,15 @@ Run these checks silently, report results as a status table:
 
 ### Step 2: Install Missing Basics
 
-**Python** (if missing):
-- macOS: `brew install python@3.12`
-- Linux: `sudo apt install python3.12` or equivalent
+| Tool | macOS | Windows | Linux |
+|------|-------|---------|-------|
+| Python | `brew install python@3.12` | `winget install Python.Python.3.12` | `sudo apt install python3.12` or equivalent |
+| uv | `curl -LsSf https://astral.sh/uv/install.sh \| sh` | `winget install astral-sh.uv` | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| Node/npx (if MCP servers wanted) | `brew install node` | `winget install OpenJS.NodeJS.LTS` | `curl -fsSL https://fnm.vercel.app/install \| bash && fnm install --lts` |
 
-**uv** (if missing):
-- `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- No project-level config needed — scripts use inline `# /// script` metadata
+uv needs no project-level config — scripts use inline `# /// script` metadata.
 
-**Node/npx** (if missing and MCP servers are wanted):
-- macOS: `brew install node`
-- Or: `curl -fsSL https://fnm.vercel.app/install | bash && fnm install --lts`
+**Windows notes:** an MCP server config that launches via `npx` must use `cmd /c npx ...` as the command — Windows resolves `npx` to a `.cmd` shim that process-spawn can't invoke directly, and the server fails silently otherwise. Line endings are handled by the repo's `.gitattributes` (LF-normalized on checkout) — don't set `core.autocrlf` locally, it will fight the repo setting.
 
 ### Step 3: Create .env
 
