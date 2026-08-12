@@ -46,6 +46,9 @@ actually needs to write state. Standing up a writable store you don't yet write 
 - **Cohort tables vs. identity tables.** A per-run cohort table carries a `run_id` / `scored_at` stamp — a re-run
   *appends a new cohort*, never overwrites. An identity-keyed table *upserts* — lifecycle state accumulates on one
   row. Decide which a table is before you create it.
+- **Negative-cache tombstones.** A read-through cache table over an external lookup should upsert a tombstone row
+  for a confirmed miss too, not just a hit — absence-of-row must mean "not yet fetched," never "known miss," or
+  every miss gets re-paid on every run. See AGENTS.md "Module: scripts" → External-data reliability.
 - **Raw + promoted.** Keep the full raw response in a JSON column (lose nothing) and promote the scalars you
   actually query into typed columns.
 - **Security posture.** Document row-level security on/off, and gate it before exposing any client-side key.

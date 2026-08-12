@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] External-data reliability contract
+
+- **ID:** external-data-reliability
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** script-conventions
+
+**What changed**
+A four-rule contract for scripts that *read* from external systems, standing beside write-safety as its read-path sibling. (1) **Retry minimum** — every script wrapping an external HTTP API retries 429 and transient 5xx (500/502/503/504) plus transport errors/timeouts, with backoff (honoring a provider's retry-after over a generic one); when multiple API wrapper scripts exist, their retry policies get audited side by side rather than left to drift. (2) **Partial-batch preservation** — a loop chunking/paging through paid API calls catches per-chunk, logs which range failed, and continues, instead of letting one chunk's exception discard earlier chunks' already-paid-for results; silent truncation/over-return gets its own check, distinct from exceptions. (3) **Negative caching** — a read-through cache over an external lookup caches confirmed misses too, as a tombstone row with the same TTL/freshness semantics as a hit, so absence-of-row means "not yet fetched," never "known miss." (4) **Deterministic extracts** — an aggregate/window query picking "the latest/best" row per group uses a fully deterministic order (a stable secondary tiebreak key, not just a timestamp that can tie), verified by running the extract twice and diffing byte-for-byte.
+
+**Why**
+Each rule maps to a real cost proven in a live instance's pipeline hardening. A cache with no tombstone re-fetches and re-pays for the same known miss on every run, forever. A batch loop with no per-chunk isolation throws away results it already paid an API for the moment one chunk errors. Retry logic written ad hoc per script drifts — one script "learns" a lesson from an outage and its siblings quietly don't, so the same outage repeats on them. And a tie-broken "latest row" query with no secondary key silently rotates which row wins across runs, propagating nondeterminism into whatever it feeds (scoring, segments) without ever raising an error.
+
+**How to assess fit**
+Does this instance have scripts calling paid or quota'd external APIs? Does it have a read-through cache over any external lookup? Does it have an aggregate/window extract ("latest per account," "best score per company") whose output feeds scoring or segmentation? Any yes means the corresponding rule applies; an instance with only read-only, unpaginated, uncached pulls can skip the parts that don't fit yet.
+
+**How to adapt (not copy)**
+Apply the rules to existing wrapper scripts opportunistically, on next touch, rather than a retrofit sweep. Do the retry-policy audit once, side by side across every script that wraps an external API, so policies converge instead of drifting further apart. The tombstone rule may require a schema change — if the cache table has no way to represent "checked, found nothing" distinct from "never checked," that's a migration, not a code change (see `engine/integrations/datastore.md` → "Schema conventions" for the migrations discipline). The deterministic-extract rule is a query change only: add the tiebreak key to the `ORDER BY`.
+
+**Downstream risks / migration**
+Adding tombstones to an existing cache needs a way to distinguish legacy absence-of-row (genuinely never checked) from the new tombstone semantics (checked, confirmed miss) — a blanket "no row = fetch it" backfill run right after the migration handles this once. Adding retries can mask a real outage if backoff is unbounded — cap attempts (a max retry count or elapsed-time ceiling), don't let a hung dependency retry forever.
+
+**What I can't see from here**
+Whether an existing cache table's schema can represent a miss at all — it may need a new column or an added row shape, not just new application logic; check before assuming the tombstone rule is a pure code change. Whether any downstream consumer already treats absence-of-row as "known miss" (rather than "not yet fetched") — grep every reader of the cache table before adding tombstones, or a consumer that currently (incorrectly but harmlessly) skips missing rows may start behaving differently once tombstones exist.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: scripts" (External-data reliability convention block, beside Write-safety); `.claude/rules/08-scripts.md`; `engine/integrations/datastore.md` → "Schema conventions" (negative-cache tombstone note).
+
 ### [2026-08-12] Pre-push leak sweep
 
 - **ID:** pre-push-leak-sweep
