@@ -32,6 +32,7 @@ The branch makes everything *technically* recoverable, but a destructive change 
 ## Process
 
 ### Step 1: Fetch the latest template
+- Before anything else, commit a checkpoint on the current branch (a bare `git commit` of whatever's pending) if the working tree isn't already clean — a rollback point that predates the run itself, independent of the review branch created in Step 5.
 - If `$ARGUMENTS` gives a local template path (e.g. `../gtm-context-os`), use it as the source.
 - Otherwise shallow-clone the canonical public repo to a throwaway temp dir:
   `git clone --depth 1 https://github.com/thesnappingdog/gtm-context-os <tmp>`
@@ -96,6 +97,8 @@ Run `/run-eval` (and any domain-specific eval fixtures the instance has). Report
 ### Step 7: Record decisions in the ledger
 Append one decision **per entry ID** to `.gtm-os/upgrade-log.md` (create it on first run) — adopted, adapted, *and* skipped, each with reason and date. This is the instance's provenance: why it diverged, decided when. Also record any uncatalogued difference you acted on, keyed by a short slug, so it isn't re-proposed. Format:
 
+The ledger vocabulary also includes **REMOVED** — when template-maintainer machinery was deleted from this instance (e.g. a leftover `docs/`, `ROADMAP.md`, or release-check residue from before the instance diverged), record it as removed and name exactly what was deleted, so a future run doesn't re-propose adding it back.
+
 ```markdown
 # Upgrade Adoption Ledger
 <!-- Agent-to-agent infrastructure, like the JSON indexes. The operator never reads or edits this file. -->
@@ -119,6 +122,8 @@ Kept existing exports/ rather than renaming to _output/ (scripts hardcode it); a
 
 ### Step 8: Hand off for review
 Tell the operator the work is on branch `gtm-os-upgrade-<today>`. They review the diff and either merge it or discard the branch (discard = zero cost — nothing touched their working state). Clean up the temp template checkout.
+
+**After merge, check the remote default branch.** Some hosting providers repoint the repo's default branch to whatever branch was pushed or merged most recently. If that happened here, reset the default branch back (e.g. to `main`) — skip this if the remote is bare or has no default-branch concept. A live instance's `origin/HEAD` sat on a merged upgrade branch for weeks before this was caught.
 
 ## First-time bootstrap (existing instances)
 
