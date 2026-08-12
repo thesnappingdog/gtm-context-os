@@ -95,6 +95,10 @@ Append to `status.md` at the end of any substantive work session:
 
 Don't log quick Q&A. Don't create separate log files. Always append, never overwrite.
 
+**Footnote, don't rewrite.** `status.md` entries are point-in-time records — once written, a past entry is never edited to match later reality. If a later session learns something that corrects an earlier entry, the correction goes in the *new* entry, pointing back to the one it corrects. The old entry stays as written, wrong-at-the-time-if-so and all.
+
+**Rotation.** `status.md` is append-only and will otherwise grow without bound. When a period is clearly closed (a quarter, a completed project phase), roll its entries verbatim into `archive/status-{period}.md` and leave one summary line + pointer at the top of the rolled section's place. Only roll clearly-closed periods — recent entries stay in `status.md` so the file every session reads stays small.
+
 ### JSON Indexes — AI-Maintained Infrastructure
 
 JSON index files (e.g., `segments.json`, `campaigns.json`, `pull-index.json`) are **your internal navigation system**. They exist so you can quickly trace relationships between entities without re-reading every markdown file.
@@ -251,6 +255,10 @@ Structure documents for AI consumption, not narrative flow. Every file should an
 - Splitting would create files too thin to be useful on their own
 
 Don't rename existing files to match these conventions unless the operator asks. Apply the principles when creating new files or when the operator requests restructuring.
+
+**Root `archive/` — point-in-time reports.** Reviews, decks, audits, and research docs that accumulate at repo root are point-in-time records, not living docs (same footnote-not-rewrite rule as `status.md` — see "Status Logging"). When they pile up, move them to a root-level `archive/` whose `README.md` states plainly: nothing here is the plan of record, docs are preserved as written, and a table maps "what it was" → "where its content lives now" (the current doc that superseded it). This is a distinct genre from `campaigns/archive/` (killed campaigns with post-mortems) — it doesn't replace per-module archive conventions.
+
+**Re-entry ritual for gaps.** Before a known gap, the wrap-up names ONE explicit re-entry doc ("start here"). The first session back: live-probe dependencies first (see "Startup Check" — don't restate that check here, just run it), then classify existing state into stable/delivered vs. decaying (name what has a real staleness half-life). If the old plan no longer fits, write a NEW doc that supersedes it and re-point the index — never patch the stale plan in place.
 
 ---
 

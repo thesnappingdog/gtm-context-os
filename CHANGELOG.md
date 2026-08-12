@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Point-in-time record discipline
+
+- **ID:** point-in-time-record-discipline
+- **Category:** convention
+- **Severity:** low
+- **Depends on:** dependency-liveness-probe
+
+**What changed**
+Four mutually reinforcing rules for how dated/historical documents stay honest as reality moves, mined from a live instance that invoked them as settled precedent repeatedly over two months: (1) **Footnote, don't rewrite** — a point-in-time record (a dated status entry, a review, an audit, an archived research doc) is never edited to match later reality; corrections live forward, in the newer entry/doc, pointing back. (2) **Root `archive/` with a superseded-pointer table** — point-in-time reports accumulating at repo root move to a root-level `archive/` whose README states nothing there is the plan of record and maps each doc to where its content lives now; this complements, not replaces, the existing per-module archive convention (`campaigns/archive/`). (3) **Re-entry ritual for gaps** — the wrap-up before a known gap names one explicit re-entry doc; the first session after a gap live-probes dependencies (the dependency-liveness-probe convention), classifies state into stable/delivered vs. decaying, and if the old plan no longer fits, writes a new superseding doc rather than patching the stale one. (4) **`status.md` rotation** — when a period is clearly closed, its entries roll verbatim into `archive/status-{period}.md`, leaving one summary line + pointer; recent entries stay in `status.md` so the file every session reads stays small.
+
+**Why**
+Two failure modes this prevents. Silently rewritten history: when a point-in-time record gets "helpfully" edited to match later facts, nobody can reconstruct what was known when, and corrections become invisible instead of traceable. Unbounded/rotting records: the instance that evolved these rules hit `status.md` at ~1000 lines / 188KB after months of appends, and root-level reports (reviews, audits) piled up with no way for a reader to tell which were stale. The instance invoked these four rules by name repeatedly as settled precedent — the mark of a convention that carries real weight rather than ceremony.
+
+**How to assess fit**
+Does the instance have dated records that get "helpfully" edited later instead of corrected forward? Point-in-time reports (reviews, decks, audits, research docs) sitting at repo root with no marker distinguishing them from living docs? A status log big enough that reading it costs real context? Multi-week operator gaps where the next session needs to know what's still true?
+
+**How to adapt (not copy)**
+The mechanics are location-free — a per-module archive works as well as a root one if that's the instance's shape. The superseded-pointer table and the footnote-forward rule are the load-bearing parts, not the folder name `archive/`. Apply rotation to any append-only log that grows unbounded, not just `status.md`.
+
+**Downstream risks / migration**
+Rotation moves content that other docs may deep-link to — grep for links into the section of `status.md` being rolled before moving it. An over-eager agent might archive recent entries; only clearly-closed periods should roll.
+
+**What I can't see from here**
+Whether this instance has any automation (scripts, dashboards) that parses `status.md` directly — check consumers before the first rotation, since a script expecting entries at a fixed offset would break silently.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Status Logging" (footnote + rotation), "Document Architecture" (root `archive/` genre + re-entry ritual); `.claude/rules/01-system-identity.md` → "Status Logging".
+
 ### [2026-08-12] Dependency liveness probe
 
 - **ID:** dependency-liveness-probe
