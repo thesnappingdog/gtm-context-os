@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Ephemeral work is conversation-only
+
+- **ID:** ephemeral-work-conversation-only
+- **Category:** convention
+- **Severity:** low
+- **Depends on:** none
+
+**What changed**
+One-off outputs built *from* the repo's context for a transient purpose — call prep, prospect research briefs, ad-hoc summaries — are now named as conversation-only: don't write them into module folders, don't commit them, don't log them to `status.md`. If a working file is needed, use scratch space. Persist only what becomes durable evidence — e.g. a PULL analysis once the call happened and produced a transcript.
+
+**Why**
+The system has many "persist X to Y" rules and none naming what *not* to persist; agents default to writing files, silently inflating repo surface with artifacts nobody re-reads. A live instance caught itself committing a call-prep doc and wrote this rule the same hour; it held.
+
+**How to assess fit**
+Does the repo hold one-off prep/research files no one re-read?
+
+**How to adapt (not copy)**
+Adopt the rule; optionally sweep existing one-off artifacts to archive or delete.
+
+**Downstream risks / migration**
+An over-eager agent might refuse to persist something that IS durable evidence — the test is "does it carry evidential weight beyond the moment."
+
+**What I can't see from here**
+Whether operators deliberately keep call-prep files as a workflow (some do) — ask before sweeping.
+
+**Reference (template implementation)**
+`AGENTS.md`, "Ephemeral Work Stays in Conversation" (under "Operational Conventions"); `.claude/rules/01-system-identity.md` (Ephemeral Work).
+
 ### [2026-08-12] Write authority: qualify silent-reconcile + name the role-override pattern
 
 - **ID:** write-authority-qualifier

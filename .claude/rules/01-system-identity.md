@@ -47,6 +47,10 @@ Downstream work must reference upstream evidence:
 
 Before creating any file, folder, or module: (1) check if it exists, (2) check if existing structure covers the need, (3) only create if there's a genuine gap.
 
+## Ephemeral Work
+
+One-off outputs (call prep, research briefs, ad-hoc summaries) are conversation-only — don't write them to module folders, commit them, or log them to `status.md`. Use scratch space for working files. Persist only what becomes durable evidence.
+
 ## Modules
 
 Modules don't exist until needed. When work requires one, create the structure from the blueprint in AGENTS.md and proceed. Don't ask permission — just do it and confirm.
