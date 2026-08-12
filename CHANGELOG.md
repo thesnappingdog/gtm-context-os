@@ -84,6 +84,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-08-12] Workflow write boundary: scheduled jobs write files, humans commit
+
+- **ID:** workflow-write-boundary
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** none
+
+**What changed**
+A scheduled or unattended workflow that produces repo state (analyses, index updates, pulled data) writes files and stops at the git boundary — it never runs `git commit` or `git push`. Committing stays a human-reviewed act performed in a later interactive session: the operator (with their agent) reviews the accumulated working-tree diff and composes the commit message.
+
+**Why**
+A live instance ran both designs. Design A: a scheduled CI job ran an ingestion-and-analysis pipeline and committed and pushed straight to main, unreviewed. It failed badly and invisibly: a misconfigured API key made the analysis step silently produce nothing for about 10 days, yet the job still committed daily — a cursor file always advanced, so every commit message claimed new analyses had been produced. The result was a false audit trail, discovered only by accident. Design B, the replacement (five-plus weeks clean at time of writing): the same pipeline runs on the same schedule, but the job contains zero git commands — new files accumulate in the working tree, and a later interactive session reviews the diff and commits with an accurate, human-composed message. The core failure: a scheduled job's commit message describes what the job *intended* to do, not what actually happened; a human composing the message after reading the diff cannot make that error, because they are describing an artifact in front of them, not reciting a plan. Three concerns resolve at once: write safety (nothing becomes repo state unreviewed), audit trail (the message is written by someone who looked at the diff, so it cannot silently lie), and conflict with human sessions (new output arrives as a reviewable diff, not a fait accompli already on main). The honest tradeoff: unattended output piles up uncommitted if the operator stays away — tracked in the working tree, never lost, but not yet repo state until someone reviews it.
+
+**How to assess fit**
+Does the instance have, or plan, any scheduled or unattended job that writes repo files? Does any current automation run `git commit` or `git push`?
+
+**How to adapt (not copy)**
+Strip git operations out of scheduled jobs; let their output accumulate as ordinary working-tree files. Make reviewing and committing automation output part of session-start habits, not a separate ritual. If an instance genuinely needs unattended commits (e.g. a repo nobody opens interactively), the minimum safe version commits to a branch for PR review — never straight to main — but the file-boundary design is preferred whenever a human session exists to close the loop.
+
+**Downstream risks / migration**
+Existing automation that currently commits must be changed carefully: check that nothing downstream pulls the repo expecting the automation's commits to land on a schedule. Uncommitted accumulation also means backup discipline matters more — the working tree isn't pushed until a human commits it, so a lost or wiped machine can lose unreviewed output.
+
+**What I can't see from here**
+Whether anything consumes the instance's repo remotely on a schedule — a dashboard cloning main, another agent pulling for its own state — that silently depends on the automation's commits landing. Trace consumers of the repo before removing an automation's push step.
+
+**Reference (template implementation)**
+`AGENTS.md`, "Module: workflows" → "The write boundary"; `.claude/rules/10-workflows.md` (Conventions); `ROADMAP.md`, "Multiplayer" → "Autonomous agents."
+
 ### [2026-08-12] PULL rubric: per-dimension behavioral anchors
 
 - **ID:** pull-rubric-behavioral-anchors

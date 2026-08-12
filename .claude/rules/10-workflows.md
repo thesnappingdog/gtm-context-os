@@ -22,6 +22,7 @@ Who runs it? If you still type the command, it's a script (register recurring on
 - Test changes before deploying and document rollback steps
 - Cross-reference from `engine/architecture.md` when the workflow implements a pipeline stage
 - When decommissioned, remove the directory; if reverting to manual use, move logic back to `scripts/`
+- **The write boundary** — a scheduled workflow writes files and stops; it never runs `git commit`/`git push`. Committing is a human-reviewed act in a later session, where someone who actually read the diff composes the message. Full convention: AGENTS.md, "Module: workflows" → "The write boundary"
 
 ---
 
