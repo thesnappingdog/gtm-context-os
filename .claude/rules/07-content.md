@@ -1,4 +1,7 @@
-globs: content/**
+---
+paths:
+  - "content/**"
+---
 
 # Content Module
 

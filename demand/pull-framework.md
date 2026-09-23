@@ -150,6 +150,8 @@ The anchors are the measuring instrument, and changing the instrument changes wh
 - **8-13 = BENEFIT** — real pain, no urgency
 - **0-7 = NEITHER** — no fit, wrong timing, or information-gathering
 
+**These thresholds are defined here and only here.** Derived docs (`synthesis.md`, `key-learnings.md`, module docs) *reference* this file — they never restate the numbers. A threshold number appearing anywhere else is a drift site: when the bands change there, the copies silently don't. Two copies are sanctioned, and **re-anchoring these bands means editing both**: the scoped rule excerpt in `.claude/rules/02-demand.md`, and the executable assertion in `.gtm-os/eval/scenarios/G1-pull-index-follows.md` (an assertion can't reference a doc and stay runnable — leave it stale and the probe fails on correct behavior).
+
 **Interpretation sub-bands** nest *inside* the three classes — they add resolution for the synthesis scorecard, they never override the class. Every sub-band stays within one class, so any score yields exactly one label:
 
 | Score | Sub-band | Class |
@@ -217,6 +219,8 @@ Why don't current alternatives solve it?
 ## Synthesis Deliverables
 
 After a full batch of transcripts has been analyzed, produce two documents. These are cumulative — update them as new batches are added.
+
+**Derived numbers are recomputed, never hand-edited.** Every count, rate, or distribution in `synthesis.md` that restates the index (total analyzed, per-class counts, demand rate) is recomputed from `pull-index.json` on every update — treat those numbers like a JSON index: agent-owned, regenerated, not manually patched. If a number can't be recomputed from the index, it doesn't belong in the scorecard. This is what keeps a synthesis headline from disagreeing with its own tables three sections later.
 
 ### `demand/synthesis.md` — Quantitative Synthesis
 

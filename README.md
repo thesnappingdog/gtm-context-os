@@ -49,10 +49,10 @@ git remote add origin <your-own-repo-url>  # optional — push to your own remot
 Then open in your AI editor and start:
 
 ```bash
-claude  # or open in Cursor/Copilot/Windsurf
+claude  # or: codex; or open in Cursor/Copilot/Windsurf
 ```
 
-Run `/start` (Claude Code) — it checks your repo state and points you to the right next step. Or ask "help me get started" (any editor).
+Run `/start` (Claude Code) or `$start` (Codex) — the same skill checks your repo state and points you to the right next step. Or ask "help me get started" (any editor).
 
 **Claude Cowork users:** Open this repo as a **project**, not a task. Cowork projects persist across sessions and load the full `.claude/` configuration (rules, skills, settings). Tasks are one-shot and miss the system context. After opening as a project, type `/start` to begin.
 
@@ -65,6 +65,7 @@ The template keeps evolving — new skills, conventions, and framework improveme
 Updates ship as *patterns*, not files. The template publishes a `CHANGELOG.md` describing each change as a pattern with its rationale. To pull improvements in:
 
 - **Claude Code:** run `/gtm-os-upgrade`. Your agent fetches the latest template, checks each new pattern against your actual repo, and proposes — per item — what to adopt, adapt to your layout, or skip. Changes land on a review branch and it pauses before anything destructive, so you review the diff and merge (or discard) when ready. Decisions are recorded so the next `/gtm-os-upgrade` only surfaces what's new. (Don't have the skill yet? Just ask the agent to *"install the gtm-os-upgrade skill from the template"* — one-time.)
+- **Codex:** invoke `$gtm-os-upgrade` for the same advisory flow. Skills are shared through `.agents/skills`; there is no separate Codex skill package to maintain.
 - **Any editor:** ask *"Check the GTM Context OS template at https://github.com/thesnappingdog/gtm-context-os for new patterns and propose what applies to this repo."* Same advisory flow.
 
 What it will **never** do: touch your content (`context.md`, `demand/`, `segments/`, …), impose the template's folder names, or change anything without your approval. The template is a source of ideas, not a remote you sync to.
@@ -72,7 +73,8 @@ What it will **never** do: touch your content (`context.md`, `demand/`, `segment
 ## Structure
 
 ```
-AGENTS.md              # System instructions (read by all AI editors)
+AGENTS.md              # Complete handbook: conventions, blueprints, examples
+AGENTS.override.md     # Small Codex entrypoint; loads handbook sections as needed
 context.md             # Your ICP, positioning, competitors
 demand/                # PULL analyses, synthesis, key learnings
 status.md              # Operational log
@@ -83,15 +85,18 @@ messaging/             # Outreach angles and voice
 campaigns/             # Sequences, results, tracking
 engine/                # Pipeline architecture, integrations, enrichment prompts
 content/               # Blog, LinkedIn, marketing
-scripts/               # API scripts, data pulls, automation
-workflows/             # Production-grade automated workflows (graduated from scripts/)
+scripts/               # One-purpose scripts: API pulls, loaders, probes
+cli/                   # Process packages — one named GTM process each, two verbs, a ceiling (graduated from scripts/)
+workflows/             # What runs unattended: deployment inventory + units that aren't one package's adapter
 
 samples/               # Committed, PII-safe representative outputs (golden extracts, baselines)
 _output/               # Transient pipeline scratch — disposable (gitignored)
 _retained/             # Durable but private full/real datasets — never committed (gitignored; manifest tracked)
 .gtm-os/               # OS machinery — eval harness, upgrade ledger (editor-agnostic)
-.claude/               # Claude Code skills and scoped rules
-.mcp.json              # MCP server connections (CRM, enrichment, research)
+.claude/               # Canonical shared skills + Claude entrypoint and scoped rules
+.agents/skills         # Symlink to .claude/skills for Codex discovery
+.mcp.json              # Claude Code MCP connections (when configured)
+.codex/config.toml     # Codex project MCP connections (when configured)
 .env                   # API keys (gitignored)
 ```
 
@@ -108,11 +113,12 @@ When someone scores high on PULL, they would be weird NOT to buy. Everything els
 
 ## Compatibility
 
-Works with any AI coding assistant. `AGENTS.md` is the single source of truth; editor-specific pointer files redirect to it.
+`AGENTS.md` is the complete handbook. Small client entrypoints load the relevant parts on demand; the handbook and skill bodies have one source each.
 
 | Editor | How it loads instructions |
 |--------|-------------------------|
 | Claude Code | `.claude/rules/` (scoped) + `.claude/CLAUDE.md` + skills |
+| Codex | `AGENTS.override.md` → handbook sections; `.agents/skills` → shared skills |
 | Claude Cowork | Same as Claude Code — open as **project**, not task |
 | Cursor | `.cursorrules` → points to `AGENTS.md` |
 | GitHub Copilot | `AGENTS.md` directly (agent mode) |
@@ -120,13 +126,15 @@ Works with any AI coding assistant. `AGENTS.md` is the single source of truth; e
 | Aider | Via `read: AGENTS.md` in config |
 | Cline | Add `AGENTS.md` to context files |
 
-Claude Code users get bonus slash commands (`/pull-query`, `/gtm-os-status`, `/intake`, `/handover`, etc.). Everyone else gets the same methodology and blueprints via AGENTS.md.
+Use `/intake` in Claude Code or `$intake` in Codex, or ask in natural language. The shared skill files stay in `.claude/skills/`; `.agents/skills` is a link, not a copied library. `bootstrap` and the single-session `run-eval` work in either client with the required tools. `release-check` and `run-probes` currently have a Claude-validated execution harness; another runtime must prove worker/judge isolation before claiming equivalent coverage.
+
+Codex automatically loads the short override instead of truncating the full handbook at its default 32 KiB instruction budget. Keep the override as a loading guide, and keep policy in `AGENTS.md`. See `SETUP.md` for checking instruction/skill discovery and configuring the active client's MCP connections.
 
 ## Development
 
 **Branching:**
 - **`main`** — Stable. This is what people clone. Only receives merged PRs from `dev`.
-- **`dev`** — Working branch. Iterate here, run `/run-eval` before merging to main.
+- **`dev`** — Working branch. Iterate here, run `/release-check` before merging to main (bootstrap + consistency + eval + execution probes); `/run-eval` alone is the quick check during iteration.
 
 **Versioning:** Date-based tags on main (`2026-05-28`, `2026-06-12`, etc.). Tagged when dev merges to main with a coherent batch of changes. No semver — the repo evolves too fast for version number semantics.
 

@@ -1,4 +1,7 @@
-globs: segments/**
+---
+paths:
+  - "segments/**"
+---
 
 # Segments Module
 

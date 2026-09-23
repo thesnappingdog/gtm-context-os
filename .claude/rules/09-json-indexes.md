@@ -1,4 +1,7 @@
-globs: **/*.json
+---
+paths:
+  - "**/*.json"
+---
 
 # JSON Index Maintenance
 

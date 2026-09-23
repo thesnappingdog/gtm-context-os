@@ -1,10 +1,10 @@
 ---
 name: release-check
-description: "Smoke test before merging dev to main. Bootstraps a clean worktree, runs evals, checks instruction consistency — all automated via sub-agents."
+description: "Smoke test before merging dev to main. Bootstraps a clean worktree, runs evals, checks instruction consistency, executes the Tier 3 probes — all automated via sub-agents."
 argument-hint: "[optional: URL to bootstrap with, default: clay.com]"
 ---
 
-Automated release gate for merging `dev` → `main`. Runs three checks in an isolated worktree so your working copy is untouched.
+Automated release gate for merging `dev` → `main`. Runs four checks in isolated worktrees so your working copy is untouched.
 
 ## When to Use
 
@@ -19,6 +19,7 @@ Automated release gate for merging `dev` → `main`. Runs three checks in an iso
 | **Bootstrap** | Populates context.md from a real website in a clean worktree | Yes | Nothing |
 | **Consistency** | Checks AGENTS.md against scoped rules, blueprints, Document Architecture; verifies CHANGELOG `Reference` paths + anchors resolve; verifies convention changes on `dev` carry a CHANGELOG entry; PII gate on committed `samples/` | No | Nothing |
 | **Eval** | Runs all 8 eval tests against the bootstrapped worktree | Yes | Bootstrap |
+| **Probes** | Tier 3 — executes each `.gtm-os/eval/scenarios/*.md` scenario for real in its own seeded worktree and asserts on the git diff (see `/run-probes`) | Yes (own, per scenario) | Nothing |
 
 ## Process
 
@@ -53,6 +54,7 @@ Launch two agents simultaneously:
 - Read `CHANGELOG.md`
 - Check for:
   - **Rule–blueprint alignment**: Does every scoped rule reference a section that exists in AGENTS.md? Do module blueprints match what their scoped rules describe?
+  - **Client loading**: Read `AGENTS.override.md`; verify its required handbook sections exist and its UTF-8 size stays below 32 KiB. Check `.agents/skills` resolves to the same canonical skills (no missing/duplicate copies). Claude module rules must use YAML `paths` frontmatter, while identity/role rules stay unconditional; plain `globs:` lines are not valid scoping. For loading changes, separately exercise fresh client discovery per `SETUP.md` and record which clients were actually tested. A static check is not a fresh-session pass.
   - **Document Architecture compliance**: Do blueprint templates follow the naming and structure conventions? Are module-level overview files acknowledged correctly?
   - **Convention consistency**: Are graduation criteria consistent between scripts and workflows? Are JSON index schemas consistent between rules and AGENTS.md?
   - **Skill coherence**: Do skills reference files and modules that exist? Do they follow conventions described in AGENTS.md?
@@ -105,9 +107,13 @@ Once the bootstrap agent finishes, launch the eval agent:
 - Score each test: PASS, FAIL, or CRITICAL
 - Report: results table with notes on any failures
 
+### Step 3.5: Run Execution Probes (Tier 3)
+
+Follow `.claude/skills/run-probes/SKILL.md` for every scenario in `.gtm-os/eval/scenarios/` (each gets its own seeded worktree; SUT never sees assertions; objective bash assertions first, Judge for subjective slivers; single clean run = PASS, one rerun allowed on a FAIL to rule out nondeterminism). Can run in parallel with Steps 2-3 — probes use their own worktrees.
+
 ### Step 4: Collect and Report
 
-Gather results from all three agents and present a unified report:
+Gather results from all four checks and present a unified report:
 
 ```
 ## Release Check — {date}
@@ -129,13 +135,23 @@ Worktree: {path}
 
 **Eval Score: {N}/8**
 
+### Probe Results
+| Scenario | Objective | Judge | Verdict |
+|----------|-----------|-------|---------|
+| G1 | PASS | PASS | PASS |
+| ... | ... | ... | ... |
+
+{per-failure: the exact assertion line that failed + the relevant diff excerpt}
+
 ### Verdict
 {READY / NOT READY — with specific blockers if not ready}
 ```
 
 **Verdict criteria:**
-- **READY**: Eval 8/8, no consistency contradictions, bootstrap completed successfully
-- **NOT READY**: Any eval failure, any critical consistency issue, or bootstrap couldn't populate context.md
+- **READY**: Eval 8/8, no consistency contradictions, bootstrap completed successfully, all probes PASS
+- **NOT READY**: Any eval failure, any critical consistency issue, bootstrap couldn't populate context.md, any PROBE FAIL, or an unresolved probe HARNESS ERROR (a harness error is never counted as a pass)
+
+Include a Probe Results table (from `/run-probes`) in the report.
 
 ### Step 5: Clean Up
 
@@ -171,6 +187,7 @@ You are checking the GTM Context OS instructions for internal consistency.
 
 Read these files:
 - AGENTS.md (full file)
+- AGENTS.override.md (Codex loading guide)
 - All files in .claude/rules/
 - All SKILL.md files in .claude/skills/*/
 - CHANGELOG.md
@@ -183,7 +200,14 @@ Check for:
 5. JSON index schemas match between AGENTS.md and scoped rules
 6. Skills reference files and modules that exist in the repo
 7. No orphaned references to deleted or renamed sections
-8. CHANGELOG reference integrity — each entry's `**Reference (template implementation)**` line is what `/gtm-os-upgrade` follows to read a pattern's real implementation, so a dead path silently misdirects a future upgrade (paths have been renamed before: `eval/` → `.gtm-os/eval/`, `/upgrade` → `/gtm-upgrade`). Check only the Reference content lines (the `## Releases` index is human prose that names renamed paths on purpose — don't check it):
+   Also verify client loading: AGENTS.override.md is below 32 KiB and names real handbook sections; .agents/skills resolves to the canonical .claude/skills files; scoped Claude rules have YAML paths frontmatter, identity/role rules are unconditional. For loading changes, report fresh-session checks separately from static consistency checks (see SETUP.md).
+8. PII gate on committed samples — no contact PII may be committed under `samples/`. This is the highest-severity check in the gate; never skip it.
+   ```bash
+   git ls-files 'samples/**' | xargs -r grep -lE \
+     '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|\+?[0-9][0-9 ().-]{7,}[0-9]' 2>/dev/null
+   ```
+   Any file listed is a likely PII leak — CRITICAL. It belongs in `_retained/` (gitignored), not `samples/`. (Empty/absent `samples/` → pass.)
+9. CHANGELOG reference integrity — each entry's `**Reference (template implementation)**` line is what `/gtm-os-upgrade` follows to read a pattern's real implementation, so a dead path silently misdirects a future upgrade (paths have been renamed before: `eval/` → `.gtm-os/eval/`, `/upgrade` → `/gtm-upgrade`). Check only the Reference content lines (the `## Releases` index is human prose that names renamed paths on purpose — don't check it):
    - Backticked repo paths resolve to a real file/dir:
      ```bash
      # Filter gates on slash/known extension — a bare extensionless target (LICENSE,
@@ -203,7 +227,7 @@ Check for:
        | sort -u | while read -r s; do grep -E "^#{1,4} " AGENTS.md | grep -qiF "$s" || echo "NO HEADING: $s"; done
      ```
    Any `BROKEN:` or `NO HEADING:` line is CRITICAL — name the CHANGELOG entry it appears under.
-9. Changelog discipline — every dev→main merge must add one CHANGELOG entry per pattern changed (`CHANGELOG.md` → "Maintainer discipline (required)"). `CHANGELOG.md` is the upgrade channel `/gtm-os-upgrade` consumes; the file-diff check in `/gtm-os-upgrade` is a backstop that catches drift, not the channel itself — a convention that ships with no entry has already broken the intended path once (`context-foundation-eviction` shipped to `main` with no CHANGELOG entry and was only caught by that backstop on a live instance). Diff what `dev` is about to merge against `main`:
+10. Changelog discipline — every dev→main merge must add one CHANGELOG entry per pattern changed (`CHANGELOG.md` → "Maintainer discipline (required)"). `CHANGELOG.md` is the upgrade channel `/gtm-os-upgrade` consumes; the file-diff check in `/gtm-os-upgrade` is a backstop that catches drift, not the channel itself — a convention that ships with no entry has already broken the intended path once (`context-foundation-eviction` shipped to `main` with no CHANGELOG entry and was only caught by that backstop on a live instance). Diff what `dev` is about to merge against `main`:
    ```bash
    git diff main...dev -- AGENTS.md .claude/rules/
    ```

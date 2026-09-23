@@ -15,6 +15,13 @@ The durable layer scripts read/write **across runs** — keep it distinct from:
 
 It is infrastructure, not a run artifact: its **schema is tracked as code**; its **data is never committed**.
 
+**Workflow state is files, not the store.** A pipeline's in-flight state — which stage ran, what it produced, where to
+resume — is one directory per run under `_output/` with one file per stage (a stage skips when its output exists;
+delete the file to redo; rerun to resume). The store holds only what was *paid for* or is *slow to regenerate*
+(provider payloads, purchases) and the *decisions* made on them; judgments recompute every run. The only read-back
+from the store during a run is the money anti-join ("already bought / already enriched"). Zero SQL logic — no
+functions, triggers or business-logic views; every rule lives in code where it can be read and tested.
+
 ## Connection
 
 | | |
@@ -64,7 +71,7 @@ where it fits the pipeline). Two load-bearing rules:
 2. **Never hand-edit the live schema without a matching migration**, or schema-diff drifts. If the apply path
    stamps its own version IDs, rename local files to match so `diff` / `list` stay clean.
 
-Where migrations live depends on who owns the store — see "When this graduates."
+Where migrations live depends on who owns the store — see "Who owns the store."
 
 ## Dev-notes
 
@@ -72,10 +79,11 @@ Track open hardening items (a deferred RLS decision, secrets the operator must a
 future writer must honor) in a sibling `engine/{datastore}-dev-notes.md`, using the priority-ranked dev-notes
 genre (see AGENTS.md "Module: engine").
 
-## When this graduates → `workflows/`
+## Who owns the store
 
-A datastore does **not** by itself make you a workflow — only being scheduled/deployed does (re-apply the
-graduation test). Until then the store is `scripts/`-tier and its migrations live in a top-level
-`{datastore}/migrations/` directory (a project-wide store many scripts may share). On graduation: a store a single
-workflow *owns* moves its schema/migration docs into that workflow's directory; a store *shared* across scripts
-stays at root, and its connection reference stays here in `engine/integrations/`.
+A datastore does **not** by itself make a script a process or a workflow — the process trigger and the unattended
+test decide those separately. A store shared across scripts and processes keeps its migrations in a top-level
+`{datastore}/migrations/` directory and its connection reference here in `engine/integrations/`. A store that a
+single process package *owns* — only its two verbs write to it — may keep its migrations inside `cli/{process}/`
+(counted by that package's `check.py` table ceiling). Move migrations only when ownership is that clear; a shared
+store stays at root.

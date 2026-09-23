@@ -43,6 +43,38 @@ Every `dev` → `main` merge **must** add one entry per coherent pattern changed
 
 Condensed index of what shipped under each `main` tag. Newest first. Each release groups the pattern entries (detailed below) that an instance would consider. This is the "what changed" summary; the entries are the "how to adopt it."
 
+### `2026-08-25` — methodology rigor, autonomous-agent boundaries, reliability hardening
+
+The largest release so far, mined from two live-instance harvests (one heavily-used multiplayer instance running scheduled autonomous ingestion; one operational instance running real data pipelines) plus a measured pipeline post-mortem. Everything customer-clean.
+
+**Methodology — the one to actually adopt is the first:**
+- **`pull-rubric-behavioral-anchors`** *(high · depends on `pull-score-band-reconciliation`)* — each PULL dimension gets its own 0-5 ladder of **behavioral anchors** (observable events checkable against the transcript), replacing the single adjective scale applied identically to all four. Named anti-pattern guards on the two drift-prone dimensions: Unavoidable scores the forcing function *and its date*, never a category-level necessity; Lacking scores the buyer's current alternative, never your own product's gaps. Rubric changes follow a Calibration discipline — dated note, declared pre/post non-comparability, no silent rescoring of the back catalogue. Motivated by a measured 2/27 reproducibility rate on the old scale.
+- **`derived-state-coherence`** *(medium · depends on `pull-score-band-reconciliation`)* — against the drift class where a computed value silently stops agreeing with its source: **eliminate where recomputable** (thresholds defined once and referenced, never restated; synthesis counts/rates agent-owned and recomputed from the index, never hand-patched), **watch the rest** (`/gtm-os-health` recompute lenses + mechanical referential integrity). Findings are flag-only — reconciling re-interprets artifacts, so the operator decides.
+- **`point-in-time-record-discipline`** *(low · depends on `dependency-liveness-probe`)* — four rules keeping dated records honest as reality moves: footnote-forward instead of rewriting; a root `archive/` with a superseded-pointer table; a re-entry ritual for known gaps; `status.md` rotation into `archive/status-{period}.md` so the every-session file stays small.
+- **`ephemeral-work-conversation-only`** *(low)* — one-off outputs built *from* repo context (call prep, research briefs, ad-hoc summaries) are conversation-only: not written to module folders, not committed, not logged. Persist only what becomes durable evidence.
+- **`customers-roster-convention`** *(low)* — once an instance has closed customers, a root `customers.md` roster is a named application of the Context Foundation eviction rule. Serves disqualification, expansion evidence, and prospecting-by-adjacency. Triggered by the first closed customer, never scaffolded empty.
+
+**Autonomous agents and multiplayer — where the single-operator assumption broke:**
+- **`workflow-write-boundary`** *(medium)* — a scheduled or unattended workflow writes files and **stops at the git boundary**; it never commits or pushes. Committing stays a human-reviewed act in a later interactive session, where someone who read the diff composes the message. This is the reference design that narrows three open multiplayer problems (write safety, audit trail, conflict with human sessions).
+- **`write-authority-qualifier`** *(low)* — silent-reconcile is now conditional on holding write authority; a session without it *reports* drift instead of fixing it. Also names the role-conditional override-rule pattern: a later-loading scoped rule file determines session role (marker file → VCS identity → least privilege) and overrides specific base-rule behaviors, without forking the base rules.
+- **`local-scheduler-graduation`** *(low · depends on `ops-operational-cli`)* — the scripts→workflows test is *who runs it*, and **any** unattended scheduler counts: launchd or cron on a persistent local machine graduates a script exactly like a hosted runtime. Infrastructure choice is not the test.
+
+**Reliability hardening — the read path, the environment, and the push:**
+- **`external-data-reliability`** *(medium · depends on `script-conventions`)* — a four-rule contract standing beside write-safety as its read-path sibling: retry minimum (429/transient 5xx/transport, with backoff, audited across sibling scripts), partial-batch preservation (one chunk's exception must not discard earlier chunks' paid-for results), negative caching (tombstone confirmed misses), deterministic extracts (a stable secondary tiebreak, not just a timestamp).
+- **`dependency-liveness-probe`** *(medium)* — resuming after a gap, or acting on another session's unverified claims about external systems, means one cheap authenticated read per dependency *before* trusting recorded state. Tokens expire, free tiers auto-pause, caches go stale. `/gtm-os-health` gains the check; `check-deps` is a natural early `ops` entry.
+- **`pre-push-leak-sweep`** *(medium)* — a leak sweep on the **outgoing diff** before any push, scanning added lines for secret patterns and instance-specific sensitive terms. One script serves three entry points (Claude Code PreToolUse hook, native git hook, manual). The term list stays gitignored — committing the names you're keeping out of the repo would itself be the leak.
+- **`cross-os-onboarding`** *(low)* — a root `.gitattributes` plus per-OS install commands in `/setup-env` (macOS/Windows/Linux) instead of assuming brew, with Windows `npx`-shim notes.
+- **`mcp-dependency-pinning`** *(low)* — pin an MCP server's unbounded SDK dependency in the committed config before shipping it, and read MCP transport error `-32000` as "the server process died at launch" (usually a dependency break), not as auth. Diagnostic: run the launch command by hand and read stderr.
+
+**Tooling and template machinery:**
+- **`execution-probes`** *(medium)* — a third eval tier that tests instructions by **executing** them: a scripted turn goes to a fresh agent session in a seeded worktree, and assertions run against the resulting git diff. Closes the structural blind spot where the single-turn eval could only grade *stated* intent, never the side effects conventions actually live in. Ships with two scenarios (index-row consistency; the synthesis threshold must produce an *offer*, not a fabrication) and gates `/release-check`.
+- **`planning-tier`** *(medium · depends on `point-in-time-record-discipline`, `ephemeral-work-conversation-only`)* — two homes, one lifecycle, split at the **commitment boundary**: `_wip/` parks explored-but-uncommitted specs; `roadmap/` holds committed initiatives QA'd for cold agent pickup. The load-bearing ritual is the executability review ("could an agent pick this up cold?"). Activation threshold: 3+ committed multi-week initiatives — below that, a `## Next` block is the right altitude.
+- **`upgrade-run-hygiene`** *(low)* — three mechanics for `/gtm-os-upgrade` runs: a **REMOVED** ledger status so deleted maintainer machinery isn't re-proposed every upgrade; a checkpoint commit predating the run; a reminder to reset the remote's default branch after merge.
+- **`cross-agent-skill-mirror`** *(low)* — a committed `.agents/skills` → `.claude/skills` symlink exposes the skills to Codex and any agent reading the cross-agent SKILL.md standard. `.claude/skills/` stays canonical.
+- **`model-capability-tiers`** *(low)* — model selection stated as capability tiers (default / strategic / quick) with one dated mapping line, instead of model names hardcoded across prose.
+
+Also in this release (template-internal, not adoption entries): `/release-check`'s consistency agent now verifies that convention-bearing changes on `dev` carry a CHANGELOG entry — closing the gap that let `context-foundation-eviction` ship with no entry, caught only by the upgrade file-diff backstop.
+
 ### `2026-06-12` — operational CLI surface (`ops`)
 
 Mined from a live-instance scan: the instance had grown several recurring, hand-run terminal operations that were getting lost in a flat script folder (one was nearly rebuilt from scratch because the agent didn't see it already existed).
@@ -83,6 +115,399 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 ---
 
 ## Entries
+
+### [2026-09-23] Execution probes for bounded delivery and engineering restraint
+
+- **ID:** bounded-delivery-probes
+- **Category:** mechanic
+- **Severity:** medium
+- **Depends on:** execution-probes
+
+**What changed**
+Four execution scenarios test whether an agent delivers a bounded business result without
+turning every exception or stored failure into engineering work: one harmless excluded row,
+stale cached qualification flags, historical failed records, and a control where one suppressed
+account really does violate the current contract. Assertions require actual output and preserve
+code, policy and source state where no repair is needed. Fixture helpers and seed baselines live
+outside the worker worktree; scenario/assertion material is removed before the worker starts.
+
+**Why**
+Correct folder placement and a working happy path do not prove stopping judgment. A model can
+deliver the task and then build machinery for an irrelevant edge case, or treat accumulated
+store state as both absolute truth and an obligation to repair. Conversely, restraint must not
+teach it to dismiss consequential violations merely because they affect one row.
+
+**How to assess fit**
+Does the instance test agent behavior through isolated execution? Do agents expand bounded
+tasks into cleanup, backfill or recovery projects based on individual results or historical counts?
+
+**How to adapt (not copy)**
+Use a small existing local tool, synthetic observations and an explicit current contract. Require
+the requested artifact, check unexpected mutations including ignored/untracked files, and judge
+the explanation separately. Include a consequential-error control. Keep expected answers outside
+the worker's context. These are regression tests, not new failure-rate thresholds or an application
+hardening mandate; `/release-check` discovers the scenarios automatically.
+
+**Downstream risks / migration**
+No business policy or data migration. More execution scenarios increase release-check time.
+Worker isolation changes remove eval material only in disposable probe worktrees, never a live instance.
+
+**What I can't see from here**
+Whether a different runtime truly isolates workers and judges, or personal instructions affect
+the result. One clean smoke run does not establish causality or production readiness.
+
+**Reference (template implementation)**
+`.gtm-os/eval/scenarios/`; `.gtm-os/eval/fixtures/restraint.py`; `.gtm-os/eval/README.md`; `.claude/skills/run-probes/SKILL.md`.
+
+### [2026-09-22] Small Codex entrypoint, full shared handbook, valid Claude rule scopes
+
+- **ID:** cross-client-instruction-loading
+- **Category:** mechanic
+- **Severity:** high
+- **Depends on:** cross-agent-skill-mirror
+
+**What changed**
+The complete handbook stays intact. Codex receives a short `AGENTS.override.md` that requires the common operating conventions, role rules, context/status reads and task-specific handbook sections. Claude module rules use YAML `paths` frontmatter; system identity and role restrictions stay unconditional. Both clients keep one shared skill source. Bootstrap and single-session eval are described by their capabilities; execution-probe parity is not claimed without a validated runtime.
+
+**Why**
+The handbook grew beyond Codex's default 32 KiB automatic instruction budget, cutting off most module blueprints. Meanwhile plain `globs:` text in Claude rule files did not implement the advertised conditional loading. Skill discovery and instruction loading are separate contracts.
+
+**How to assess fit**
+Does this instance use Codex with a handbook larger than its automatic instruction budget? Do Claude rules claim path scoping without valid YAML `paths` frontmatter? Are portable skills described as Claude-only?
+
+**How to adapt (not copy)**
+Keep the instance's handbook and module names. Add or adapt a small Codex entrypoint that requires shared conventions and routes to the instance's own section headings; keep business policy in the handbook. Correct scoped metadata without changing rule bodies. Establish role restrictions before any startup reconciliation, in every client. Preserve the existing canonical skill location and resolve its discovery link.
+
+**Downstream risks / migration**
+Codex loads the override instead of the root handbook automatically; an incomplete loader can omit duties or role restrictions. Never replace an existing instance override wholesale. Correcting Claude scoping removes accidental unconditional coverage, so the entrypoint must require shared conventions and the relevant blueprint before creating new module files. Existing restricted-contributor rules must remain unconditional.
+
+**What I can't see from here**
+Custom section names, nested instruction files, personal instruction budgets, and platform-specific symlink handling. Verify fresh client loading and all shared skill paths on the operator's actual platform; a file existing is not proof that the client loaded it.
+
+**Reference (template implementation)**
+`AGENTS.override.md`; `AGENTS.md` → "Works in any agent, not just Claude Code" and "Cross-Editor Compatibility"; `.claude/CLAUDE.md`; `.claude/rules/`; `SETUP.md` → "Codex Instruction and Skill Discovery"; `.claude/skills/release-check/SKILL.md`.
+
+### [2026-09-22] Integration setup follows the active AI client
+
+- **ID:** client-aware-integration-setup
+- **Category:** skill
+- **Severity:** medium
+- **Depends on:** cross-agent-skill-mirror
+
+**What changed**
+Setup reuses active connections and writes the selected client's MCP configuration: Claude Code's `.mcp.json` or Codex's trusted-project `.codex/config.toml`. Named environment variables are passed without embedding secrets; `.env` for scripts is not assumed to populate the MCP client. Read-only validation happens in the selected client before reporting a connection ready. The shared native push hook is activated for either client.
+
+**Why**
+A shared skill could be visible in Codex yet write only Claude's configuration, producing a configured file without a usable connection.
+
+**How to assess fit**
+Do multiple clients operate this instance, or does setup assume `.mcp.json` works everywhere? Has a connection been called ready without an actual tool read?
+
+**How to adapt (not copy)**
+Detect the active client and intended scope, preserve existing settings, and merge only the needed server entry. Follow the server's actual transport/auth contract. Describe any remaining trust, environment, OAuth or reload step. Keep shared skill instructions in their existing canonical directory.
+
+**Downstream risks / migration**
+Do not duplicate an existing user/plugin connection into project configuration, overwrite unrelated settings, or copy secret values into tracked files. No existing connections are migrated merely by upgrading these instructions.
+
+**What I can't see from here**
+Whether the client inherits the required environment, trusts this project, or uses an existing authenticated plugin connection. Verify with a read-only call in that client; do not assume the other client's success transfers.
+
+**Reference (template implementation)**
+`.claude/skills/setup-env/SKILL.md`; `.claude/skills/setup-api/SKILL.md`; `SETUP.md` → "MCP Servers" and "Push Leak Sweep".
+
+### [2026-09-22] The process tier — `cli/{process}/` with a mechanical ceiling
+
+- **ID:** process-cli-tier
+- **Category:** convention
+- **Severity:** high
+- **Depends on:** ops-operational-cli, script-conventions, write-safety-classes, engine-policy-dir, three-state-results
+
+**What changed**
+A third resting place between one-purpose scripts and unattended workflows: a **process package** — one directory per named GTM process, in application form. Two public verbs (`build`: inputs → a reviewable artifact; `act`: the approved subset → the final artifact) plus a `--plan`-first `handoff`; no status/doctor/per-stage commands (the run directory *is* the status). Files are workflow state (one dir per run, one file per stage, skip-if-exists, delete to redo, rerun to resume); the store holds paid payloads and decisions only, zero SQL logic. Verdicts are binary and evidenced, deterministic gates before model calls, ranking sorts already-qualified rows and never gates. Two decision layers per account — FIT (durable, replace) and TIMING (volatile, append) — never summed; TIMING is always in the blueprint, strongly recommended, not required. One producer contract (`found | empty | failed`, evidence, observed-at, cost class). Policy read from `engine/{process}/`, never edited from the package. Skills wrap the CLI; the CLI never wraps the agent. **The ceiling is a shipped script**, `check.py`, run in tests and pre-commit: public commands, tables, SQL logic, `except Exception`, LOC, README length, test-LOC ≤ code-LOC, banned control-plane vocabulary, and every `deploy/` entrypoint referenced by a test. Limits live in one dict; raising one is allowed and visible (one commit naming the user-visible problem; a 10% soft band on size limits so 2,001 lines warns rather than fails). **The trigger:** two scripts run by hand in a fixed order to produce one output is a process — start the package; don't add a third script, and don't fold the chain into one big phase-subcommand file. `ops` gains the ability to route to a process entrypoint as one more row. Package layout: `cli.py` owns the only public surface; `utilities/` holds five shared things (a sixth needs two callers); `commands/{entity}/` is themed by entity, one file per stage, never invoked directly.
+
+**Why**
+One instance built the same lead process three times in three weeks. Version one was ten scripts chained by hand. Version two was born as a control plane — 21 command files, a status command that was the most-typed and the one that timed out, a database that became the business logic (dozens of functions, triggers and views), additive scoring that produced a review tier full of irrelevant rows — and grew 5× in eight days while the operator wrote "keep it simple" in every session. Version three is two verbs, files as state, a policy trio the operator edits, and a `check.py` that fails the build; it is the version that shipped. A second instance's largest file is a phase-subcommand pipeline script sitting in `scripts/` because nothing in the template said when a chain becomes a package, and its `workflows/` holds three pre-deployment directories that are process packages by content. The evidence for shipping the check as code rather than prose is that the prose did nothing.
+
+**How to assess fit**
+Is there a pair (or chain) of scripts you run by hand in a fixed order before a review? Is the largest file in the repo a pipeline script with phase subcommands? Does a `workflows/` directory hold hand-run multi-stage code? Has a pipeline grown a status command, a job table, or a scoring tier? Any yes is the trigger.
+
+**How to adapt (not copy)**
+`cli/` is the name two instances converged on; an instance with an established equivalent maps it rather than renaming. The load-bearing parts are: two verbs and no control plane; files as state; the policy boundary in `engine/`; the shipped `check.py` with limits in one visible dict; the entity-themed `commands/` layout; and the trigger. The ceiling numbers are one instance's — keep them until a second package gives you a reason to move one, then move it in a commit that says why. A one-stage process (a single script that grew a policy) is still a package if it has a gate and a spend; a single script that merely got scheduled is not (see `workflows-narrowed`).
+
+**Downstream risks / migration**
+Moving a chain into a package changes every invocation path — `ops` rows, skills, READMEs, and any scheduler entry — in one commit; grep for the old script names first. Policy extracted from code into `engine/{process}/` changes nothing until the code reads it; prove the same rows qualify before and after at ceiling 0. A `workflows/` directory holding process code is *reported*, never moved by the upgrade.
+
+**What I can't see from here**
+Whether the chain you'd package has a stage that spends money without a receipt — packaging it puts the sidecar and the ceiling around it, which will surface any duplicate purchases the chain has been making silently. Check the provider's billing for the last few runs before trusting the new estimate.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: cli (the process tier)" (blueprint, DDL, generic `check.py`, `AGENTS.md` starter) and "Module: scripts" (the trigger, the two graduation exits, `ops` routing); `.claude/rules/12-cli.md`; `.gtm-os/eval/scenarios/G3-process-trigger.md`; `/gtm-os-health` lens 5b.
+
+---
+
+### [2026-09-22] `workflows/` narrowed to what runs unattended and isn't one package's adapter
+
+- **ID:** workflows-narrowed
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** process-cli-tier, workflow-write-boundary, local-scheduler-graduation
+
+**What changed**
+The process's code lives in its package; the package's *own* deployment adapter (function entrypoint, Dockerfile, plist, an n8n export that calls this package) lives in `cli/{process}/deploy/`, added on the deploy commit and never before, with a `tests/test_deploy.py` that imports every entrypoint at ceiling 0 and a bundle built from declared inputs (package + recorded policy version + env contract). `workflows/` keeps three things: the **inventory** (`workflows/README.md` — every deployment unit of both kinds, with target, trigger, an **ownership line**, declared status, last-verified date); **units that are not one package's adapter** (a plist over a standalone script — the script stays in `scripts/`, no package ceremony; a graph spanning processes; a no-code flow with side effects); and **legacy directories**, reported and never moved. Ownership is decided by the unit's documented responsibility ("exposes/schedules `cli/x` `build`" vs. "owns orchestration across X and Y"), never by counting imports; health flags ambiguity for review. The per-unit README is a deployment contract (Infrastructure · Schedule · Inputs and output · Authorization · Status · Rollback) and is also what a package README gains on its deploy commit.
+
+**Why**
+The old blueprint split on execution mode (hand-run vs unattended) and three instances didn't use it as designed: one had three `workflows/` directories, none deployed, holding what were process packages by content; another registered its one workflow in `ops` as a hand-run operation. The 2026-09 review (two independent reviewers) converged on: the package is the unit, deployment is a property added to it, and a location-split directory forces a move at the first graduation that a fork-not-move rule was supposed to prevent. But a top-level home is still needed for deployment units that don't belong to one package, and one place to answer "what runs unattended" — hence the narrow survival rather than retirement. The reviewers' strongest objection to co-location — a wrapper breaks while local runs keep working, observed once — is met by the deploy test, not by the directory.
+
+**How to assess fit**
+Does a `workflows/{name}/` here hold the actual code of a process that is hand-run? Is there a scheduled unit whose README doesn't say what it owns? Can you answer "what runs unattended in this instance" from one file?
+
+**How to adapt (not copy)**
+Nothing moves on adoption. Add the inventory README and an ownership line to each existing unit's README; that alone captures most of the value. New deployments follow the split: one package's adapter → that package's `deploy/`; anything else → `workflows/{name}/`. An instance without `cli/` yet has only the second kind and the old structure is already correct for it.
+
+**Downstream risks / migration**
+Advisory. Moving legacy process code out of `workflows/` changes invocation paths a scheduler depends on — the upgrade reports, the operator moves in their own session, the old entry keeps working until they do. `/gtm-os-upgrade` treats this entry as report-only.
+
+**What I can't see from here**
+Whether a scheduler entry on a machine you can't see (a colleague's laptop, a hosted cron) points at a path you're about to change. Check every scheduler, not just the one on this machine, before renaming a directory.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: workflows" (inventory, ownership, the deployment contract) and "Module: cli" → Deployment; `.claude/rules/10-workflows.md`; `/gtm-os-health` lens 5b; `/gtm-os-upgrade` advisory-only entries.
+
+---
+
+### [2026-09-22] Unattended runs: durable output, fixed authorized spend, three authorization states
+
+- **ID:** unattended-authorization
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** workflow-write-boundary, write-safety-classes
+
+**What changed**
+Three rules for any unattended run, wherever its artifact lives. (1) **Durable output.** The write boundary stays literal — never `git commit` or `git push` — and "write files and stop" now says *where*: a durable review location (a bucket, the store, `_output/` on a persistent machine), because a cloud function's filesystem is transient; a later interactive session imports, reviews and commits. (2) **The three write classes apply with the human removed.** Owned-store writes are allowed. Spend is allowed up to an **authorized maximum fixed in the deployment contract, which names its period**; the run may compute a smaller effective allowance from remaining budget or input size, may never exceed or raise the authorized one, and repeated invocations inside a period draw from one budget — never fresh authorization. (3) **Three authorization states** for external system-of-record writes, declared in the contract: *none* (the default — the run stops before any such write); *standing authorization with bounded scope* (once the operator is happy with the setup, they sign a scope: system, operation, eligible records and fields, limits, per run or per period; the run enforces it and stops when it would exceed it; `--plan` is the preview at sign-off and on every scope change, not per run); *per-run approval* (anything outside a standing scope). The agent never signs a scope; a person does, in the repo.
+
+**Why**
+The 2026-08 write boundary answered git and nothing else. Two reviewers independently found that it left three things undefined: what "write files" means on a transient filesystem; whether an unattended run may spend, and against what budget; and whether a `--plan`-gated CRM write can ever run without a human — under which an ordinary nightly CRM sync would be impossible by definition. The three states make "accepted to be automated once the operator is happy with the setup" a written scope rather than a vibe, and keep the OS's standing rule — approval never delegates to the agent — intact.
+
+**How to assess fit**
+Does any scheduled job here write into a CRM or sequencer? Under what written authorization? Does any scheduled job spend credits, and is the ceiling in a file someone signed or in a variable someone set? Where does a cloud job's output land, and would it survive the container?
+
+**How to adapt (not copy)**
+The contract sections are the pattern; instances with an existing README shape add an `## Authorization` block and a named period on the spend ceiling. A job that today runs `--plan`-gated writes unattended without a scope is not made safe by this entry — it is made *visible*; write the scope it has been operating under, and have the operator sign it or shrink it.
+
+**Downstream risks / migration**
+An unattended job that today writes to a system of record with no declared scope is, under this rule, in the *none* state — adopting the rule literally would stop it. Declare its scope first, then adopt. Budget accounting across invocations in a period needs a place to keep the running total (the store, or a file in the durable output location).
+
+**What I can't see from here**
+Whether a "standing" scope was actually signed by the person accountable for the external system, or by whoever set up the job. The rule's safety is the signature; confirm who it is.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: workflows" (Conventions for unattended runs; the deployment contract's Authorization section) and "Module: cli" → Deployment; `.claude/rules/10-workflows.md`.
+
+---
+
+### [2026-09-21] Write-safety as three classes — ceiling for spend, plan for records, nothing for owned stores
+
+- **ID:** write-safety-classes
+- **Category:** convention
+- **Severity:** high
+- **Depends on:** script-write-safety, external-data-reliability
+
+**What changed**
+The single dry-run-by-default + `--commit` switch is replaced by three write classes, each with exactly one control. (1) A **free write into a store the script owns** (its datastore, `_output/`, a JSON index) gets no flag — just an idempotent upsert on a natural key. (2) **Spend** (enrichment credits, search quota, model calls) gets a **per-invocation ceiling** (`--max-{unit}`) enforced in-process before each submission, estimate printed, whole units trimmed in input order to fit — and *never a dry-run*, because the money leaves at submission, before any row lands, so a preview mode gates nothing. (3) An **irreversible write into an external system of record** (CRM create/update, sequence enrollment) gets **`--plan`**: run every read, print the per-row plan, stop before the first write; plus `--limit N` to prove it small and a snapshot before overwriting. The class is stated in the script header. Alongside it, the **paid-boundary sidecar** is the one recovery pattern the template recommends: receipt before money, provider run ID bound before polling, raw response archived before parsing, crash = poll the existing run and never resubmit.
+
+**Why**
+A live instance's dev-notes caught the `--commit` flag meaning three different things by day two of a lead pipeline (write to own DB / spend credits / push to CRM), and every command grew a dual dry-run/real surface to carry it. Its rebuilt pipeline banned dry-run outright: for paid providers the ceiling is the real safety, and a "dry run" of a purchase either spends or proves nothing. The one place a preview is free — a CRM write you can fully compute from reads — is the one place that keeps a preview flag, under a name that says what it does. The sidecar exists because it prevented a real 47-row duplicate purchase after a mid-run crash.
+
+**How to assess fit**
+Does any script here spend credits or quota behind a `--dry-run`/`--commit` gate? Then the dry run is either spending or lying. Do writer scripts use one flag for writes of different reversibility? Has a crashed run ever been re-run from the top and paid twice?
+
+**How to adapt (not copy)**
+The pattern is the classification, not the flag names. Existing `--commit` scripts keep working — this changes what *new* scripts do and what a retrofit targets first: any script whose "dry run" sits in front of a paid call (convert to a ceiling), then any script that mixes an owned-store write and a system-of-record write behind one flag (split the controls). Instances with a CLI convention of their own express `--max-{unit}` / `--plan` in their own vocabulary.
+
+**Downstream risks / migration**
+Operators and skills that pass `--dry-run` to a converted script will get an unknown-flag error — grep skills, `ops` rows, and READMEs for the old flags when converting. A script that previously wrote nothing without `--commit` now writes to its owned store by default; confirm the store it writes to is really its own (class 1) and not a shared system of record (class 3) before removing the gate.
+
+**What I can't see from here**
+Whether a store your scripts write "freely" is actually consumed by someone else as a system of record — a shared warehouse table other teams read is class 3, not class 1, regardless of who created it. Check who reads each table before declaring the write free.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: scripts" (Write-safety, Three-state results, the sidecar under External-data reliability, Let it crash); `.claude/rules/08-scripts.md`; `.claude/skills/setup-api/SKILL.md` Step 4.
+
+---
+
+### [2026-09-21] Three-state results: found / empty / failed
+
+- **ID:** three-state-results
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** external-data-reliability
+
+**What changed**
+A script that asks the world a question about an entity — a probe, a lookup, a search, a classification — records one of `found | empty | failed` per entity, never a boolean and never a missing row. `empty` is a confirmed miss: cache it and don't re-ask. `failed` is a transient error: retry next run. No row means never asked. And expected-bad input (a dead homepage, an empty search result, an unparseable page) is a *row outcome* — `failed` or `empty` on that row — never an exception that takes the batch down.
+
+**Why**
+Seen three times across two instances: an `enriched: true/false` column that collapsed "we looked and there was nothing" into "we never looked," so every miss was re-paid on every run; and a single connection timeout that crashed a 25-domain batch because the dead site raised instead of landing as a row. The negative-cache tombstone rule already implied the first half; this names the vocabulary so it's the same in every column, log line, and review CSV.
+
+**How to assess fit**
+Do any enrichment or probe tables use a boolean for "did we find it"? Does a batch loop let one bad input raise past the row?
+
+**How to adapt (not copy)**
+The three names are the pattern — use them as the status column's exact values so a query can tell the states apart. Existing booleans migrate by mapping `true → found` and `false → ` *whichever of empty/failed the code can actually distinguish* — if it can't, that's the bug this fixes.
+
+**Downstream risks / migration**
+Queries and downstream filters on the old boolean need updating in the same change. A `false` that was really "never asked" becomes re-askable (and re-payable) once it's `failed` — decide per table whether the old falses are `empty` (keep) or `failed` (retry) before migrating.
+
+**What I can't see from here**
+Whether anything downstream (a scoring model, a segment filter) treats the old boolean's `false` as a negative signal — it may have been silently scoring "never enriched" as "not a fit."
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: scripts" (Three-state results; Let it crash); `.claude/rules/08-scripts.md`; `engine/integrations/datastore.md` → Schema conventions.
+
+---
+
+### [2026-09-21] `engine/{process}/` — operator-owned policy, with a change protocol
+
+- **ID:** engine-policy-dir
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** engine-dev-notes, write-safety-classes
+
+**What changed**
+Once a pipeline makes decisions, its policy lives in `engine/{process}/` as small operator-editable files: a gate (hard exclusions + qualifying evidence any-of + supporting evidence), a selection policy (buckets/archetypes, patterns, caps, never-select), an optional rank profile (sort weights over already-qualified rows — a sort key, never summed with the gate), and the classification prompt (verbatim quotes required, exact output JSON). Each carries a provenance `_comment`. Rules: **code produces the signal, policy decides whether it qualifies** (never edit policy to make code convenient; never hard-code a threshold the policy owns); **observations are durable, policy is current** (an excluded class stays recorded and requalifies on a policy change without re-crawl or re-purchase); the **change protocol** is the operator's whole interface — smallest edit, policy surface only, zero-cost proof (delete the stage output downstream of the knob, rerun at ceiling 0, report which rows moved), one commit naming the knob, stop, `git revert` to roll back; **not a rules language** — conditionals overflow into two pure functions in the pipeline, not a richer schema; and **yield is not a policy signal** — a thin run is cohort supply, never a reason to loosen a gate. The "Two Modes of Operation" section gains the boundary this makes physical: policy edits are operator work, structure needs a named problem.
+
+**Why**
+Three instances put decision policy in `engine/` as JSON without coordination (a qualification file, target-roles, scoring profiles, a v2 policy trio) because that's where the pipeline docs were — and the operator's own summary was "editing anything via JSON templates is great." One instance's parked "operator vs. engineer mode" question was resolved not by a mode switch but by *directory*: its configure skill never touches the code tree, and its agent rules say never edit policy for code's convenience. The protocol (smallest edit + zero-cost proof + one commit) is what let a non-engineer operator tune a live pipeline safely. The yield rule is one sentence because nearly every run record in that instance ended with "this is cohort supply, not a scoring tweak."
+
+**How to assess fit**
+Does a pipeline here hard-code a threshold, exclusion list, or bucket definition an operator has asked to change? Are policy values already in a JSON file at the engine root that the operator edits by hand? Has an agent ever proposed loosening a gate because a run came back thin?
+
+**How to adapt (not copy)**
+The four file kinds are a menu, not a mandate — a pipeline with only a gate has only `gate-policy.json`. An instance whose policy already lives elsewhere (a scoring-profiles file at the engine root) moves it into the per-process subdirectory only if it has more than one process; otherwise a pointer is enough. The load-bearing parts are the signal/policy split, the provenance comment, and the change protocol.
+
+**Downstream risks / migration**
+Moving a policy file breaks the path in every script that loads it — grep before moving. Extracting a hard-coded threshold into policy changes nothing until the code reads the file; land both in one commit with a zero-cost proof that the same rows qualify before and after.
+
+**What I can't see from here**
+Whether an existing policy file is *actually* operator-edited or has quietly become code's config — if only the agent ever edits it, it isn't policy yet and the protocol has no operator to serve.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: engine" (`engine/{process}/` bullet) and "Two Modes of Operation"; `.claude/rules/06-engine.md`.
+
+---
+
+### [2026-09-21] Run records — the third `engine/` doc genre
+
+- **ID:** records-genre
+- **Category:** doc-architecture
+- **Severity:** low
+- **Depends on:** engine-dev-notes, output-artifact-boundary
+
+**What changed**
+Beside dev-notes (why the code is shaped the way it is) and integration diagnoses (why a tool misbehaves), a **run record** is the per-run operational memory: `engine/records/{date}-{pipeline}-{run-id}.md` with a fixed skeleton — identities (run/batch IDs, input and output SHA-256, the reproduction command), spend vs. ceiling, what broke, fixed live vs. deferred, the stop boundary ("no contact data was purchased and nothing was distributed"), and measurements labelled known / derived / unknown. A record is a doc *about* a run; the run's artifacts stay in `_output/`. Written for any run that spent money, broke, or changed a decision. Alongside it, the datastore genre gains one rule: **workflow state is files** (one directory per run, one file per stage, skip-if-exists, delete to redo, rerun to resume); the store holds paid payloads and decisions only, with zero SQL logic.
+
+**Why**
+One instance wrote 22 such records over three weeks of a lead pipeline; they are what made its "keep patching or reboot" decision *measurable* — spend per qualified row, failure classes by frequency, what was fixed live vs. deferred — instead of a memory. The same instance had earlier let its database become the business logic (dozens of functions, triggers and views) and found that files-as-state plus a store for money-only rows was the design that survived.
+
+**How to assess fit**
+Has a pipeline run ever gone wrong in a way nobody could reconstruct a week later? Does a "how much did last month's runs cost per qualified account" question take an afternoon? Is there SQL logic in the store that a code reader can't see?
+
+**How to adapt (not copy)**
+Name and location are free; the skeleton's fields are the pattern, and the stop boundary line is the one to never drop — it is what a later reader needs to know nothing irreversible happened. Instances with an existing run-log location (a `.gtm-os/` run log, a records dir beside the pipeline code) keep it and adopt the skeleton.
+
+**Downstream risks / migration**
+None structural. A records directory in `engine/` must not become an artifact dump — the "doc about a run, not an artifact of it" line is the guard.
+
+**What I can't see from here**
+Whether run records here would carry PII (a named contact in a "what broke" line). If so, the record goes in `_retained/` with a manifest line, and only a redacted one in `engine/records/`.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: engine" (Run records bullet); `.claude/rules/06-engine.md`; `engine/integrations/datastore.md` → Role.
+
+---
+
+### [2026-08-12] The planning tier — roadmap/ and _wip/
+
+- **ID:** planning-tier
+- **Category:** doc-architecture
+- **Severity:** medium
+- **Depends on:** point-in-time-record-discipline, ephemeral-work-conversation-only
+
+**What changed**
+A planning tier with two homes and one lifecycle, split at the commitment boundary: `_wip/` (explored-but-uncommitted specs and blueprints — not-a-module `_`-prefix family, sketchy on purpose, README with per-doc status tags and a "what DID ship" graduation ledger) and a `roadmap/` module (committed initiatives: index README with status table + dependency graph + dated state-reconciliation deltas; per-initiative files with objective/acceptance criteria, *verified* current state, ordered steps, and traceability to what they close). The load-bearing ritual is the **executability review**: periodically, and before any delegated run, each open plan is audited against "could an agent pick this up cold?" — placeholder IDs and stale current-state fail. Activation threshold: 3+ committed multi-week initiatives; below that, a `## Next` block in the status log is the right altitude.
+
+**Why**
+Two live instances independently invented the two halves — one grew a full committed-plans module that survived a 7-week operator absence as the sole re-entry point (plans executed as scoped by cold sessions); the other grew an explorations-parking tier whose graduation ledger stopped blueprints from rotting or being re-derived. The tier between "todo scratch" and "shipped state" is a demonstrated need, and the two-home split matters: mixing sketches into the index an agent reads for its next task erodes the executability standard, and merging them hides the commitment decision the rest of the OS treats as a deliberate act.
+
+**How to assess fit**
+Does the instance carry multi-week work whose ordering lives in someone's head or a bloated todo? Are there blueprint/spec docs scattered in module folders that were never committed to? Has a session ever re-derived a plan that already existed?
+
+**How to adapt (not copy)**
+Names and locations are free (an instance may already have an equivalent under another name — map it, don't duplicate); the load-bearing parts are the commitment boundary between the two homes, the executability review, the graduation ledger in the exploration tier, and the activation threshold. The plan-doc template adapts to the instance's own attribution and traceability conventions.
+
+**Downstream risks / migration**
+Existing planning docs scattered elsewhere should be *moved or pointed to*, not duplicated — two maps of record is worse than none. An over-eager bootstrap on a small instance adds ceremony without payoff (respect the threshold).
+
+**What I can't see from here**
+Whether the instance already runs an external planner (Linear, Notion) as the real map of record — if so, adopt only `_wip/` (explorations rarely live well in ticket systems) and make the roadmap README a pointer to the external source of truth rather than a competing copy.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: roadmap (the planning tier)"; `.claude/rules/11-planning.md`.
+
+### [2026-08-12] Derived-state coherence
+
+- **ID:** derived-state-coherence
+- **Category:** mechanic
+- **Severity:** medium
+- **Depends on:** pull-score-band-reconciliation
+
+**What changed**
+Two moves against the drift class where a value computed from a source silently stops agreeing with it. **Eliminate where recomputable:** classification thresholds are defined in exactly one place (the scoring framework; other docs reference, never restate — one sanctioned, release-check-watched rule excerpt aside), and every derived number in `synthesis.md` (counts, rates, distributions) is agent-owned and recomputed from `pull-index.json` on update, never hand-patched. **Watch the rest:** `/gtm-os-health` gains a derived-state coherence check (classification recompute against the instance's *own documented* bands including judgment boundaries; synthesis-number recompute against headline *and* the doc's own tables) plus a mechanical referential-integrity sharpening of the evidence-chain check (every non-null cross-file ID resolves; `active` status requires populated links). Coherence findings are flag-only — reconciling re-interprets artifacts, so the operator decides.
+
+**Why**
+Three live drift incidents, all invisible to eyeball review: an instance ran an operative DEMAND floor differing from its documented one for weeks; another's synthesis headline disagreed with its own table three sections down (both plausibly wrong-looking to nobody); a third ran an `active` campaign with null evidence links and an angle ID that existed nowhere. Every individual number looks fine — only recomputation catches the class. The checks were acceptance-tested against a live instance and flagged exactly its two known drifts, zero false positives (after learning the lens must read the instance's own bands, not assume the template's — that lesson is encoded in the check).
+
+**How to assess fit**
+Does the instance store any value in two places where one is derived from the other — thresholds restated in prose, counts in a synthesis, cross-file IDs? (Yes, structurally, for every instance with a synthesis or campaigns.)
+
+**How to adapt (not copy)**
+Single-source whatever is recomputable in the instance's own doc set; point the health lenses at the instance's actual derived sites. The recompute must honor the instance's documented rubric verbatim — custom bands, tiebreak fields, judgment boundaries — never the template's defaults.
+
+**Downstream risks / migration**
+First run on a lived-in instance may surface real, old drift — resolve as operator decisions (which value is current?), not bulk auto-fixes. Marking synthesis numbers agent-owned changes editing habits; a hand-edit to a distribution table will now be overwritten on next regeneration.
+
+**What I can't see from here**
+Whether the instance's synthesis states derived numbers in prose forms a recompute can't match mechanically (spelled-out numbers, percentages of subsets) — inventory what the synthesis actually claims before wiring the lens, and rewrite unmatchable claims into recomputable form as part of adoption.
+
+**Reference (template implementation)**
+`demand/pull-framework.md` (threshold single-source declaration + "Derived numbers are recomputed" rule); `.claude/skills/gtm-os-health/SKILL.md` (check 2 referential-integrity sharpening + check 8).
+
+### [2026-08-12] Execution probes — eval Tier 3
+
+- **ID:** execution-probes
+- **Category:** mechanic
+- **Severity:** medium
+- **Depends on:** none
+
+**What changed**
+A third eval tier that tests instructions by *executing* them: a scripted operator turn goes to a fresh agent session in a seeded, isolated worktree running the repo's real instructions, and assertions run against the resulting git diff — index rows appearing, files landing in the right tier, threshold-triggered offers firing. Scenarios are markdown files (seed script + scripted turns + objective bash assertions + optional judge assertions + forbidden conditions); a `run-probes` skill is the harness; `/release-check` runs all scenarios as a gate. Ships with two scenarios: G1 (a PULL analysis must produce a consistent index row and nothing stray) and G2 (the 5th analysis must trigger a synthesis *offer*, not a silent fabrication).
+
+**Why**
+The single-turn eval asks what the agent *would* do and grades the description — it is structurally blind to conventions that only manifest as side effects of doing the work. This blindness is documented, not theoretical: a prior release scored 8/8 on an eval that could not have failed on any of its changes, and a live instance measurably eroded a header convention (~20%) with no instrument noticing. Validity discipline is the load-bearing part: three separated contexts (scripted Operator; System-Under-Test that never sees assertions; mechanical assertions first, Judge only for subjective slivers), so the test cannot grade itself.
+
+**How to assess fit**
+Instances that customize instructions (most mature ones do) have the same blindness about their own conventions: does anything verify your custom rules produce their side effects? The template's scenarios test template conventions; the mechanism is the adoptable part.
+
+**How to adapt (not copy)**
+Keep the harness; write scenarios for the instance's own load-bearing conventions (its indexes, its routing rules, its thresholds). Assert on objective state (jq/grep on the diff), not response wording. Keep the set small — probes are slow; they gate releases/upgrades, not every session.
+
+**Downstream risks / migration**
+Probes spawn real agent sessions — they cost tokens and minutes per scenario; fixture seeds drift as schemas evolve (regenerate fixtures from the same schema the rules state). A probe PASS is a smoke signal, not a statistical guarantee.
+
+**What I can't see from here**
+Whether the instance's agent runtime supports isolated worktrees and sub-agent spawning (the harness assumes both) — if not, the fallback is running scenarios in a scratch clone and asserting manually.
+
+**Reference (template implementation)**
+`.claude/skills/run-probes/SKILL.md`; `.gtm-os/eval/scenarios/G1-pull-index-follows.md`; `.gtm-os/eval/scenarios/G2-synthesis-trigger.md`; `.claude/skills/release-check/SKILL.md` (Step 3.5 + verdict criteria).
 
 ### [2026-08-12] Upgrade-run hygiene: REMOVED ledger status, checkpoint, default-branch reset
 
@@ -138,7 +563,7 @@ None.
 Whether a "scheduled" job is actually still hand-triggered in practice — check the schedule is real before graduating it.
 
 **Reference (template implementation)**
-`AGENTS.md`, "Module: workflows" (the graduation test); `.claude/rules/10-workflows.md` (Graduation Test).
+`AGENTS.md`, "Module: workflows" (the graduation test) and "Module: scripts" (the Graduation paragraph); `.claude/rules/10-workflows.md` (Graduation Test); `.claude/rules/08-scripts.md` (Graduation). The test is restated on **both sides** of the scripts↔workflows boundary — an instance adopting this must sweep all four, not just the workflows-side pair.
 
 ### [2026-08-12] customers.md: the won-accounts roster as a named eviction pattern
 
