@@ -26,6 +26,10 @@ Open follow-ups:
 
 ### Trajectory evals: test conventions by executing them
 
+**Implemented (execution probes, the cheap sub-shape).** Shipped as CHANGELOG `execution-probes`: `.gtm-os/eval/scenarios/*.md` + the `/run-probes` skill, gating `/release-check` as Tier 3. G1 (PULL analysis → index side-effect) and G2 (synthesis offer at the 5th analysis) are live; the three-context validity discipline below is what the skill implements. **Still open:** golden multi-turn session replays (the expensive sub-shape — build one when a real emergent-over-turns failure earns it), and more scenarios from the harvest assertion bank (referential integrity, script retire, `_output/` routing) as those conventions ship. The static structural lint thread above stays separate.
+
+The original problem statement, kept for the reasoning:
+
 The current eval suite (`/run-eval`, T1–T8) is **single-turn, stated-intent**: the prompt is "what *would* you do if asked X," and the model grades its own *described* response. The eval skill says so outright — *"the eval agent is also read-only in practice — it evaluates behavior, doesn't execute it."* That's the root cause of the convention-blindness empirically confirmed in the upgrade thread above (ROADMAP "Verify coverage for adopted conventions"): conventions only manifest as **side effects of doing the work** — where the file lands, whether `pull-index.json` got the new row, whether a retired script's loser was actually deleted, whether transient output went to `_output/` and not the module folder. A "what would you do" answer produces none of those, so nothing can check them.
 
 Two complementary instruments fill the gap (the static one is the existing thread; this is the dynamic one):
@@ -38,7 +42,7 @@ Two sub-shapes, don't conflate them:
 
 Validity discipline (so multi-turn self-grading survives): **three separate contexts** — Operator (scripted turns, never improvised by default), System-Under-Test (fresh session, real instructions, *never sees the rubric*), Judge (sees the final diff + transcript). And **assert on objective state, not response quality** — git-diffable facts need no judgment; reserve the LLM-judge for the genuinely subjective slivers.
 
-Where it lives: **Tier 3 of `/release-check`**, not `/run-eval`. Real execution is slow and flaky — a small curated set gating dev→main, not something on every instruction change. Fits the existing release-check architecture (it already spawns bootstrap/consistency/eval sub-agents in a worktree).
+Where it lives: **Tier 3 of `/release-check`**, not `/run-eval`. Real execution is slow and flaky — a small curated set gating dev→main, not something on every instruction change. Fits the existing release-check architecture (it already spawns bootstrap/consistency/eval sub-agents in worktrees; probes became the fourth check).
 
 A full spec with a worked golden scenario (PULL analysis → index side-effect, the exact blind spot T7 can't see) is kept in the maintainer notes.
 

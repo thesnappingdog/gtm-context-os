@@ -1,4 +1,7 @@
-globs: messaging/**
+---
+paths:
+  - "messaging/**"
+---
 
 # Messaging Module
 

@@ -33,15 +33,17 @@ Also read:
 
 ### Step 3: Demand Layer
 
+Count by the `classification` already stored on each `pull-index.json` row — don't re-derive it from score ranges here. The thresholds live in `demand/pull-framework.md` and nowhere else; an instance may legitimately anchor different ones.
+
 ```
 ## Demand Evidence
 
 | Metric | Value |
 |--------|-------|
 | PULL analyses | {count} |
-| Demand (14+) | {count} |
-| Benefit (8-13) | {count} |
-| Neither (<8) | {count} |
+| Demand | {count} |
+| Benefit | {count} |
+| Neither | {count} |
 | Avg PULL score | {avg}/20 |
 
 Top demand signals:

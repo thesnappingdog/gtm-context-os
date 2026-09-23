@@ -14,6 +14,8 @@ Both modes read and write to the same repo. Context mode populates the evidence 
 
 You should be equally capable in both modes. When the operator is building understanding, help them analyze and synthesize. When they're executing, help them script, automate, and ship.
 
+Inside operational mode there is one more line worth knowing: **policy edits are operator work, structure is engineering.** Changing what a pipeline decides (a threshold, an exclusion, a bucket) is a small edit to a policy file in `engine/{process}/` — smallest edit, proof, commit, stop. Changing how the pipeline is built (a new command, table, persistent state, abstraction) needs a named, user-visible problem first. When you decline a request, say which side of that line you think it falls on.
+
 ## How This System Works
 
 **Core files** are always present and form the foundation. **Modules** materialize from blueprints below when an operator first needs them. Never create module folders preemptively — only bootstrap them when the work demands it.
@@ -24,11 +26,13 @@ No external runtime, database, or deployment is required. The repo IS the system
 
 ### Works in any agent, not just Claude Code
 
-This file is the agent-agnostic brain — Codex and other AGENTS.md-reading agents get the full system from it directly. The `.claude/` directory is the Claude Code layer: scoped rules (auto-loaded excerpts of this file — Claude Code convenience, never new content) and skills. Skills are shared across agents via the `.agents/skills` symlink → `.claude/skills` (the cross-agent SKILL.md standard location; Codex invokes them with `$skill-name` or auto-triggers on description match). `.claude/skills/` stays the canonical home — edit skills there, never through the mirror. Caveat: skills that orchestrate parallel sub-agents (`/bootstrap`, `/release-check`, `/run-eval`) are built on Claude Code's agent runtime and should be run there; single-thread skills (analysis, drafting, intake) work anywhere.
+This file is the complete, agent-agnostic handbook. **Codex loads `AGENTS.override.md` as its small entrypoint**, then reads the required sections of this file on demand; the handbook exceeds Codex's default automatic instruction budget. Claude Code uses `.claude/CLAUDE.md` and `.claude/rules/` (scoped excerpts of this file — convenience, never new policy). Neither entrypoint replaces the handbook or duplicates its blueprints.
+
+Skills are shared through the `.agents/skills` symlink → `.claude/skills`; Codex invokes them with `$skill-name` or natural language, Claude Code with `/skill-name`. `.claude/skills/` stays canonical — edit skills there, never through the mirror. Portability depends on capabilities: file/shell/web skills, including `bootstrap` and the single-session `run-eval`, work in either client with the needed tools. The current `release-check` and `run-probes` harness is validated in Claude Code; another client must preserve isolated workers/judges and execute the actual assertions before claiming a pass. Client-specific configuration (MCP, permissions, hooks) is not shared by the skill symlink.
 
 ### Roles and write authority
 
-By default this system assumes a single operator, which is why rules like JSON-index reconciliation default to "fix drift silently" — the session that reads a file is assumed to be the session authorized to write it. When a second human joins the instance as a restricted contributor, don't edit base rules to carve out their role. Instead add a separate, later-loading scoped rule file (e.g. `.claude/rules/NN-contributor-mode.md`, `globs: *`) that determines the session's role early and overrides specific base-rule behaviors for the restricted role, short-circuiting immediately for the privileged role. Role detection: a gitignored marker file wins; fall back to VCS identity (`git config user.email`); unknown identity defaults to least privilege. This keeps base rules universal and upgrade-friendly — template updates to base rules never collide with instance-specific role carve-outs, because the carve-outs live in a separate file.
+By default this system assumes a single operator, which is why rules like JSON-index reconciliation default to "fix drift silently" — the session that reads a file is assumed to be the session authorized to write it. When a second human joins the instance as a restricted contributor, don't edit base rules to carve out their role. Instead add a separate instance rule (e.g. `.claude/rules/NN-contributor-mode.md`, unconditionally loaded with no `paths` frontmatter) that determines the session's role early and overrides specific base-rule behaviors for the restricted role, short-circuiting immediately for the privileged role. Each client entrypoint must require that rule before any write; Codex reads it explicitly because `.claude/rules/` is not its automatic loader. Role detection: a gitignored marker file wins; fall back to VCS identity (`git config user.email`); unknown identity defaults to least privilege. This keeps base rules universal and upgrade-friendly — template updates to base rules never collide with instance-specific role carve-outs, because the carve-outs live in a separate file.
 
 ## Core Files (Always Present)
 
@@ -123,7 +127,7 @@ JSON index files (e.g., `segments.json`, `campaigns.json`, `pull-index.json`) ar
   "company": "Acme Corp",
   "prospect": "Jane Doe",
   "pull_score": 16,
-  "classification": "demand (14+) | benefit (8-13) | neither (0-7)",
+  "classification": "demand | benefit | neither — thresholds defined solely in demand/pull-framework.md",
   "would_close": "yes | likely | unlikely | no",
   "primary_trigger": "scaling_team",
   "buyer_type": "vp_engineering",
@@ -238,7 +242,7 @@ Agent duties: when the operator flags something as confidential ("keep X out of 
 
 Structure documents for AI consumption, not narrative flow. Every file should answer one clear question and be named for that question.
 
-**Applies to:** Primarily `engine/`, `scripts/`, and `workflows/` where multi-stage pipelines and production code live, but the principles apply whenever any module's files grow beyond simple single-purpose docs. Reference-style files that serve as lookup tables (like `messaging/angles.md` or `messaging/objections.md`) don't need splitting just because they're long — they're one concern.
+**Applies to:** Primarily `engine/`, `scripts/`, `cli/`, and `workflows/` where multi-stage pipelines and production code live, but the principles apply whenever any module's files grow beyond simple single-purpose docs. Reference-style files that serve as lookup tables (like `messaging/angles.md` or `messaging/objections.md`) don't need splitting just because they're long — they're one concern.
 
 **Principles:**
 
@@ -614,11 +618,18 @@ This is the technical infrastructure layer — how data flows, how accounts get 
 - When prompts are iterated, keep calibration notes showing what changed and why
 - As the engine module grows, pipeline stage docs (scoring models, enrichment specs, step-by-step execution instructions) live at the engine root — one file per concern, following Document Architecture principles. `architecture.md` stays as the high-level overview. Subdirectories are for distinct categories: `integrations/` for API references, `prompts/` for AI column prompts. Don't create subdirectories for every pipeline stage — flat is fine when file names are descriptive.
 - Reference data files (JSON lookup tables, mapping files) used by scripts are fine at the engine root. They're small, rarely change, and are part of repo state.
+- **`engine/{process}/` — the policy a process decides with, operator-owned.** Once a pipeline makes decisions (what qualifies, whom to select, how to rank, how to classify), its policy lives in a per-process subdirectory as small editable files — a gate (`gate-policy.json`: hard exclusions + qualifying evidence any-of + supporting evidence), a selection policy (`select-policy.json`: buckets/archetypes, patterns, caps, never-select), an optional rank profile (`rank-profile.json`: sort weights over already-qualified rows — a sort key, never a gate), and the classification prompt (`classify-{entity}.md`, verbatim quotes required, exact output JSON). Each file carries a `_comment` with provenance (who confirmed the values, when, on which run). Four rules:
+  - **Code produces the signal; policy decides whether it qualifies.** The probe, the search, the model verdict are code. Whether their output counts is policy. Never edit policy to make code convenient, and never hard-code in the pipeline a threshold the policy owns.
+  - **Observations are durable, policy is current.** A class the policy excludes today stays recorded and requalifies when the policy changes — no re-crawl, no re-purchase.
+  - **The change protocol is the operator's whole interface.** Translate the request into the *smallest* policy edit; touch only the policy surface; run the zero-cost proof for that knob (delete the stage output downstream of the knob, rerun at ceiling 0, report which rows moved); commit with a message naming the knob and the reason; stop. Rollback is `git revert`; history is `git log -- engine/{process}`. If the request doesn't fit the policy surface, say so and ask — don't invent a framework.
+  - **Not a rules language.** When a policy file wants conditionals, the overflow goes into two short pure functions in the pipeline (`qualify_{entity}(evidence, policy)`, `select_{entity}(candidates, policy)`) — not into a richer JSON schema.
+  - **Yield is not a policy signal.** A thin run is cohort supply, not a reason to relax a threshold. An agent proposing a looser gate because a run came back small is proposing to ship irrelevant rows.
 - Pipeline run artifacts (enrichment output CSVs, scored account batches, intermediate processing files) never go in `engine/` — they go in `_output/`. The engine module documents how the pipeline works; it doesn't store what the pipeline produces.
+- **Run records — the third `engine/` doc genre.** Beside dev-notes (why the code is shaped the way it is) and integration diagnoses (why a tool misbehaves), a **run record** is the per-run operational memory: `engine/records/{YYYY-MM-DD}-{pipeline}-{run-id}.md`. Fixed skeleton — **identities** (run/batch IDs, input and output SHA-256, the reproduction command) · **spend vs. ceiling** · **what broke** · **fixed live vs. deferred** · **the stop boundary** ("no contact data was purchased and nothing was distributed") · measurements labelled *known / derived / unknown*. A record is a doc *about* a run, not an artifact *of* it — the CSVs stay in `_output/`. Write one for any run that spent money, broke, or changed a decision; they're what make a later "keep or reboot" call measurable instead of remembered.
 - **Hardening a pipeline? Keep a dev-notes companion doc.** When you audit or harden a pipeline script, track findings in a sibling `engine/{pipeline}-dev-notes.md` — not inside the canonical doc, which stays clean. Rank findings by priority (P0 must-fix-before-next-run → P3 nice-to-have); give each a fixed shape — **Status** (open / fixed / wontfix / out-of-scope) · **Files** (with line refs) · **Problem** · **Decision/Fix** · **Follow-up**. Use it to record design decisions and *deferrals with the evidence still missing*, and to keep a "Pipeline Stages" scope table (what's in-pipeline vs campaign-execution vs one-off — which decides what graduates). It's how an agent keeps continuity on a hardening effort across sessions and doesn't re-litigate a settled WONTFIX.
 - **`integrations/` has two doc genres.** The pre-populated files are API *references* (auth, endpoints, rate limits — what the tool *is*). When you debug a *misbehaving* integration, write the second kind: an **integration diagnosis** doc. Structure: a dated **bottom-line verdict**; **expected vs. actually-observed** (with real evidence); **ruled-out** hypotheses; remaining **hypotheses**; a **decisive test** to discriminate them; **fix options** with trade-offs. It turns expensive debugging into durable knowledge instead of guesswork re-derived next time.
 - **Pin unbounded SDK dependencies in MCP server configs** (e.g. `mcp>=1.0.0` with no ceiling) — an unversioned transitive dependency on a still-evolving SDK breaks every fresh clone silently the day it majors; see `.claude/skills/setup-api/SKILL.md` Step 4.
-- **Persistent datastore — an optional third `integrations/` genre.** Most instances never need one (markdown + JSON indexes are the default state layer). When scripts need durable structured state *across runs* (a cumulative account table, scored cohorts, longitudinal metrics), document the store as `integrations/{datastore}.md` (role · connection · read-vs-write path · schema conventions · migrations · when-it-graduates) — `integrations/datastore.md` ships as the genre skeleton. Its **schema is tracked as code** (ordered, version-stamped DDL migrations, each header-commented) while its **data is never committed** — the opposite of the gitignored `_output/`/`_retained/` tiers. A datastore does not by itself trigger graduation to `workflows/`; while it stays `scripts/`-tier its migrations live in a top-level `{datastore}/migrations/` directory. Keep open hardening items in a sibling `engine/{datastore}-dev-notes.md`.
+- **Persistent datastore — an optional third `integrations/` genre.** Most instances never need one (markdown + JSON indexes are the default state layer). When scripts need durable structured state *across runs* (a cumulative account table, scored cohorts, longitudinal metrics), document the store as `integrations/{datastore}.md` (role · connection · read-vs-write path · schema conventions · migrations · when-it-graduates) — `integrations/datastore.md` ships as the genre skeleton. Its **schema is tracked as code** (ordered, version-stamped DDL migrations, each header-commented) while its **data is never committed** — the opposite of the gitignored `_output/`/`_retained/` tiers. A datastore does not by itself make a script a process or a workflow; its migrations live in a top-level `{datastore}/migrations/` directory (a project-wide store many scripts and processes may share). Keep open hardening items in a sibling `engine/{datastore}-dev-notes.md`.
 
 **Connects to core via:** Pipeline qualifies accounts based on ICP criteria from `context.md` and routes to campaigns
 
@@ -708,6 +719,79 @@ See topics.md for demand-derived topic clusters.
 
 ---
 
+### Module: roadmap (the planning tier)
+
+**Activate when:** the instance carries **3+ committed multi-week initiatives** whose ordering and dependencies no longer fit in heads or a todo list. Below that threshold, a `## Next` block in `status.md` or the todo file is the right altitude — don't bootstrap a planning module for two items.
+
+The planning tier has **two homes with one lifecycle**, split at the commitment boundary — the same deliberate-graduation move the rest of the OS uses (`_output/`→`samples/`, `scripts/`→`cli/`):
+
+```
+conversation ─→ _wip/ ─────────→ roadmap/ ─────→ shipped state (modules, scripts, engine)
+ (ephemeral;     (explored,        (committed,      (_wip README ledgers what left;
+  never filed)    not committed)    agent-ready)     roadmap plan closes with traceability)
+```
+
+**`_wip/` — explored, not built.** Not a module: it takes the `_`-prefix not-a-module convention (like `_intake/`, `_output/`) because nothing in it is shipped state. Materializes the first time an idea-level spec, blueprint, or research doc is worth keeping but *not committed to*. Tracked (ideas are cheap to keep, expensive to re-derive). Its `README.md` is a table — one row per doc, each with an honest status tag ("Blueprint only — not built", "Blocked on X") — plus a **"What DID ship (lives in its module, not here)"** section: the graduation ledger that stops the two scratch-folder failure modes (rotting forever; someone re-deriving a blueprint that already shipped). Docs here may be sketchy on purpose — that's what the tier is for. What does *not* enter: one-off prep and research with no forward value (the ephemeral-work rule — conversation-only).
+
+**`roadmap/` — committed plans, QA'd for cold pickup.**
+
+**Bootstrap structure:**
+```
+roadmap/
+  README.md
+  01-{initiative-slug}.md
+```
+
+`README.md` (the map of record):
+```markdown
+# Roadmap
+
+Committed initiatives, ordered by dependency. Pick the next **Ready** initiative,
+open its file, work top to bottom. Backward-looking record: status.md. Uncommitted
+explorations: _wip/.
+
+## Initiatives
+| # | Initiative | Status | Blocked by |
+|---|-----------|--------|------------|
+| 01 | {name} | Ready / In progress / Blocked / Done | — |
+
+## Dependency graph
+{ASCII sketch when ordering is non-obvious}
+
+## State reconciliation
+{dated deltas when reality diverges from a plan — footnote-forward, never rewrite the plan doc silently}
+```
+
+**Per-initiative file** (`roadmap/NN-{slug}.md`):
+```markdown
+# NN: {Initiative}
+
+**Objective:** {outcome + acceptance criteria — how you'll know it's done}
+**Why now:** {leverage / forcing function}
+
+## Current state (verified)
+{what already exists, checked against the repo — with attribution tags and real
+identifiers, not recalled-from-memory claims}
+
+## Steps
+1. {ordered, concrete}
+
+## Dependencies / Risks
+{what blocks this; what could invalidate it}
+
+**Closes:** {traceability — the audit finding / dev-note item / decision this resolves}
+```
+
+**Conventions:**
+- **The executability review** — the ritual that makes the module worth having: periodically (and before any delegated/handover run), audit each non-Done plan by asking *"could an agent pick this up cold and execute?"* Placeholder IDs, re-litigated settled decisions, and stale "current state" sections fail the review. A plan that can't be executed cold isn't a plan yet — it's a `_wip/` doc filed in the wrong tier.
+- Plans are point-in-time records once superseded: correct forward (state-reconciliation deltas in the README, or a new superseding doc that the index points to) — never silently rewrite. Before a known gap, the README names one re-entry doc (see "Document Architecture" record discipline).
+- Division of labor: todo/scratch = near-term checklist · `_wip/` = uncommitted exploration · `roadmap/` = committed plans · `status.md` = what happened. One item, one home.
+- Commitment moves are deliberate: a `_wip/` doc graduates to `roadmap/` when the operator commits (rewrite it to plan shape — don't move the sketch); a dead exploration stays in `_wip/` with its status tag as the record of why.
+
+**Connects to core via:** plan docs cite module state ("Current state (verified)") and close audit findings from dev-notes/health runs; `status.md` records execution; `_wip/` ledgers what shipped.
+
+---
+
 ### Module: scripts
 
 **Activate when:** Operator needs to connect to external APIs, automate data pulls, import/export data, or run recurring operations.
@@ -756,11 +840,11 @@ One-line purpose.
 
 Talks to: {external system, or "local data only"}.
 In:  {input source}  →  Out: {output path} ({_output / samples / _retained / module folder}).
-Write-safety: {read-only | requires --commit to write | local only}.
+Write-safety: {read-only | local only | owned store: idempotent upsert | spend: --max-{unit} | system of record: --plan}.
 
 Usage:
-  uv run scripts/{name}.py --dry-run
-  uv run scripts/{name}.py --commit
+  uv run scripts/{name}.py --max-{unit} 50      # spend class: ceiling per invocation
+  uv run scripts/{name}.py --plan               # system-of-record class: read everything, write nothing
 """
 from pathlib import Path
 
@@ -773,19 +857,21 @@ OUT  = ROOT / "_output" / "{name}.csv"           # derive every tier path from R
 - Scripts are tools, not frameworks. Each one does one thing.
 - Always read credentials from `.env`, never hardcode. Idiom: read from the environment first, fall back to parsing `.env`, and if still missing, exit with an error naming the exact variable (`{TOOL}_API_KEY`). On Claude Code the same key may already live in `.mcp.json` for an MCP server — a script may read it from there rather than forcing the operator to duplicate it.
 - Anchor every path to a `ROOT` constant at the top of the file (`ROOT = Path(__file__).resolve().parent.parent`) and derive `_output/`, `samples/`, and module-folder paths from it. This is what makes the output-routing convention reliable when a script runs from a different directory.
-- **Write-safety — when a script mutates an external system of record** (CRM, sequencer, datastore). A read-only script is safe by construction; a writer needs guardrails (gated on writes — none of this applies to read-only scripts):
-  - **Default to a dry-run.** Without an explicit `--commit` flag, print what *would* change and write nothing. The mutating path is opt-in, never the default.
-  - **Graduated rollout.** Support `--limit N` then `--all`, so you can prove the write on a handful of records before the full set.
-  - **Idempotent by natural key.** Upsert on a stable key (e.g. email, an external ID) so a re-run updates in place instead of duplicating.
-  - **Snapshot before you overwrite.** When an import overwrites existing fields, run a read-only backup script first and route its output to a durable home (`_retained/` if it carries PII, with a manifest line), so the change is recoverable.
+- **Write-safety — three classes, one control each.** A read-only script is safe by construction. A script that writes classifies *each* write it makes into one of three classes and applies exactly that class's control — never a generic dry-run/`--commit` switch, which ends up meaning three different things by the second day and doubles every command's surface:
+  - **Free write into a store this script owns** (the datastore, `_output/`, a JSON index) → no flag. **Idempotent upsert on a natural key** (email, external ID, normalized domain) so a re-run updates in place instead of duplicating. A cohort table appends with a run stamp instead.
+  - **Spend** (enrichment credits, search quota, model calls) → a **per-invocation ceiling, `--max-{unit}`** (`--max-credits 200`, `--max-rows 50`), enforced in-process *before each submission*, with the estimate printed first; trim whole units in input order to fit. Never a dry-run: the money leaves at submission, before any row lands, so gating the write gates nothing. The ceiling *is* the graduated rollout — raise it as trust grows.
+  - **Irreversible write into an external system of record** (CRM create/update, sequence enrollment) → **`--plan`**: run every read, print the per-row plan, stop before the first write. Without `--plan` the script writes. Prove it on a handful first (`--limit N`), and **snapshot before you overwrite** existing fields (a read-only backup routed to `_retained/` with a manifest line if it carries PII) so the change is recoverable. This is the one class where a preview is free, which is why it's the one class that gets one.
 
-  A write to a system of record is the one place where "just run it and see" is expensive — these cost a few lines and make the operation reversible and rerunnable.
+  State the class in the header docstring. Most scripts are read-only or class one; the flags exist only where their class does.
+- **Three-state results.** A script that asks the world a question about an entity (a probe, a lookup, a search, a classification) records one of `found | empty | failed` per entity, never a boolean and never a missing row: `empty` is a confirmed miss — cache it (the tombstone below) and don't re-ask; `failed` is a transient error — retry next run; no row means never asked. A single `enriched: true/false` column collapses "we looked and there was nothing" into "we never looked," and the difference is what you re-pay for.
 - **External-data reliability — the read-path sibling of write-safety.** Write-safety guards a script that pushes state out; this guards one that pulls state in from a paid/quota'd API, a lookup cache, or an aggregate query feeding scoring. The failure modes aren't corruption, they're money and determinism — a known miss re-paid every run, paid results thrown away, or a "latest row" that silently rotates between runs:
   - **Retry minimum.** Every script wrapping an external HTTP API retries `429` and transient `5xx` (500/502/503/504) plus transport errors/timeouts, with backoff (a `429` may carry a provider-specific retry-after — honor it over a generic backoff). Not bespoke per script: when several API wrapper scripts exist, audit their retry policies side by side — one script "learns" a lesson from a real outage and its siblings quietly don't, so the same outage repeats on them.
   - **Partial-batch preservation.** A loop chunking or paging through paid API calls must not let one chunk's exception discard earlier chunks' already-paid-for results — catch per chunk, log which range failed, continue. Watch separately for silent truncation/over-return (a page returning fewer or more rows than expected); that's a different failure than an exception and needs its own check.
   - **Negative caching.** A read-through cache over an external lookup must cache confirmed misses too — a tombstone row carrying the same TTL/freshness semantics as a hit — or every miss gets re-fetched and re-paid on every run. Absence-of-row must mean "not yet fetched," never "known miss."
   - **Deterministic extracts.** Any aggregate/window query that picks "the latest/best" row per group (`ORDER BY ... LIMIT 1`, `ARRAY_AGG(... ORDER BY x LIMIT n)`) needs a fully deterministic total order — a stable secondary tiebreak key (an ID), not just a timestamp that can tie — or repeated runs silently return a different row and that nondeterminism propagates into scoring and segments. Verification habit: run the extract twice, diff byte-for-byte.
-- Name scripts in tool/concern families and document a multi-step chain as numbered steps (source → filter → enrich). When a chain hardens, fold the heavy logic into one pipeline script that exposes its phases as subcommands (`run`, `classify`, `score`, …) — that consolidated script is the natural graduation candidate to `workflows/`.
+  - **The paid-boundary sidecar** — the one piece of *recovery* machinery worth recommending, and the only one. Around any submission that spends: write a **receipt** (content hash of the inputs + the ceiling) *before* the money leaves; bind the provider's **run ID** to the receipt *before* polling; **archive** the raw response *before* parsing it; on a crash, **resume by polling the existing run ID — never resubmit**. An identical resubmission finds its receipt and is free. About fifty lines; it is what stands between a mid-run crash and paying twice for the same rows.
+- **Let it crash — retries are for transport, not a general stance.** The retry rules above cover the transport layer. Everywhere else an unexpected exception propagates with its traceback: one observed Python error is a bug report, never a reason to add a handler. Exactly two places handle errors on purpose — the paid boundary (the sidecar, so money is never spent twice) and the external-dependency check (a suppression list or source that's unreachable → stop loud, before any work). Everything else that "recovers" grows into a job system. And **expected-bad input is a row outcome, not an exception**: a dead homepage, an empty search, an unparseable page is `status=failed` or `status=empty` on that row (three-state, above) — it must never take the batch down with it.
+- Name scripts in tool/concern families. **The process trigger: when two scripts are run by hand in a fixed order to produce one output, that is a process — start `cli/{process}/` (see the cli module). Do not add a third script to the chain,** and do not fold the chain into one big script with phase subcommands: that file becomes the largest in the repo and still has no ceiling, no policy surface, and no tests. A one-off pair that will never run again is not a process; a pair you ran twice is.
 - When a script produces output that maps to a state file (campaign metrics, transcript analyses), update the appropriate JSON index.
 - When a script produces transient data (enrichment results, scored account lists, intermediate CSVs), write to `_output/`. Never dump pipeline artifacts into module folders.
 - Use `uv run script.py` to execute (handles dependencies automatically with inline `# /// script` metadata).
@@ -806,12 +892,12 @@ This lets any script declare its own dependencies without a global `pyproject.to
 
 **The `ops` dispatcher — your operational surface.** Some scripts aren't one-shots — they're *recurring operations* you run on a cadence by hand (a weekly report, a sourcing run, a data refresh). These are the instance's **operational mode** made concrete, and they're easy to lose in a flat folder of one-off scripts — an agent that can't see them re-creates one that already exists. `ops` is the cure: a thin dispatcher that is the single, curated registry of recurring operations. `ops list` answers "what can this instance *do*."
 
-- **It's a router, not a framework.** `scripts/ops.py` holds an `OPERATIONS` table mapping a subcommand to a standalone script, and shells out with `uv run` (passthrough args). Every registered script stays a normal standalone script — still runnable directly (`uv run scripts/weekly_progress.py`), still owning its inline deps. `ops weekly-progress --dry-run` and `uv run scripts/weekly_progress.py --dry-run` are the same run. No shared state, no import coupling.
+- **It's a router, not a framework.** `scripts/ops.py` holds an `OPERATIONS` table mapping a subcommand to a standalone script, and shells out with `uv run` (passthrough args). Every registered script stays a normal standalone script — still runnable directly (`uv run scripts/weekly_progress.py`), still owning its inline deps. `ops weekly-progress --plan` and `uv run scripts/weekly_progress.py --plan` are the same run. No shared state, no import coupling.
 - **Created on first promotion, not at bootstrap.** A fresh `scripts/` is just `README.md`; an empty dispatcher is noise. `scripts/ops.py` materializes the first time an operation is promoted into it.
 - **Promotion is the operator's call — suggest, never auto-register.** When a script starts looking like a robust, recurring operation (run on a cadence, given a name, here to stay), *offer* to add it ("this looks like a recurring op — want it in `ops`?"). Register only on a yes. Don't codify one-shots or exploratory scripts — the value of `ops` is that it's curated. Registering is adding one row to `OPERATIONS` and giving the script a clean entrypoint.
 - **Check before you create.** Before writing a new operational script, run `ops list` (the recurring set) and scan `scripts/README.md` (the full catalog). The registry exists so you never duplicate an operation that already exists.
 - **A natural early entry.** For an instance with several integrations, a `check-deps` op — one cheap authenticated call per external dependency, reporting dead/expired/paused ones — is a natural first thing to promote into `ops`.
-- **It de-risks graduation.** Giving an operation a clean `ops` entrypoint already factors its logic into something callable — exactly what a `workflows/` version later wraps. The `ops` entry and a deployed workflow can share one core (see the workflows module).
+- **It registers process entrypoints too.** A process package (`cli/{process}/`) is one more row — `ops leads build ...` routes to it. `ops` stays the answer to "what can I run by hand here"; `workflows/README.md` answers "what runs without me."
 
 `scripts/ops.py` skeleton (copy when the first operation is promoted):
 
@@ -822,7 +908,7 @@ ops — the operational CLI for this instance. Routes to registered, recurring o
 
 Talks to: nothing directly — it shells out to standalone scripts in this folder.
 In:  a subcommand name + passthrough args  →  Out: whatever the target script writes.
-Write-safety: read-only (a router); each operation keeps its own --commit guardrails.
+Write-safety: read-only (a router); each operation keeps its own write-safety class and flags.
 
 Usage:
   uv run scripts/ops.py list              # what can this instance do?
@@ -839,11 +925,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent   # repo root
 SCRIPTS = ROOT / "scripts"
 
-# subcommand -> (script filename, one-line description, recurring?)
+# subcommand -> (target, one-line description, recurring?)
+# target: a filename in scripts/, or a ROOT-relative path (a process entrypoint under cli/).
 # Recurring = run on a cadence by hand. One-shots stay unregistered.
 OPERATIONS = {
     # "weekly-progress": ("weekly_progress.py", "Weekly outbound report -> campaigns/metrics/", True),
+    # "leads": ("cli/leads/leads/cli.py", "Lead process: build | act | handoff", True),
 }
+
+
+def resolve(target: str) -> Path:
+    return ROOT / target if "/" in target else SCRIPTS / target
 
 
 def cmd_list() -> int:
@@ -853,8 +945,8 @@ def cmd_list() -> int:
         return 0
     width = max(len(name) for name in OPERATIONS)
     for name in sorted(OPERATIONS):
-        script, desc, _recurring = OPERATIONS[name]
-        missing = "" if (SCRIPTS / script).exists() else f"   [MISSING: {script}]"
+        target, desc, _recurring = OPERATIONS[name]
+        missing = "" if resolve(target).exists() else f"   [MISSING: {target}]"
         print(f"  {name.ljust(width)}  {desc}{missing}")
     return 0
 
@@ -867,9 +959,9 @@ def main(argv: list[str]) -> int:
         print(f"Unknown operation: {name}\n")
         cmd_list()
         return 2
-    script = SCRIPTS / OPERATIONS[name][0]
+    script = resolve(OPERATIONS[name][0])
     if not script.exists():
-        print(f"Registered script is missing: {script}")
+        print(f"Registered target is missing: {script}")
         return 1
     return subprocess.run(["uv", "run", str(script), *rest]).returncode
 
@@ -878,76 +970,225 @@ if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
 ```
 
-**Graduation:** Some scripts outgrow the local toolbox. When a script is deployed to run on a schedule (cron, cloud trigger), deployed to a cloud environment, or is production code that other systems depend on, it belongs in `workflows/` — not `scripts/`. A script that connects to a database but is still run manually stays in `scripts/` until it's actually deployed. See the workflows module below.
+**Graduation — two different exits.** (1) A script becomes part of a *process* (the trigger above: two scripts, fixed order, one output) → `cli/{process}/`. This is the common exit and it is about *what the thing is*, not how it runs. (2) A standalone script starts running *unattended* — a launchd plist, a cron line, a cloud function wrapping just this one script — → the wrapper and its deployment contract go in `workflows/{name}/`; the script stays here and stays directly runnable. A script that connects to a database but is still run manually stays in `scripts/` (register it in `ops` if recurring). See the cli and workflows modules below.
+
+---
+
+### Module: cli (the process tier)
+
+**Activate when:** the process trigger fires — two scripts are run by hand in a fixed order to produce one output — or the operator names a multi-stage GTM process (a lead engine, an account pipeline, a careers check) that needs a home with a ceiling.
+
+**What it is.** One directory per named process, in application form: **two public verbs**, files as workflow state, one spend boundary, a mechanical complexity check, and a skills layer on top. It is *not* `ops` (that answers "what can this instance run by hand"; a process is one more row there), *not* a workflow (hand-run first, synchronous, the interactive session is the async layer), and *not* a place for policy (that is `engine/{process}/`, operator-owned). Born as two verbs, never as scripts plus tables — a process born as a control plane is the failure this tier exists to prevent.
+
+**Bootstrap structure** (create on the first process; nothing before):
+```
+cli/
+  {process}/
+    README.md            <150 lines, enforced: contract, the two commands, where state lives, status
+    AGENTS.md            build rules for agents in this directory (starter below)
+    check.py             the mechanical ceiling (generic script below; copy verbatim)
+    pyproject.toml       locked dependencies — a package, not # /// script
+    {process}/           the package
+      cli.py             the ONLY public surface: build, act, and the handoff subcommand
+      utilities/         the five shared things: config, pipeline, db, paid, suppression
+                         (a sixth needs two real callers first)
+      commands/          themed by ENTITY, never by verb; one file per stage or producer;
+                         nothing here is invoked directly — the verbs compose it
+        accounts/        normalize, classify, size, probe, gate (pure function)
+        timing/          job ads, renewal, hiring signals — the TIMING layer (see below)
+        people/          discover, select, enrich, judge (pure function)
+        purchase/        channels
+        handoff/         crm push --plan
+    tests/               one focused file per module; fixtures are replayed responses, money paths first;
+                         test_deploy.py once deploy/ exists
+    records/             dated run and incident records (the run-records genre, engine module)
+    deploy/              ADDED ON THE DEPLOY COMMIT, never before: Dockerfile / function entrypoint /
+                         launchd plist / n8n export for THIS package's adapter; README gains
+                         Infrastructure · Schedule · Rollback · Status
+```
+
+**Surface — two verbs.** `build`: inputs → `review.csv`, a reviewable artifact. `act` (`buy`, `push`, whatever the process does to the approved subset): approved rows → `final.csv`. A `handoff` subcommand for the write into a system of record, always `--plan`-first, with its own LOC budget. No `status`, no `doctor`, no per-stage commands — **the run directory is the status.** Input contract is minimal: a bare key list or any CSV with the key column; extra columns are a bonus, never a dependency on one vendor's export shape.
+
+**State — files, then a small store.** One directory per run under `_output/runs/{name}/`, one file per stage. A stage skips when its output exists; delete the file to redo; rerun the same command to resume. That is the entire checkpoint/resume/idempotency system. The run snapshots the policy files it used into `config-snapshot/`. The store holds only what was **paid for** or is **slow to regenerate** — provider payloads, purchases — and the decisions on them; judgments recompute every run (tokens, never credits). The only read-back during a run is the money anti-join (`known_people`, `known_purchases`). **Zero SQL logic.** Sync is the last synchronous stage of every verb, idempotent, no marker file.
+
+```sql
+-- three tables plus one optional; natural keys; scalars are the decision and the query keys; JSONB holds verbatim inputs
+create table {process}.accounts (
+  key text primary key,            -- normalized domain / CRM id / org number
+  name text, class text, size int, -- FIT attributes, durable
+  qualified boolean not null, reason text not null, evidence_summary text,
+  payload jsonb, evidence jsonb,   -- provider payload verbatim; {producer: {status, value, evidence[], observed_at}}
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+create table {process}.people (
+  key text primary key, account_key text not null,
+  name text, title text, archetype text, matched_pattern text,
+  payload jsonb not null, provider_run_id text,
+  eligible boolean, reason text, evidence text,   -- null until classified; '; '-joined verbatim quotes
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+create table {process}.purchases (
+  person_key text not null, channel text not null,
+  status text not null,            -- found | empty | failed
+  value text, provider_run_id text,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
+  primary key (person_key, channel)
+);
+-- TIMING: append-only, one row per observation, never updated. Ship the table; leave it empty until a signal exists.
+create table {process}.timing (
+  account_key text not null, signal text not null,   -- renewal_on | ads_30d | ad_growth | ...
+  value text, observed_at text not null, evidence text,
+  primary key (account_key, signal, observed_at)
+);
+```
+
+**Two decision layers per account, never summed.** **FIT** — is this the kind of account we sell to; durable; refresh = *replace*. **TIMING** — is there a reason to act now; volatile; refresh = *append* with an observed-at. The refresh rule, not the subject, decides the layer: "hiring for this right now" is TIMING even though it looks like fit evidence. `commands/timing/` and the `timing` table are always in the blueprint and strongly recommended; a process with no timing signal yet leaves them empty — `check.py` does not require them. (PULL's U is the same layer at the buyer level.)
+
+**Judgment — binary, evidenced, deterministic first.** Verdicts are `yes | no` with a reason and quoted evidence. No scores, tiers or uncertainty classes in the output; uncertainty lives in an offline calibration set. Deterministic gates run before model calls; hard exclusion lists are code, not prompt. A model call sits inside a deterministic wrapper: pinned model, temperature 0, parse-reject plus one retry, then the row is `failed`. **Broad observe, narrow surface:** store every candidate observed, enrich only the selected, surface only the eligible — a policy change recomputes without re-discovery or repurchase. A rank is a policy-driven sort applied to already-qualified rows; it is never summed with the gate.
+
+**Producers — one contract.** Every stage that produces an attribute has the same shape: `producer_many(keys, ...) -> {key: {status: found|empty|failed, value, evidence[], observed_at, run_id?}}`. Batched across entities (one call per row only where an eval showed cross-contamination, and then written down). Cost class declared — **free** (probe, DNS, regex), **credit** (paid enrichment), **quota** (rate-limited search), **model** (hosted judgment). Credit and quota go through the sidecar and the ceiling; model calls are bounded by row caps in policy. A new signal is one file in one `commands/{theme}/`, one key in the gate, one line in policy.
+
+**Safety — the three write classes** (scripts module) apply unchanged: owned store → idempotent upsert on sync; spend → `--max-{unit}` checked before each submission, sidecar around it; handoff → `--plan`. Let it crash, with the two exceptions. Fail loud on dependencies: suppression list unreachable → stop before any work.
+
+**Policy — read from `engine/{process}/`, never edited from here.** Gate, select, rank, classify (engine module). Code produces the signal; policy decides. `qualify_{entity}(evidence, policy)` and `select_{entity}(candidates, policy)` are the two pure functions that hold any overflow. Yield is not a policy signal.
+
+**Skills wrap the CLI; the CLI never wraps the agent.** The CLI does not browse, does not call `claude -p`, does not orchestrate an agent. Four runbook skills per process, instantiated from the generic shape when the package is created: `{process}-run` (drive it; set the ceiling from the estimate; ask only above a threshold; pre-review by filling a `reject_reason` column, never deleting rows), `{process}-configure` (policy edits under the change protocol; never touches `cli/`), `{process}-handoff` (`--plan` first), `{process}-help` (you want → skill → command; where files land; what costs money). Agent hygiene: never read `.env`; DB reads through the CLI's own connection; DB writes only via the two verbs.
+
+**The ceiling — enforced by machine.** The same operator who wrote "keep it simple" in every session watched a process grow 5× in eight days; only the mechanical check held. `check.py` runs in the test suite and pre-commit. Limits live in one dict; **raising one is allowed and visible** — one commit whose message names the user-visible problem that needed the room (2,001 lines is a warning, not a crime; 2,300 is a decision). The approval boundary: a new table, command, persistent state, background process, config surface or abstraction needs a *named user-visible problem* and operator approval, reported as a delta (`public commands: 3 → 3, tables: 3 → 4, …`). Greps block vocabulary, not thinking — `AGENTS.md` in the directory and the approval boundary do the real work.
+
+`cli/{process}/check.py` (copy verbatim on first creation):
+
+```python
+#!/usr/bin/env python3
+"""
+check.py — the mechanical complexity ceiling for this process package.
+
+Talks to: local files only.  In: this directory  →  Out: a PASS/WARN/FAIL table on stdout, exit 1 on any FAIL.
+Write-safety: read-only.
+
+Run it in the test suite and in pre-commit. It counts; it does not judge. Raising a number is
+allowed and visible: edit LIMITS in one commit whose message names the user-visible problem
+that needed the room. Numbers were seeded from the first instance to run this shape — review
+them after the second.
+"""
+import re
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+PACKAGE = next(p for p in HERE.iterdir() if p.is_dir() and (p / "cli.py").exists())
+
+LIMITS = {                     # count-type limits fail at >limit; size-type limits get a soft band
+    "public_commands": 3,      # build, act, and the handoff subcommand — the run directory is the status
+    "tables": 4,               # accounts, people, purchases, timing
+    "sql_logic": 0,            # functions, triggers, business-logic views: zero
+    "except_exception": 5,     # only the paid boundary and the dependency check handle errors
+    "code_loc": 2000,          # size-type
+    "readme_lines": 150,       # size-type
+}
+SOFT_BAND = 0.10               # size-type: within 10% over is a WARN, beyond is a FAIL (2,001 is fine; 2,300 is not)
+SIZE_TYPE = {"code_loc", "readme_lines"}
+BANNED = re.compile(r"\b(dry_run|dry-run|cohort|fingerprint|activation|method_registry|recovery_hold)\b")
+
+results = []
+
+
+def check(name, value, limit=None, ok=None):
+    if ok is None:
+        hard = limit * (1 + SOFT_BAND) if name in SIZE_TYPE else limit
+        verdict = "PASS" if value <= limit else ("WARN" if value <= hard else "FAIL")
+    else:
+        verdict = "PASS" if ok else "FAIL"
+    results.append((verdict, name, value, limit))
+
+
+def py_files(root):
+    return [p for p in root.rglob("*.py") if "tests" not in p.parts]
+
+
+def loc(paths):
+    return sum(1 for p in paths for line in p.read_text().splitlines() if line.strip())
+
+
+# public surface: subparsers or cmd_ functions in cli.py — one file owns the only public verbs
+cli_src = (PACKAGE / "cli.py").read_text()
+commands = len(re.findall(r"add_parser\(\s*['\"]", cli_src)) or len(re.findall(r"^def cmd_", cli_src, re.M))
+check("public_commands", commands, LIMITS["public_commands"])
+
+# store shape: DDL anywhere in the package or its migrations
+sql = "\n".join(p.read_text().lower() for p in HERE.rglob("*.sql")) + cli_src.lower()
+check("tables", len(re.findall(r"create table", sql)), LIMITS["tables"])
+check("sql_logic", len(re.findall(r"create (?:or replace )?(?:function|trigger|view)", sql)), LIMITS["sql_logic"])
+
+# error handling: let it crash
+code = py_files(PACKAGE)
+src = "\n".join(p.read_text() for p in code)
+check("except_exception", len(re.findall(r"except\s*(?:Exception\b|:)", src)), LIMITS["except_exception"])
+
+# size
+code_loc = loc(code)
+check("code_loc", code_loc, LIMITS["code_loc"])
+test_loc = loc(list((HERE / "tests").rglob("*.py"))) if (HERE / "tests").exists() else 0
+check("test_loc_le_code_loc", test_loc, code_loc, ok=test_loc <= code_loc)
+readme = HERE / "README.md"
+check("readme_lines", len(readme.read_text().splitlines()) if readme.exists() else 0, LIMITS["readme_lines"])
+
+# vocabulary: control-plane concepts stay out by grep (greps block words, not thinking — the rule file does the rest)
+banned = sorted({m.group(1) for p in code for m in BANNED.finditer(p.read_text())})
+check("banned_tokens", len(banned), 0, ok=not banned)
+
+# deploy adapters: every entrypoint under deploy/ is referenced by some test (presence, not correctness)
+deploy = HERE / "deploy"
+if deploy.exists():
+    tests_src = "\n".join(p.read_text() for p in (HERE / "tests").rglob("*.py")) if (HERE / "tests").exists() else ""
+    untested = [p.name for p in deploy.glob("*.py") if p.stem not in tests_src]
+    check("deploy_entrypoints_tested", len(untested), 0, ok=not untested)
+
+width = max(len(n) for _, n, _, _ in results)
+for verdict, name, value, limit in results:
+    print(f"{verdict:4}  {name.ljust(width)}  {value} / {limit}")
+if banned:
+    print("      banned tokens:", ", ".join(banned))
+sys.exit(1 if any(v == "FAIL" for v, *_ in results) else 0)
+```
+
+`cli/{process}/AGENTS.md` starter:
+```markdown
+# {process} — build rules
+
+- Two public verbs live in `{process}/cli.py`. Nothing in `commands/` is invoked directly.
+- Policy is `engine/{process}/`. Never edit it to make code convenient; never hard-code a threshold it owns.
+- Files are workflow state (`_output/runs/{name}/`); the store holds paid payloads and decisions only. Zero SQL logic.
+- Spend goes through `--max-{unit}` and the sidecar. Handoff goes through `--plan`. Let it crash otherwise.
+- Verdicts are yes/no + reason + quoted evidence. No scores. Ranking sorts qualified rows; it never gates.
+- A new table, command, persistent state, background process, config surface or abstraction needs a named user-visible
+  problem and operator approval. Report the delta from `check.py` with the proposal.
+- Yield is not a policy signal. Never read `.env`. Never delete review rows — fill `reject_reason`.
+```
+
+**Deployment — added on the deploy commit, never before.** When this package runs unattended, its adapter (a function entrypoint, a Dockerfile, a plist, an n8n export that calls *this* package) goes in `deploy/`, and the README gains Infrastructure / Schedule / Rollback / Status. The bundle is **built from declared inputs** — the package, the policy version it ships (file hashes or git SHA, recorded in the bundle), the env contract — and `tests/test_deploy.py` imports every entrypoint and invokes it once at ceiling 0. The unattended rules in the workflows module bind here: never `git commit`/`push`; durable output; the three authorization states. A deployment unit that is *not* one package's adapter — a plist over a standalone script, a graph spanning processes, a no-code flow — lives in `workflows/{name}/` instead, and both kinds are listed in `workflows/README.md`.
+
+**Connects to core via:** the process reads policy from `engine/{process}/` (which the operator grounds in `context.md` and `demand/`), writes reviewable artifacts to `_output/`, records runs in `records/`, and hands off to campaigns through `handoff --plan`. Wiring PULL evidence into the gate is the thing only this OS can do; no instance has done it yet.
 
 ---
 
 ### Module: workflows
 
-**Activate when:** A script graduates from manual local execution to deployed automation — it runs on a schedule, is deployed to a cloud environment, or is production code that other systems depend on.
+**Activate when:** something runs *unattended* — scheduled (any scheduler: launchd/cron on your own machine counts exactly like a hosted one; infrastructure choice is not the test) or triggered by another system — and it is **not one process package's own adapter**. Since 2026-09 this module is narrower than it was: the code of a process lives in `cli/{process}/`, and that package's own deployment adapter lives in its `deploy/`. What lives here:
 
-**The graduation test — who runs it?** If *you* still type the command, it's a script (and if you run it on a cadence, register it in `ops`). If it runs *without you* — on a schedule, deployed to the cloud, triggered by another system — it's a workflow. Any unattended scheduler qualifies: launchd or cron on a persistent local machine counts exactly like a hosted runtime or a different platform's scheduler — infrastructure choice is not the test. Note what the test is *not*: "would something break if it stopped?" is true of load-bearing scripts too — a weekly report breaks your reporting if you skip it, yet it's still a hand-run script. The discriminator is **unattended execution**, not importance.
+1. **`workflows/README.md` — the inventory of every deployment unit, of both kinds.** The one place that answers "what runs unattended in this instance." One row per unit: target (function name, host, n8n instance), trigger, **ownership line** ("exposes/schedules `cli/leads` `build`" vs. "owns orchestration across X and Y"), declared status, last-verified date. Rows for `cli/{process}/deploy/` adapters *link* there; nothing is copied. Declared status is what someone wrote down; `/gtm-os-health` compares it against a read-only runtime check when it has access, and says "unverified" when it doesn't.
+2. **`workflows/{name}/` — deployment units that are not one package's adapter:** a plist or cron line over a standalone `scripts/` script (the script stays in `scripts/`, still directly runnable — no package ceremony for one script); a graph that spans several processes or services (an n8n/Make export); a no-code flow with side effects and no repo code at all. Each has a `README.md` (the contract below), the executable export or thin wrapper, and its own reproducible environment if it has code.
+3. **Legacy directories.** An instance whose `workflows/{name}/` holds real process code keeps it. `/gtm-os-health` reports it ("this looks like a process package by content — `cli/{name}/` is its home now") and never moves code; `/gtm-os-upgrade` treats the move as advisory. Local and scheduled invocations must keep working.
 
-**Graduation is often a fork, not a move.** An operation can legitimately exist as *both* a local script (hand-run, registered in `ops`) and a deployed workflow at the same time — especially when the two run in different contexts (e.g. a local version that leans on an active agent session vs. a headless cloud version that can't). Factor the shared logic into a callable core; let a thin `ops` entrypoint and a thin workflow entrypoint each wrap it. Graduation then means "extract the core and add a scheduled wrapper," not necessarily "delete the script." The `ops` entry has usually already done the core-extraction for you.
+**Ownership is by documented responsibility, not by import count.** If a unit only exposes or schedules one package's operation, it belongs in that package's `deploy/`; if it owns independent orchestration, it belongs here. External calls alone don't decide it. Health flags ambiguity for review; it never concludes a move.
 
-**Don't create prematurely.** If you're still iterating on a script and running it manually, keep it in `scripts/` — even if it connects to a database. Only move to `workflows/` when the code is actually deployed or scheduled. Organizing around speculation creates empty structure. A persistent datastore + version-controlled migrations can exist while the producing code is still a script: keep those migrations in a top-level `{datastore}/migrations/` directory (a project-wide store many scripts may share). On graduation, migrations for a store a single workflow *owns* move into that workflow's directory; a shared store's stay at root and its reference stays in `engine/integrations/`.
+**Graduation is a fork, not a move.** The same core runs hand-typed, from a skill, and from a scheduler; only the invoker changes. Don't create a deployment unit before the thing is deployed — "no schedule until single runs are boring." A pre-deployment README is a TODO you can see, but a directory that has said "Pre-deployment" for a quarter is a sign the process wasn't boring yet.
 
-**Bootstrap structure:**
-```
-workflows/
-  README.md
-  {workflow-name}/
-```
-
-**Initial files:**
-
-`README.md`:
+**Per-unit `README.md` — the deployment contract** (also the sections a `cli/{process}/README.md` gains on its deploy commit):
 ```markdown
-# Workflows
+# {Unit Name}
 
-Production-grade automated workflows with infrastructure dependencies. These run on schedules, connect to persistent data stores, and may be deployed to cloud environments.
-
-For local one-off scripts, see `scripts/`.
-
-## Graduation Criteria
-
-Code moves here from `scripts/` when it is:
-- Deployed to run on a schedule (cron, cloud triggers)
-- Deployed to a cloud environment
-- Production code that other systems depend on
-
-## Workflows
-
-| Directory | What it does | Schedule | Infra |
-|-----------|-------------|----------|-------|
-```
-```
-
-**Per-workflow structure:**
-
-Each workflow gets its own directory with everything it needs to run:
-```
-workflows/{workflow-name}/
-  README.md            # what it does, how to deploy, how to monitor
-  main.py              # (or whatever the entrypoint is)
-  pyproject.toml       # locked dependencies (not inline # /// script)
-  .env.example         # required env vars (without values)
-  # Optional:
-  Dockerfile
-  migrations/
-  config/
-```
-
-**Per-workflow `README.md` skeleton:**
-```markdown
-# {Workflow Name}
-
-One-line purpose. Replaces the local `scripts/{name}.py` execution model with a deployed, scheduled workflow.
-
-## What it does
-1. {pipeline stage}
-2. ...
-See `engine/{pipeline}.md` for the full spec — keep this README thin and let the engine doc carry the depth.
+One line: what runs, and its **ownership line** (exposes/schedules `{package}` `{verb}` | owns orchestration across {X} and {Y}).
 
 ## Infrastructure
 | Dependency | Purpose | Credentials |
@@ -955,33 +1196,30 @@ See `engine/{pipeline}.md` for the full spec — keep this README thin and let t
 | {service}  | {role}  | `{ENV_VAR}`  |
 
 ## Schedule
-{cron / cadence — or "TBD: likely {daily/weekly} depending on {refresh need}" before deploy}
+{cron / trigger / "on request"}
 
-## Output
-{what it writes, where}. Downstream consumers: `engine/{consumer}.md`.
+## Inputs and output
+{what it reads; what it writes and WHERE it lands durably — a bucket, the store, an external system. Never "the working tree" for a cloud target.}
+
+## Authorization
+{none | standing: system · operation · eligible records/fields · limits · per run or per period · signed by {operator}, {date} | per-run approval}
 
 ## Status
-{Pre-deployment | Deployed YYYY-MM-DD}
+{Deployed YYYY-MM-DD · last verified YYYY-MM-DD | Pre-deployment: reason}
 
 ## Rollback
-{steps — or "Not yet deployed; document rollback when deployed." before deploy}
+{how to disable the trigger; how to revert the artifact; what to do about output already written}
 ```
 
-**Schedule** and **Rollback** are mandatory sections but may be honestly stubbed with reasoning before deployment, and filled on the deploy commit — a stub is a TODO you can see; a missing section is a gap you'll forget. The workflow README is the deployment *contract*; `engine/{pipeline}.md` is the spec (split-doc — point to it, don't duplicate it). A workflow can exist in a **pre-deployment** state — the directory and this README modeling the target shape while the producing code still lives in `scripts/`.
+**Conventions for unattended runs** — these bind every deployment unit, here or in a package's `deploy/`:
+- **The write boundary.** An unattended run never runs `git commit` or `git push`. Committing stays a human-reviewed act in a later interactive session, where someone who actually read the diff composes the message — a job's commit message describes what it *intended*, and one live instance's scheduled job kept committing "new analyses" for ten days after its pipeline silently produced nothing. **Durable output:** repo-bound output lands in a durable review location — a bucket, the store, `_output/` on a persistent machine — before the worker exits; a cloud function's filesystem is transient, so "write files and stop" means write them *somewhere that survives*. A later interactive session imports, reviews and commits.
+- **The three write classes apply with the human removed.** Owned-store writes: allowed. Spend: allowed up to an **authorized maximum fixed in the contract**, which names its period; the run may compute a smaller effective allowance from remaining budget or input size and may never exceed or raise the authorized one; repeated invocations inside a period draw from the same budget and are never fresh authorization. Writes into an external system of record: governed by the **authorization state** in the contract.
+- **Three authorization states.** *None* — the default; the run stops before any external system-of-record write. *Standing authorization with bounded scope* — the operator, once happy with the setup, signs a scope in the contract (system, operation, eligible records and fields, limits, per run or per period); the run enforces it and stops when it would exceed it; `--plan` is the preview at sign-off and on every scope change, not per run. *Per-run approval* — anything outside a standing scope waits for a human. The agent never signs a scope; a person does, in the repo.
+- Reproducible environment: `pyproject.toml` with locked dependencies (or the language's equivalent) for anything with code; `.env.example` naming required variables without values.
+- A unit that implements a pipeline stage is cross-referenced from `engine/architecture.md`.
+- Decommissioning removes the directory and the inventory row; if the thing reverts to hand-run, its logic was never here to move — it is still in `cli/` or `scripts/`.
 
-**Conventions:**
-- Each workflow is self-contained — its own dependencies, config, and documentation.
-- Use `pyproject.toml` with locked dependencies, not inline `# /// script` metadata. Workflows need reproducible builds. For non-Python workflows, use the language's equivalent (package.json, go.mod, etc.).
-- Include a `README.md` in each workflow directory: what it does, what infrastructure it depends on, how to deploy, how to monitor, how to roll back.
-- Keep infrastructure documentation (schemas, connection setup, migration history) in the workflow directory *for a store the workflow owns*; a store shared across scripts keeps its migrations at repo root and its connection reference in `engine/integrations/`. API-level integration reference docs (what the tool is, what endpoints exist) stay in `engine/integrations/`.
-- Changes to workflows affect production. Test changes before deploying and document rollback steps — don't just push and hope.
-- When a workflow produces output that feeds back into the GTM system (scored accounts, enriched contacts), document the output format and destination in the workflow's README.
-- When creating a workflow that implements a pipeline stage, cross-reference it from `engine/architecture.md` so the architecture doc stays current.
-- When a workflow is decommissioned, remove its directory and update the workflows README table. If it reverts to manual use, move the core logic back to `scripts/`.
-
-**The write boundary.** A scheduled workflow writes files — analyses, index updates, pulled data — and stops there; it never runs `git commit` or `git push`. Committing stays a human-reviewed act in a later interactive session, where the operator (with their agent) reviews the accumulated diff and composes the commit message. This resolves three concerns: write safety (nothing becomes repo state unreviewed), audit trail (the message is written by someone who actually looked at the diff, so it can't silently misdescribe what happened — the failure mode of a job that keeps committing "new analysis" messages after its own pipeline silently broke), and conflict with human sessions (new output arrives as a reviewable diff, not a fait accompli already on main). Tradeoff: unattended output piles up uncommitted if the operator stays away — tracked in the working tree, never lost, but not yet repo state until someone reviews it.
-
-**Connects to core via:** Workflows implement the pipelines documented in `engine/architecture.md`. They pull data from sources defined in engine, process it through scoring/enrichment/qualification logic, and route outputs to campaigns or other modules. `engine/` is the map, `workflows/` is the territory.
+**Connects to core via:** `engine/` is the map (architecture, policy), `cli/` is the process, `workflows/` is what runs without you. A datastore shared across units keeps its migrations at repo root and its reference in `engine/integrations/`.
 
 ---
 
@@ -991,23 +1229,28 @@ At the start of each session, silently assess:
 1. Does `context.md` have content beyond the template? If not, suggest running `/start` (Claude Code) or ask "what should I do first?" (other editors).
 2. Are there PULL analyses in `demand/`? If not, the system is empty — suggest ingesting sales calls.
 3. Is `status.md` current? If last entry is >7 days old, mention it.
-4. **Reconcile JSON indexes** — if any module's JSON index is out of sync with its markdown files (missing entries, stale statuses, broken links), fix it silently. Don't ask.
+4. **Reconcile JSON indexes** — if any module's JSON index is out of sync with its markdown files (missing entries, stale statuses, broken links), fix it silently, if this session holds write authority over the index. Don't ask. A session without write authority reports the drift instead of fixing it.
 5. Do any existing modules have broken evidence chains? (e.g., segments without PULL evidence links, campaigns pointing to deleted segments)
 6. Resuming after a gap (days+), or about to act on another session's unverified claims about external systems? Live-probe each dependency first — one cheap authenticated read per API/datastore — before trusting recorded state. Status/roadmap record what was true as-of writing; tokens expire, free tiers auto-pause, caches go stale on their own clock.
 
-Raise issues naturally, not as a checklist. Fix index drift silently — only mention it if you find broken evidence chains that need operator input.
+Raise issues naturally, not as a checklist. Fix index drift silently where you hold write authority (a read-only session reports it instead) — only mention it if you find broken evidence chains that need operator input.
 
 ## Cross-Editor Compatibility
 
-This system works with any AI coding assistant. `AGENTS.md` is the single source of truth; editor-specific pointer files redirect to it.
+`AGENTS.md` is the full handbook; entrypoints load its guidance according to each client's discovery mechanism. Keep the handbook intact and read relevant sections on demand. Codex's default automatic instruction budget is 32 KiB, so its small `AGENTS.override.md` must remain comfortably below that limit; increasing the budget is not required.
 
 | Editor | How it loads instructions |
 |--------|-------------------------|
 | Claude Code / Cowork | `.claude/rules/` (scoped) + `.claude/CLAUDE.md` + skills |
+| Codex | `AGENTS.override.md` → required `AGENTS.md` sections; `.agents/skills` → shared skills |
 | Cursor | Reads `.cursorrules` → points to `AGENTS.md` |
 | GitHub Copilot | Reads `AGENTS.md` directly in agent mode |
 | Windsurf | Reads `.windsurfrules.md` → points to `AGENTS.md` |
 | Aider | Via `read: AGENTS.md` in config |
 | Cline | Add `AGENTS.md` to context files |
 
-The core system (this file + context.md + demand/ + status.md + module blueprints) works everywhere. Skills are a Claude Code bonus — other editors get the same methodology and blueprints via AGENTS.md.
+Claude path-specific rules use YAML frontmatter with `paths`; rules without it load unconditionally. A plain `globs:` line is not scoping metadata. Keep system identity and role restrictions unconditional. These rules are excerpts of the handbook, not an independent policy source.
+
+Shared skills have one canonical source in `.claude/skills/`; the `.agents/skills` link exposes them to Codex. Check discovery in each client after cloning or upgrading (on platforms that do not preserve symlinks, repair the link or use a supported local link mechanism). Do not maintain two edited skill trees. Setup skills configure the active client's MCP file: Claude Code `.mcp.json`, Codex `.codex/config.toml` for trusted project configuration. Hooks and permission settings require their own client support; the native `.githooks/pre-push` remains shared once activated per clone.
+
+Sources for loader behavior: [Codex AGENTS.md](https://developers.openai.com/codex/guides/agents-md/), [Codex skills](https://developers.openai.com/codex/skills/), [Claude rule scoping](https://code.claude.com/docs/en/memory#path-specific-rules). Re-check when changing the entrypoints.

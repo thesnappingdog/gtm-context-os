@@ -1,4 +1,7 @@
-globs: demand/**
+---
+paths:
+  - "demand/**"
+---
 
 # Demand Module
 
