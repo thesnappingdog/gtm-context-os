@@ -40,7 +40,23 @@ PY
 
 ## Turns
 
-1. **operator:** "Just got off a call with Northwind Foods — Sara Lindgren, Head of RevOps. They're migrating CRMs this quarter, board mandated the cutover for October 1st. Their current setup is spreadsheets plus a homegrown dedupe script, and that script failed last month — corrupted about 3,000 contact records, took two people a week to clean up. She said 'we cannot go into the migration with the data in this state.' They're evaluating us and DataTidy, and she asked for pricing and whether we can start before the migration window. Can you analyze this call?"
+1. **operator:** "Can you analyze this call with Northwind Foods? Here is the verbatim transcript.
+
+Call date: September 24, 2026. Participants: Alex, Acme Analytics account executive; Sara Lindgren, Head of RevOps at Northwind Foods.
+
+Alex: What brought you to this conversation?
+Sara: I own our CRM migration. We have 420 employees and 65 salespeople, and our implementation team is already moving the account data. My team owns cleaning the contacts before the final import. The board mandated the cutover for October 1, 2026. It is in the signed migration plan, and the old CRM contract ends that day. We cannot just push it back because our data is a mess.
+Alex: What needs to be finished before then?
+Sara: We need the contact duplicates resolved, account ownership checked, and an audit trail of what changed. The migration team needs our clean export by September 29 to run the final import tests. My CFO approved the data-cleanup budget last week. This is already my team's top project; I would still have to get it done if your product did not exist.
+Alex: How are you handling that work today?
+Sara: Spreadsheets plus a homegrown dedupe script. On August 27 that script merged contacts it should have kept separate and corrupted about 3,000 records. Two people spent the next week restoring and checking them manually. We stopped running it. We cannot go into the migration with the data in this state.
+Alex: Could the spreadsheet approach carry you through this cutover?
+Sara: We tried a manual pass last week, but the same duplicate contacts keep coming back from new imports. It is too slow to review them all before the test window. The engineer who wrote the script is assigned to the migration itself and cannot rebuild it for us now. I need a cleanup we can inspect and roll back, not another unreviewed bulk merge.
+Alex: What options are you considering?
+Sara: We saw DataTidy's demo on Tuesday, and your team showed us the audit trail yesterday. You and DataTidy are the shortlist. We are comparing duplicate accuracy, the ability to inspect changes, and whether onboarding fits before September 29. I have a decision call with our CFO tomorrow. I still need to check DataTidy's rollback support; I cannot say yet which product handles it better.
+Alex: What would you need from us to make that decision?
+Sara: Send me the pricing today and confirm whether you can start before our migration test window. I also need our implementation lead to see an example export and the review steps. If the timing or review controls do not work, we cannot use it for this cutover. I can sponsor the purchase, but the CFO signs it."
+
 
 ## Assert (objective — all must hold; run from worktree root)
 

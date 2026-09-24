@@ -40,7 +40,7 @@ _intake/
 ]
 ```
 
-On each run, only process files not in `_processed.json` (unless user says "reprocess all").
+On each run, process new files plus any `deferred_destinations` whose prerequisites are now met. Skip fully processed files unless the user asks to reprocess. Revisit only deferred sections, preserving prior outputs; do not duplicate successful ingestion.
 
 ## Process
 
@@ -48,7 +48,8 @@ On each run, only process files not in `_processed.json` (unless user says "repr
 
 List everything in `_intake/`. Compare against `_processed.json`. Report:
 - New files to process
-- Previously processed files (skip unless asked)
+- Previously processed files (skip completed sections unless asked)
+- Deferred destinations in `_processed.json`: recheck their prerequisites; resume those now supported, and report remaining gaps
 - File types detected
 
 If user pointed to a specific file (not in `_intake/`), process it directly.
@@ -74,12 +75,15 @@ For each document, identify what type it is:
 
 For each document, extract structured facts. Tag every claim:
 
-**Facts** (directly stated and verifiable):
-- Company has 50 employees → `[VERIFIED: {source document}]`
-- Product launched in 2023 → `[VERIFIED: {source document}]`
-- Revenue is $2M ARR → `[VERIFIED: {source document}]`
+**Company assertions** (including checkable facts in a deck, website or playbook):
+- Company says it has 50 employees, launched in 2023, or has $2M ARR → `[CLAIMED: {source document}]`
+- Being specific or verifiable does not mean a claim has been verified. Promote it only when independent evidence or measured data confirms it; name that confirming source.
 
-**Positioned claims** (stated but reflect a perspective):
+**Direct evidence:**
+- A metric calculated from a supplied CRM export → `[VERIFIED: {export, calculation and as-of date}]`, within that dataset's scope.
+- A buyer quotation → `[VERIFIED: {transcript}]` for what the buyer said, not independent confirmation of every fact in the quotation.
+
+**Positioned claims:**
 - "We're the only platform that does X" → `[CLAIMED: {source document}]` — place it, but note it's a positioning statement
 - "Our ICP is VP Engineering at Series B" → `[CLAIMED: {source document}]` — accept as working definition, note what would validate it
 - "Competitors can't handle enterprise scale" → `[CLAIMED: {source document}]` — competitive assertion, useful but partial
@@ -104,10 +108,12 @@ Place extracted knowledge into the right locations:
 When updating context.md, merge with existing content. Don't overwrite — add, refine, or flag conflicts.
 
 **→ demand/**
-- Call notes or meeting summaries → `demand/pull-analyses/` if they contain enough buyer voice for PULL analysis
-- Call notes too thin for PULL analysis → `demand/pull-analyses/` with a note that evidence is partial
+- Transcripts or detailed buyer notes → apply `demand/pull-framework.md` before saving a scored analysis in `demand/pull-analyses/`. If analysis is not being performed in this intake, stage the raw material in `demand/notes/`.
+- Call notes or summaries too thin for scoring → `demand/notes/`; preserve the source and missing evidence. Do not create a scored index row or count the note toward synthesis.
 - Market research with buyer behavior data → `demand/` as supporting evidence
 - Win/loss analysis → `demand/` as supporting evidence
+
+**Evidence prerequisite for the next three destinations:** before creating or extending segments, messaging or campaigns, check the upstream evidence chain in AGENTS.md. Segments need supporting PULL evidence; messaging angles need a supported segment and demand patterns; campaign sequences need a grounded angle. Company playbooks and persona assertions alone do not satisfy this prerequisite. If it is missing, keep the source document in its original location (`_intake/` when supplied there), record the deferred destination in the intake report, and place only appropriate strategic claims in `context.md` as `[CLAIMED]`. Do not scaffold downstream modules or fabricate evidence/index links merely to file imported material. Apply the routing below once prerequisites are met.
 
 **→ messaging/ (bootstrap if needed)**
 - Objection handling → `messaging/objections.md`
@@ -136,7 +142,8 @@ When a document spans multiple destinations, extract the relevant pieces to each
 ### Step 5: Update Indexes
 
 After routing, update any relevant JSON indexes:
-- New PULL analyses → update `demand/pull-index.json`
+- New scored PULL analyses → update `demand/pull-index.json`, then check the handbook's synthesis trigger. Unscored notes do not enter this index.
+- New messaging angles → update `messaging/messaging.json` using its actual entity schema
 - New segments → update `segments/segments.json`
 - New campaigns → update `campaigns/campaigns.json`
 - New campaign metrics → update `campaigns/campaigns.json` (add metrics to the campaign entry)
@@ -185,13 +192,13 @@ After processing, assess what's well-covered and what needs more depth. Frame ga
 
 ### Step 7: Update Tracking
 
-Add processed files to `_processed.json` with timestamp and output destinations.
+Add processed files to `_processed.json` with timestamp and completed output destinations. When routing is deferred, keep an optional `deferred_destinations` list on that source's row (destination plus missing prerequisite); do not treat the source as fully processed. On later runs, revisit those entries when prerequisites are met and remove each deferred item only after its output is saved. Keep the raw source available; report a missing source rather than fabricating its contents.
 
 Update `status.md` with what was ingested and key findings.
 
 ## Incremental Runs
 
-Each run only processes new files. The system accumulates knowledge over time:
+Each run processes new files and eligible deferred destinations. The system accumulates knowledge over time:
 
 - **Run 1:** Pitch deck + playbook → bootstraps context.md, asks for data
 - **Run 2:** User drops in CRM export → adds pipeline metrics, refines ICP with numbers
@@ -210,7 +217,7 @@ When new documents contradict existing repo content:
 
 ## What This Skill Does NOT Do
 
-- Does not run full PULL analyses on call transcripts — that's a separate process guided by `demand/pull-framework.md`
+- Does not replace the PULL analysis process: scored analyses must follow `demand/pull-framework.md`; staging raw notes is not a scored analysis
 - Does not generate strategy or recommendations — it organizes what exists
 - Does not evaluate whether the business strategy is good — it structures it honestly
 - Does not delete or archive source documents — they stay in `_intake/` for reference

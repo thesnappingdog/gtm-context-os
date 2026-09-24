@@ -46,8 +46,9 @@ Run each category. For every finding, classify it: **OK**, **auto-fixed** (safe 
 - Flag dangling references (a link to a file that's gone) and unfounded artifacts (a segment/angle/campaign with no evidence).
 
 **3. Index integrity** — do JSON indexes match the markdown on disk?
-- For each index (`pull-index.json`, `segments.json`, `messaging.json`, `campaigns.json`): every entry's `file` exists; every markdown file in the module dir has an index entry.
-- This is the one category you **auto-fix silently** where you hold write authority over the index (matches the session-start reconcile rule): add missing entries, drop orphaned ones, then report what you reconciled. Without write authority, report the drift instead of fixing it.
+- Read each index's actual schema and its module's entity convention first. PULL rows link scored analyses through `file`; segment IDs resolve to segment documents; messaging IDs identify angle sections in `angles.md`; campaign IDs resolve to campaign folders. Honor documented instance variations. Check file paths only where the schema defines them; do not add a `file` field to a valid row just to satisfy this check.
+- Reconcile indexed entities, not every Markdown file. README, voice/style guides, frameworks, synthesis and unscored notes are not index entities. Several angles may share one document.
+- **Auto-fix only unambiguous navigation drift** where you hold write authority: add a missing row for an existing eligible entity, or repair a demonstrably wrong path/ID from its source. Do not delete a row merely because a path or assumed field is absent; flag uncertain orphans and conflicting evidence for review. Do not invent scores, relationships or statuses. Without write authority, report drift instead. Derived classification changes remain flag-only under lens 8.
 
 **4. Output hygiene** — is output following the three-tier convention? (See AGENTS.md "Pipeline Artifacts and Output".)
 - Scratch dir (`_output/`/renamed): numbered-iteration siblings (`foo.csv`, `foo2.csv`, `foo3.csv`), underscore-"protected" files (the "protect this file" anti-pattern), or a large stale pile? Flag and recommend promote-or-purge — never auto-delete.

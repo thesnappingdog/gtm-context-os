@@ -51,7 +51,7 @@ One-off outputs (call prep, research briefs, ad-hoc summaries) are conversation-
 
 ## Modules
 
-Modules don't exist until needed. When work requires one, create the structure from the blueprint in AGENTS.md and proceed. Don't ask permission — just do it and confirm.
+Modules don't exist until needed. When work requires one, create the structure from the blueprint in AGENTS.md and proceed. Process-package creation or migration is the structural exception: follow the authorization boundary in AGENTS.md "Module: cli"; do not infer migration approval from a request to extend a script chain. Existing explicit approval counts.
 
 ## Startup Check
 
