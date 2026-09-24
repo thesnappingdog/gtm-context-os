@@ -43,6 +43,14 @@ Every `dev` → `main` merge **must** add one entry per coherent pattern changed
 
 Condensed index of what shipped under each `main` tag. Newest first. Each release groups the pattern entries (detailed below) that an instance would consider. This is the "what changed" summary; the entries are the "how to adopt it."
 
+### `2026-09-24` — shared-client operation, bounded execution and release measurement
+
+- Shared Codex/Claude instruction loading and canonical skill discovery, with client-aware setup.
+- Process-package authorization, explicit policy ownership, deployment boundaries, run records and planning conventions.
+- Evidence-aware intake and schema-aware index maintenance; raw notes and company claims retain their provenance.
+- Seven execution probes and an 80% first-attempt adherence meter; consistency is advisory, while privacy, unauthorized external writes and unsafe outputs remain blockers.
+- Rejected exports leave the ready path before blocked delivery is reported. Release evidence and deferred findings are recorded in `status.md`.
+
 ### `2026-08-25` — methodology rigor, autonomous-agent boundaries, reliability hardening
 
 The largest release so far, mined from two live-instance harvests (one heavily-used multiplayer instance running scheduled autonomous ingestion; one operational instance running real data pipelines) plus a measured pipeline post-mortem. Everything customer-clean.
