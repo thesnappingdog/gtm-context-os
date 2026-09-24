@@ -116,6 +116,28 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-09-24] Rejected exports cannot remain at the ready path
+
+- **ID:** rejected-output-boundary
+- **Category:** convention
+- **Severity:** high
+- **Depends on:** output-artifact-boundary
+
+**What changed** — When validation rejects an export produced in the current run, the agent must move it off the requested ready path to an explicitly blocked sibling, or complete an authorized bounded fix and revalidate before handoff. A warning in the response alone does not secure the artifact.
+
+**Why** — An execution probe caught a suppressed account in an export. The agent reported the blocker correctly but left the unsafe file at the delivery path, where a later reader could use it without seeing the warning.
+
+**How to assess fit** — Can a failed output remain indistinguishable from a ready deliverable after validation stops?
+
+**How to adapt (not copy)** — Apply the boundary to the current run’s generated scratch output within existing write authority. Preserve the rejected file under a blocked name without overwriting evidence. Preserve source data, operator policy and unrelated prior artifacts; use existing run records to explain the rejection.
+
+**Downstream risks / migration** — This does not authorize moving arbitrary historical files, relaxing policy, adding a quarantine framework or making external writes. No historical outputs are changed merely to adopt the convention.
+
+**What I can't see from here** — Which path downstream users treat as ready, whether an existing blocked file must be preserved, and whether the session holds write authority over the produced artifact?
+
+**Reference (template implementation)**
+`AGENTS.md` → "Pipeline Artifacts and Output"; `.claude/rules/06-engine.md`; `.claude/rules/08-scripts.md`.
+
 ### [2026-09-24] Intake honors evidence prerequisites and claim provenance
 
 - **ID:** intake-evidence-routing
