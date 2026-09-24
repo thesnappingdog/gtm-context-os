@@ -65,3 +65,7 @@ Current phase and progress for GTM operations.
 ### 2026-09-24 — Final release candidate preparation
 - Corrected two demonstrated fixture mismatches before the new full run: G1/G2 now receive a dated speaker-labeled transcript, and G7 permits its specific handbook-required development note with relevance judged independently. Output membership, suppression, source/policy preservation and unrelated-write assertions remain unchanged.
 - The new suite and documented Python-only runtime constraint start a new measurement; earlier results remain intact and are not directly comparable. Freezing the instruction fixes and meter for a complete release assessment before the requested dev-to-main merge.
+
+### 2026-09-24 — Safety finding during full candidate assessment
+- Candidate `a15003a` passed bootstrap, all eight Tier 1 cases and G1–G6 objective checks plus independent judging. G7 identified the suppressed account and declared delivery blocked, but left the invalid export at the ready path. This is a safety blocker despite 6/7 first-attempt adherence; no merge or push followed.
+- Added the narrow rejected-output boundary to the shared handbook and engine/script excerpts: move this run’s rejected export off its ready path without overwriting evidence, or fix within authority and revalidate. Sources, policy and unrelated prior artifacts remain protected. Assertions are unchanged; a new full candidate assessment is required before release.
