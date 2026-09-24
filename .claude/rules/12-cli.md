@@ -7,6 +7,10 @@ paths:
 
 One directory per named GTM process, in application form. Not `ops` (that indexes hand-run things; a process is one row there), not a workflow (hand-run first; the session is the async layer), not policy (that is `engine/{process}/`).
 
+## Authorization
+
+The trigger identifies a process; it does not authorize restructuring. For a request to extend a script chain, explain the trigger and propose the package with `build`/`act` and its `engine/{process}/` policy home in the response; ask for approval before creating it or changing the chain. Do not add a third script while awaiting the decision. An explicit request to build the package or approval already given authorizes that scope; proceed without asking again. This is the exception to automatic module bootstrap (AGENTS.md "Module: cli").
+
 ## The shape
 
 - `cli/{process}/` — `README.md` (<150 lines), `AGENTS.md` (build rules), `check.py` (the ceiling), `pyproject.toml` (a package, not `# /// script`), the package, `tests/`, `records/`, and `deploy/` added on the deploy commit only

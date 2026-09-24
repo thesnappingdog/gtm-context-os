@@ -116,6 +116,94 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-09-24] Intake honors evidence prerequisites and claim provenance
+
+- **ID:** intake-evidence-routing
+- **Category:** skill
+- **Severity:** high
+- **Depends on:** claimed-attribution-tag
+
+**What changed** — Company assertions remain CLAIMED until confirmed; insufficient call notes stay outside the scored-analysis corpus. Downstream routing checks demand, segment and angle prerequisites before creating artifacts.
+
+**Why** — Organizing a deck or playbook must not turn self-report into verified fact or unsupported personas into evidence-backed segments.
+
+**How to assess fit** — Does ingestion bypass the evidence rules used by normal segment and campaign work?
+
+**How to adapt (not copy)** — Preserve raw sources and track deferred destinations on the source’s intake row so later evidence can resume routing without redoing completed sections. Keep strategic claims in the foundation with provenance; index only completed eligible analyses and check synthesis after saving them.
+
+**Downstream risks / migration** — Existing claims, scores and artifacts are not silently rewritten or deleted. Flag legacy uncertainty for operator review.
+
+**What I can't see from here** — Which existing sources independently confirm claims, and which imported artifacts were created before the prerequisites were enforced?
+
+**Reference (template implementation)**
+`.claude/skills/intake/SKILL.md`; `AGENTS.md` → "Attribution" and "Evidence Requirements"; `demand/pull-framework.md`.
+
+### [2026-09-24] Reconcile actual index entities rather than every Markdown file
+
+- **ID:** entity-aware-index-reconciliation
+- **Category:** convention
+- **Severity:** high
+- **Depends on:** write-authority-qualifier
+
+**What changed** — Health and scoped index rules follow each module’s schema: paths where defined, IDs/sections otherwise. Reference documents and unscored notes are not entities. Ambiguous orphan rows are reported instead of deleted. The messaging overview includes its existing three content-file routes.
+
+**Why** — A valid angle index has multiple entities in one file and no file field; a generic file-per-row check can corrupt it while claiming to repair drift.
+
+**How to assess fit** — Does reconciliation assume all module indexes share the PULL schema?
+
+**How to adapt (not copy)** — Read the local entity convention first. Repair only unambiguous navigation drift within write authority; preserve uncertain rows and derived classifications for review.
+
+**Downstream risks / migration** — Do not migrate schemas or delete historical rows merely to adopt this check. Existing documented instance schemas take precedence.
+
+**What I can't see from here** — How does each local index resolve its entities, and do any custom references depend on fields the template does not have?
+
+**Reference (template implementation)**
+`AGENTS.md` → "JSON Indexes — AI-Maintained Infrastructure"; `.claude/rules/09-json-indexes.md`; `.claude/skills/gtm-os-health/SKILL.md`.
+
+### [2026-09-24] Process triggers propose structural migration before scaffolding
+
+- **ID:** process-proposal-authorization
+- **Category:** convention
+- **Severity:** medium
+- **Depends on:** process-cli-tier
+
+**What changed** — A repeated script chain triggers a process proposal, not implicit migration permission. The reply names the package, build/act verbs and policy home before asking for approval. An explicit package request or existing approval still permits immediate scoped work.
+
+**Why** — Automatic module bootstrap and structural approval previously gave conflicting instructions when an operator requested a third script.
+
+**How to assess fit** — Does a small script-chain extension trigger unapproved restructuring or another chained script?
+
+**How to adapt (not copy)** — Make the process-specific authorization boundary an explicit exception to generic bootstrap guidance, and mirror it in the client’s relevant scoped excerpts.
+
+**Downstream risks / migration** — Existing packages and scripts remain unchanged. Do not ask again when scoped authorization already exists.
+
+**What I can't see from here** — Is the operator asking to build a process package, or only to extend an existing script chain? Use the session’s actual authorization.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Module: cli" and "Module: scripts"; `.claude/rules/01-system-identity.md`; `.claude/rules/08-scripts.md`; `.claude/rules/12-cli.md`.
+
+### [2026-09-24] Advisory consistency and an evidence-based release adherence meter
+
+- **ID:** release-adherence-meter
+- **Category:** mechanic
+- **Severity:** medium
+- **Depends on:** execution-probes, bounded-delivery-probes
+
+**What changed** — Consistency becomes advisory. A deterministic meter reports first-attempt execution adherence against an 80% target, valid coverage and separate safety checks. READY meets the target with complete coverage; REVIEW is a deferrable quality warning; BLOCKED is a safety failure or incomplete applicable safety proof. Reference checks resolve skill invocations and template placeholders contextually. The execution suite now supplies sufficient transcript evidence for scored PULL work and permits the specific handbook-required development note for the suppression fix; output and source-integrity assertions remain intact.
+
+**Why** — One instruction inconsistency should not create a perpetual all-or-nothing gate. A useful meter must expose missing coverage and nondeterminism rather than hide them behind easier tests or successful retries.
+
+**How to assess fit** — Does release checking conflate advisory instruction quality, test-harness defects and consequential safety violations?
+
+**How to adapt (not copy)** — Freeze the candidate (including a hashed dirty overlay applied to every isolated worktree), suite and runtime; retain first attempts, diagnostic retries, validity evidence and independent judgments. Keep Tier 1 separate. Track each release’s score/coverage and deferred findings in its existing operational log. Use the instance’s own stable case inventory.
+
+**Downstream risks / migration** — The assessment policy changes, not prior outcomes: historical NOT READY results remain intact. No safety failure is waived by a high percentage. Comparisons across changed suites/models require an explicit non-comparability note.
+
+**What I can't see from here** — Are invalidity and safety-applicability claims backed by evidence? Did all scheduled cases run, and are the source records sufficient to reproduce the reported score?
+
+**Reference (template implementation)**
+`.gtm-os/eval/README.md`; `.gtm-os/eval/release_meter.py`; `.gtm-os/eval/test_release_meter.py`; `.claude/skills/release-check/SKILL.md`; `.claude/skills/run-probes/SKILL.md`.
+
 ### [2026-09-23] Execution probes for bounded delivery and engineering restraint
 
 - **ID:** bounded-delivery-probes

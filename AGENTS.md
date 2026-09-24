@@ -20,7 +20,7 @@ Inside operational mode there is one more line worth knowing: **policy edits are
 
 **Core files** are always present and form the foundation. **Modules** materialize from blueprints below when an operator first needs them. Never create module folders preemptively — only bootstrap them when the work demands it.
 
-When an operator asks you to do something that requires a module that doesn't exist yet, tell them you'll set it up, create the structure from the blueprint, and proceed with their task. Don't ask permission to create the structure — just do it and confirm what you created.
+When an operator asks you to do something that requires a module that doesn't exist yet, tell them you'll set it up, create the structure from the blueprint, and proceed with their task. Don't ask permission to create the structure — just do it and confirm what you created. Creating or migrating a process package is the structural exception: follow the authorization boundary in **Module: cli**. Existing explicit authorization counts; do not ask twice.
 
 No external runtime, database, or deployment is required. The repo IS the system. AI operates on files. Scripts run locally when needed for API integrations.
 
@@ -115,7 +115,7 @@ JSON index files (e.g., `segments.json`, `campaigns.json`, `pull-index.json`) ar
 
 **Design principles:**
 - **You create and maintain these.** The operator never edits or reads them directly.
-- **Update them automatically** as a side effect of work — when you create a segment markdown file, update segments.json in the same operation. Don't ask permission.
+- **Update them automatically** as a side effect of work — when you create a segment markdown file, update segments.json in the same operation. Don't ask permission. Index entities defined by the module's actual schema, not every Markdown file: README/reference docs, synthesis and unscored notes are not entities; several messaging angles share `angles.md`. Do not invent a `file` field where the schema uses IDs or sections.
 - **Keep schemas minimal** — only store what you need to navigate relationships. IDs, names, statuses, and links to other entities. Don't store data that requires the operator to manually paste it back.
 - **Markdown is for humans** — rationale, context, nuance, quotes, buyer language live in `.md` files. JSON is for you to query and link.
 - **Reconcile on session start** — if indexes look out of sync with the markdown files, fix them silently, if this session holds write authority over the index; a read-only session reports drift instead of fixing it.
@@ -397,6 +397,12 @@ messaging/
 # Messaging
 
 Outreach angles, objection handling, proof points, and voice guidelines. All grounded in demand evidence and segment definitions.
+
+| File | Scope |
+|------|-------|
+| `angles.md` | Evidence-linked messaging angles |
+| `objections.md` | Objections, responses and supporting evidence |
+| `voice.md` | Tone and sender-specific writing guidance |
 ```
 
 `messaging.json` — AI-maintained index linking angles to segments and evidence. Empty array `[]` initially.
@@ -871,7 +877,7 @@ OUT  = ROOT / "_output" / "{name}.csv"           # derive every tier path from R
   - **Deterministic extracts.** Any aggregate/window query that picks "the latest/best" row per group (`ORDER BY ... LIMIT 1`, `ARRAY_AGG(... ORDER BY x LIMIT n)`) needs a fully deterministic total order — a stable secondary tiebreak key (an ID), not just a timestamp that can tie — or repeated runs silently return a different row and that nondeterminism propagates into scoring and segments. Verification habit: run the extract twice, diff byte-for-byte.
   - **The paid-boundary sidecar** — the one piece of *recovery* machinery worth recommending, and the only one. Around any submission that spends: write a **receipt** (content hash of the inputs + the ceiling) *before* the money leaves; bind the provider's **run ID** to the receipt *before* polling; **archive** the raw response *before* parsing it; on a crash, **resume by polling the existing run ID — never resubmit**. An identical resubmission finds its receipt and is free. About fifty lines; it is what stands between a mid-run crash and paying twice for the same rows.
 - **Let it crash — retries are for transport, not a general stance.** The retry rules above cover the transport layer. Everywhere else an unexpected exception propagates with its traceback: one observed Python error is a bug report, never a reason to add a handler. Exactly two places handle errors on purpose — the paid boundary (the sidecar, so money is never spent twice) and the external-dependency check (a suppression list or source that's unreachable → stop loud, before any work). Everything else that "recovers" grows into a job system. And **expected-bad input is a row outcome, not an exception**: a dead homepage, an empty search, an unparseable page is `status=failed` or `status=empty` on that row (three-state, above) — it must never take the batch down with it.
-- Name scripts in tool/concern families. **The process trigger: when two scripts are run by hand in a fixed order to produce one output, that is a process — start `cli/{process}/` (see the cli module). Do not add a third script to the chain,** and do not fold the chain into one big script with phase subcommands: that file becomes the largest in the repo and still has no ceiling, no policy surface, and no tests. A one-off pair that will never run again is not a process; a pair you ran twice is.
+- Name scripts in tool/concern families. **The process trigger: when two scripts are run by hand in a fixed order to produce one output, that is a process — propose `cli/{process}/` under the cli module's authorization boundary. Do not add a third script to the chain,** and do not fold the chain into one big script with phase subcommands: that file becomes the largest in the repo and still has no ceiling, no policy surface, and no tests. A one-off pair that will never run again is not a process; a pair you ran twice is.
 - When a script produces output that maps to a state file (campaign metrics, transcript analyses), update the appropriate JSON index.
 - When a script produces transient data (enrichment results, scored account lists, intermediate CSVs), write to `_output/`. Never dump pipeline artifacts into module folders.
 - Use `uv run script.py` to execute (handles dependencies automatically with inline `# /// script` metadata).
@@ -977,6 +983,8 @@ if __name__ == "__main__":
 ### Module: cli (the process tier)
 
 **Activate when:** the process trigger fires — two scripts are run by hand in a fixed order to produce one output — or the operator names a multi-stage GTM process (a lead engine, an account pipeline, a careers check) that needs a home with a ceiling.
+
+**Authorization before scaffolding.** The process trigger identifies the appropriate home; it does not authorize a migration. If the operator has only asked to extend an existing script chain, explain the trigger, propose `cli/{process}/`, name `build` and `act` and the threshold's policy home under `engine/{process}/`, and ask for approval before creating the package or changing the chain. Include these in the response, not only in a linked file. Do not add the third script while awaiting that decision. An explicit request to build this process package or approval already given in the session authorizes the scoped work; proceed without asking again. This boundary overrides the generic automatic-module bootstrap rule.
 
 **What it is.** One directory per named process, in application form: **two public verbs**, files as workflow state, one spend boundary, a mechanical complexity check, and a skills layer on top. It is *not* `ops` (that answers "what can this instance run by hand"; a process is one more row there), *not* a workflow (hand-run first, synchronous, the interactive session is the async layer), and *not* a place for policy (that is `engine/{process}/`, operator-owned). Born as two verbs, never as scripts plus tables — a process born as a control plane is the failure this tier exists to prevent.
 

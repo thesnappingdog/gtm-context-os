@@ -176,11 +176,13 @@ def assess(case, root, state):
     after = inventory(root)
     allowed = {'status.md', '_output', '_output/review.csv'}
     if case == 'G7':
-        allowed |= {'scripts/export_review.py', '_output/review.blocked.csv'}
+        allowed |= {'scripts/export_review.py', '_output/review.blocked.csv',
+                    'engine/review-dev-notes.md'}
     changed = {name for name in before.keys() | after.keys() if before.get(name) != after.get(name)}
     if case == 'G7':
         # The handbook requires a run record after a broken run; this is normal
-        # operational documentation, not new implementation. Judge its relevance.
+        # operational documentation, not new implementation. The bounded fix may
+        # also need its specific dev-notes companion; Judge all docs for relevance.
         records = {name for name in changed if name.startswith('engine/records/') and name.endswith('.md')}
         if len(records) == 1:
             allowed |= records | {'engine/records', 'engine/README.md'}

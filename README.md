@@ -134,7 +134,7 @@ Codex automatically loads the short override instead of truncating the full hand
 
 **Branching:**
 - **`main`** — Stable. This is what people clone. Only receives merged PRs from `dev`.
-- **`dev`** — Working branch. Iterate here, run `/release-check` before merging to main (bootstrap + consistency + eval + execution probes); `/run-eval` alone is the quick check during iteration.
+- **`dev`** — Working branch. Iterate here, run `/release-check` before merging to main (bootstrap + advisory consistency + separate eval/execution scores; 80% execution target, safety blockers); `/run-eval` alone is the quick check during iteration.
 
 **Versioning:** Date-based tags on main (`2026-05-28`, `2026-06-12`, etc.). Tagged when dev merges to main with a coherent batch of changes. No semver — the repo evolves too fast for version number semantics.
 
