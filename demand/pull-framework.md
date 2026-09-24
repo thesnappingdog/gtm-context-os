@@ -77,21 +77,80 @@ PULL analysis requires the prospect's own words — not a summary of what they s
 
 ## PULL Analysis: Scoring a Sales Call
 
-When analyzing a sales call transcript, score each PULL component 0-5:
+When analyzing a sales call transcript, score each PULL component 0-5 **against its own anchor ladder below**. Score what the prospect said, not how the call felt.
 
-| Score | Meaning |
-|-------|---------|
-| 5 | Crystal clear, explicitly stated, undeniable |
-| 4 | Strong signal, clearly implied |
-| 3 | Present but vague |
-| 2 | Weak signal |
-| 1 | Barely detectable |
-| 0 | Absent |
+Each dimension gets its own ladder of observable events — never a shared adjective scale ("strong signal", "vague"). Adjectives make the scorer invent what each number means per session, and two sessions invent differently: on a measured 27-call duplicate-scoring test, a shared adjective scale produced 2/27 identical totals and flipped the DEMAND/BENEFIT/NEITHER classification on 11/27. An anchor is checkable against the transcript; an adjective is not. The ladders below are domain-neutral defaults — sharpen them with your own domain's events (your deal triggers, your buyers' alternatives) as your corpus teaches you, and log every change under Calibration discipline below.
+
+### P — Project (0-5)
+
+Is there a defined initiative, with scope and an owner?
+
+| Score | Anchor |
+|-------|--------|
+| 5 | Named project, in execution — budget committed, vendors shortlisted, or a decision meeting booked |
+| 4 | Named project, approved, not yet started — an owner and rough scope exist |
+| 3 | Intent stated and internally agreed, scope still loose — "we need to fix this this year" |
+| 2 | Personal ambition of the speaker, not an organizational project — "I'd like to sort this out" |
+| 1 | Aware of the problem, no stated intent to act |
+| 0 | No project of any kind |
+
+### U — Unavoidable (0-5)
+
+**Score the forcing function and its date. Nothing else.**
+
+Anti-pattern — the most common way this dimension inflates: scoring a category-level necessity that is true of your whole market ("every {ICP company} has to do {the thing your product serves}"). If the justification you're about to write would be equally true of every account on your target list, it separates nothing — it belongs in Project or in call context, not here.
+
+| Score | Anchor |
+|-------|--------|
+| 5 | A dated external deadline inside this quarter that forces a decision — contract expiry, regulatory date, committed launch, submission deadline |
+| 4 | A dated deadline two or more quarters out — known and being planned against |
+| 3 | A forcing function with no date — volume stepped up, a tool broke, a key person left, a mandate landed |
+| 2 | Growing pain, currently absorbed — "it's getting harder every quarter" |
+| 1 | Pain acknowledged, fully absorbed — "we're coping" |
+| 0 | No forcing function — nothing changes if they do nothing |
+
+### L — Looking (0-5)
+
+Are they actively evaluating, and how far along?
+
+| Score | Anchor |
+|-------|--------|
+| 5 | Structured evaluation in flight — other vendors demoed, a shortlist exists, criteria named |
+| 4 | Actively evaluating — you are the first or only vendor seen so far |
+| 3 | Has started looking — asked for pricing, booked a follow-up, brought colleagues |
+| 2 | Took the meeting on its merits, no search underway |
+| 1 | Took the meeting out of curiosity or as a favor |
+| 0 | Not looking — networking, or attending for someone else |
+
+### L — Lacking (0-5)
+
+**Score the buyer's current alternative only. Never your own product's gaps.**
+
+Anti-pattern — the most common way this dimension goes wrong: deducting points because *your* product is missing something the buyer wants. That scores the wrong company. A feature you lack is a deal risk — record it under Key Risks, not here. This dimension asks one question: how badly does what they use *today* fail them?
+
+| Score | Anchor |
+|-------|--------|
+| 5 | The alternative has failed in production — named, specific, recent; work stopped or had to be redone |
+| 4 | The alternative underperforms on a named, measured axis — an error rate, a backlog, a percentage |
+| 3 | Clear qualitative complaints, no measurement — "it's clunky", "managing it is a pain" |
+| 2 | The alternative works; they suspect better exists |
+| 1 | The alternative works and they're content with it |
+| 0 | The alternative is a strength — or homegrown and defended |
+
+### Calibration discipline
+
+The anchors are the measuring instrument, and changing the instrument changes what the numbers mean. When you sharpen an anchor ladder (or discover systematic mis-scoring):
+
+- **Date the change** in a calibration note here in this file, stating what changed and why.
+- **Declare non-comparability**: totals scored before the change are not comparable to totals after it. Note the seam in `synthesis.md` so aggregates don't silently mix the two eras.
+- **Don't rescore the back catalogue.** Rescoring history silently rewrites your evidence base; accept the seam instead. If you must state legacy precision, estimate the noise (e.g. "pre-change totals carry ±2 points") rather than fabricating comparability.
 
 **Classification (the canonical label — this is what `pull-index.json` stores):**
 - **14-20 = DEMAND** — active project, blocked, urgent
 - **8-13 = BENEFIT** — real pain, no urgency
 - **0-7 = NEITHER** — no fit, wrong timing, or information-gathering
+
+**These thresholds are defined here and only here.** Derived docs (`synthesis.md`, `key-learnings.md`, module docs) *reference* this file — they never restate the numbers. A threshold number appearing anywhere else is a drift site: when the bands change there, the copies silently don't. Two copies are sanctioned, and **re-anchoring these bands means editing both**: the scoped rule excerpt in `.claude/rules/02-demand.md`, and the executable assertion in `.gtm-os/eval/scenarios/G1-pull-index-follows.md` (an assertion can't reference a doc and stay runnable — leave it stale and the probe fails on correct behavior).
 
 **Interpretation sub-bands** nest *inside* the three classes — they add resolution for the synthesis scorecard, they never override the class. Every sub-band stays within one class, so any score yields exactly one label:
 
@@ -160,6 +219,8 @@ Why don't current alternatives solve it?
 ## Synthesis Deliverables
 
 After a full batch of transcripts has been analyzed, produce two documents. These are cumulative — update them as new batches are added.
+
+**Derived numbers are recomputed, never hand-edited.** Every count, rate, or distribution in `synthesis.md` that restates the index (total analyzed, per-class counts, demand rate) is recomputed from `pull-index.json` on every update — treat those numbers like a JSON index: agent-owned, regenerated, not manually patched. If a number can't be recomputed from the index, it doesn't belong in the scorecard. This is what keeps a synthesis headline from disagreeing with its own tables three sections later.
 
 ### `demand/synthesis.md` — Quantitative Synthesis
 

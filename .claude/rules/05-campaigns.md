@@ -1,4 +1,7 @@
-globs: campaigns/**
+---
+paths:
+  - "campaigns/**"
+---
 
 # Campaigns Module
 

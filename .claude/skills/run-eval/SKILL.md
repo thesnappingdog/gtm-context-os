@@ -1,10 +1,12 @@
 ---
 name: run-eval
-description: "Run the eval suite against the current repo state. Tests whether AGENTS.md instructions produce correct behavior. No API key needed — runs inside Claude Code."
+description: "Run the single-session eval suite against the current repo state. Tests whether handbook instructions produce correct behavior. Works in Codex or Claude Code; no separate API key needed."
 argument-hint: "[optional: T3 or T3,T7 to run specific tests]"
 ---
 
 Evaluate whether the system instructions produce correct agent behavior by processing test prompts against the actual repo state.
+
+This is **Tier 1** of the eval stack: single-turn and stated-intent — it asks what the agent *would* do and grades the description. It is structurally blind to conventions that only appear as side effects of doing the work (an index row landing, a file routed to the right tier, a threshold-triggered offer firing). `/run-probes` (Tier 3) executes the agent for real and asserts on the git diff; run it when a convention's *side effects* are what changed.
 
 ## When to Use
 
@@ -15,7 +17,7 @@ Evaluate whether the system instructions produce correct agent behavior by proce
 
 ## How It Works
 
-This eval runs inside Claude Code — no external API key or SDK needed. You process each test prompt as if the operator typed it, check your response against the criteria, and report honestly.
+This eval runs inside the current agent session — Codex or Claude Code, with no separate API key or SDK needed. Load the client's entrypoint and its required handbook sections first. You process each test prompt as if the operator typed it, check your response against the criteria, and report honestly. This checks instruction content; it does not prove a fresh client's automatic loading or replace the execution probes.
 
 **Self-evaluation tradeoff:** The same model that follows the instructions also grades itself. This is acceptable for regression testing (checking whether instructions produce the right routing, evidence checks, and file operations) but not for subjective quality assessment.
 

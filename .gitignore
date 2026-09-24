@@ -39,5 +39,9 @@ _retained/*
 # Eval results (local, append-only)
 .gtm-os/eval/results.md
 
+# Leak-sweep term list (customer names, codenames) — local by design; committing
+# the names you're keeping out of the repo would itself be the leak
+.gtm-os/sensitive-terms.txt
+
 # uv lock
 uv.lock

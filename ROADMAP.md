@@ -26,6 +26,10 @@ Open follow-ups:
 
 ### Trajectory evals: test conventions by executing them
 
+**Implemented (execution probes, the cheap sub-shape).** Shipped as CHANGELOG `execution-probes`: `.gtm-os/eval/scenarios/*.md` + the `/run-probes` skill, gating `/release-check` as Tier 3. G1 (PULL analysis → index side-effect) and G2 (synthesis offer at the 5th analysis) are live; the three-context validity discipline below is what the skill implements. **Still open:** golden multi-turn session replays (the expensive sub-shape — build one when a real emergent-over-turns failure earns it), and more scenarios from the harvest assertion bank (referential integrity, script retire, `_output/` routing) as those conventions ship. The static structural lint thread above stays separate.
+
+The original problem statement, kept for the reasoning:
+
 The current eval suite (`/run-eval`, T1–T8) is **single-turn, stated-intent**: the prompt is "what *would* you do if asked X," and the model grades its own *described* response. The eval skill says so outright — *"the eval agent is also read-only in practice — it evaluates behavior, doesn't execute it."* That's the root cause of the convention-blindness empirically confirmed in the upgrade thread above (ROADMAP "Verify coverage for adopted conventions"): conventions only manifest as **side effects of doing the work** — where the file lands, whether `pull-index.json` got the new row, whether a retired script's loser was actually deleted, whether transient output went to `_output/` and not the module folder. A "what would you do" answer produces none of those, so nothing can check them.
 
 Two complementary instruments fill the gap (the static one is the existing thread; this is the dynamic one):
@@ -38,7 +42,7 @@ Two sub-shapes, don't conflate them:
 
 Validity discipline (so multi-turn self-grading survives): **three separate contexts** — Operator (scripted turns, never improvised by default), System-Under-Test (fresh session, real instructions, *never sees the rubric*), Judge (sees the final diff + transcript). And **assert on objective state, not response quality** — git-diffable facts need no judgment; reserve the LLM-judge for the genuinely subjective slivers.
 
-Where it lives: **Tier 3 of `/release-check`**, not `/run-eval`. Real execution is slow and flaky — a small curated set gating dev→main, not something on every instruction change. Fits the existing release-check architecture (it already spawns bootstrap/consistency/eval sub-agents in a worktree).
+Where it lives: **Tier 3 of `/release-check`**, not `/run-eval`. Real execution is slow and flaky — a small curated set gating dev→main, not something on every instruction change. Fits the existing release-check architecture (it already spawns bootstrap/consistency/eval sub-agents in worktrees; probes became the fourth check).
 
 A full spec with a worked golden scenario (PULL analysis → index side-effect, the exact blind spot T7 can't see) is kept in the maintainer notes.
 
@@ -78,14 +82,14 @@ A sales lead, a RevOps person, and a marketer all working in the same repo. Prob
 - **Branching model** — Do people work on main? Feature branches per campaign? PRs for anything that touches system files? Need conventions that balance safety with speed — GTM operators aren't engineers and won't tolerate heavy git workflows.
 
 ### Autonomous agents
-Agents running on schedules or triggers, operating on the repo without a human in the loop. This is where it gets hard:
-- **Write safety** — An agent that auto-ingests transcripts and writes PULL analyses is fine. An agent that auto-creates segments or kills campaigns based on stale data is dangerous. Need a classification of which operations are safe for autonomous execution vs. which require human approval.
-- **Conflict with human sessions** — An agent runs at 3am and updates synthesis.md. A human opens a session at 9am and their context is stale. Need a way to surface "things changed since your last session" — possibly a hook, possibly a `/what-changed` skill.
-- **Audit trail** — When an agent makes a decision (created a segment, updated an angle's status, archived a campaign), the reasoning needs to be traceable. status.md entries are a start but might need richer provenance — who/what triggered it, what evidence was used, what the alternatives were.
-- **Guardrails** — Rate limits on autonomous writes. Mandatory human review for destructive operations (kill segment, archive campaign). Maybe a "proposed changes" staging area that agents write to and humans approve.
-- **State coherence** — Multiple agents running in parallel could produce conflicting state. Agent A updates synthesis while Agent B creates a segment based on the old synthesis. Need either locking, sequencing, or eventual consistency with reconciliation.
+Agents running on schedules or triggers, operating on the repo without a human in the loop. The write-safety / audit-trail / conflict-with-human-sessions trio now has a reference design — **the write boundary**: a scheduled workflow writes files and stops at the git boundary; it never commits or pushes. Committing stays a human-reviewed act in a later interactive session. See AGENTS.md, "Module: workflows" → "The write boundary," and CHANGELOG `workflow-write-boundary`. What's still open:
+- **Write safety** — *Narrowed by the write boundary*: an agent that auto-ingests transcripts and writes PULL analyses never becomes repo state unreviewed. Still open: classifying which *kinds* of unattended writes are safe to accumulate vs. which need escalation before a human even sees the next diff (auto-creating segments, killing campaigns) — folds into Guardrails below.
+- **Conflict with human sessions** — *Resolved by the write boundary*: an agent running at 3am produces uncommitted files, not a silent update to main. A human opening a session at 9am finds a reviewable diff, not stale context masquerading as current. A `/what-changed`-style surface for "here's what accumulated" is a nice-to-have now, not a gap.
+- **Audit trail** — *Resolved for the commit layer*: a human-composed commit message, written after reading the diff, can't silently misdescribe what an unattended job did — the failure mode that motivated the write boundary (CHANGELOG `workflow-write-boundary`). Still open: richer *decision* provenance for judgment calls an agent makes mid-session (created a segment, updated an angle's status, archived a campaign) — who/what triggered it, what evidence was used, what the alternatives were.
+- **Guardrails** — Still open. Rate limits on autonomous writes. Mandatory human review for destructive operations (kill segment, archive campaign). A "proposed changes" staging area is partly given for free at the file level by the write boundary; the open question is which operations should never even reach the working tree unattended.
+- **State coherence** — Still open. Multiple agents running in parallel could produce conflicting state. Agent A updates synthesis while Agent B creates a segment based on the old synthesis. Need either locking, sequencing, or eventual consistency with reconciliation.
 
-No design yet — this is the problem space. The single-operator model works today; multiplayer is where the architecture gets tested.
+Write safety, audit trail, and conflict-with-human-sessions have a reference design now (the write boundary); guardrails classification and state coherence across parallel agents are still open problem space. The single-operator model works today; multiplayer is where the architecture gets tested.
 
 ## Ideas (Not Yet Scoped)
 

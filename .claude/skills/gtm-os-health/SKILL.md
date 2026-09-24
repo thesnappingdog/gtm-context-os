@@ -1,6 +1,6 @@
 ---
 name: gtm-os-health
-description: "Audit the health of THIS instance's lived-in state — structural completeness, evidence chains, index integrity, output hygiene, drift, and context.md consistency (conflicts + cached-vs-source drift). Reports findings and fixes safe drift; flags judgment calls. Runs inside Claude Code, no API key."
+description: "Audit this instance's structure, evidence chains, indexes, output hygiene, drift, and context.md consistency. Reports findings and fixes safe drift; flags judgment calls. Works in Codex or Claude Code; external dependency checks require access."
 argument-hint: "[optional: module name to scope the audit, e.g. engine]"
 ---
 
@@ -18,7 +18,7 @@ Audit whether this instance's accumulated state is well-formed. Modules grow org
 | Check | Question it answers | Target |
 |-------|--------------------|--------|
 | `/run-eval` | Do the rules produce correct behavior? | The system |
-| `/release-check` | Are the rules internally coherent? | Template docs |
+| `/release-check` | Is the template ready to ship? (bootstrap + consistency + eval + probes) | Template docs |
 | **`/gtm-os-health`** | Is this lived-in instance well-formed? | Instance state |
 
 ## Process
@@ -42,11 +42,13 @@ Run each category. For every finding, classify it: **OK**, **auto-fixed** (safe 
 - Every `active` segment has ≥1 `pull_evidence` entry pointing to a file that exists.
 - Every messaging angle references a segment that exists.
 - Every campaign references a messaging angle (and segment) that exists.
+- **Referential integrity, mechanically:** every non-null cross-file ID in any index resolves to an existing entity in its target index (`campaigns.json.messaging_angle_id` → an id in `messaging.json`, etc. — check with jq, don't eyeball). And `status: active` requires its links *populated*: an active campaign with a null `segment_id` or `messaging_angle_id` is a broken evidence chain even though nothing dangles — flag MED. (A live instance ran an active campaign with both links null, and an angle ID that existed nowhere; both passed eyeball review for weeks.)
 - Flag dangling references (a link to a file that's gone) and unfounded artifacts (a segment/angle/campaign with no evidence).
 
 **3. Index integrity** — do JSON indexes match the markdown on disk?
-- For each index (`pull-index.json`, `segments.json`, `messaging.json`, `campaigns.json`): every entry's `file` exists; every markdown file in the module dir has an index entry.
-- This is the one category you **auto-fix silently** (matches the session-start reconcile rule): add missing entries, drop orphaned ones, then report what you reconciled.
+- Read each index's actual schema and its module's entity convention first. PULL rows link scored analyses through `file`; segment IDs resolve to segment documents; messaging IDs identify angle sections in `angles.md`; campaign IDs resolve to campaign folders. Honor documented instance variations. Check file paths only where the schema defines them; do not add a `file` field to a valid row just to satisfy this check.
+- Reconcile indexed entities, not every Markdown file. README, voice/style guides, frameworks, synthesis and unscored notes are not index entities. Several angles may share one document.
+- **Auto-fix only unambiguous navigation drift** where you hold write authority: add a missing row for an existing eligible entity, or repair a demonstrably wrong path/ID from its source. Do not delete a row merely because a path or assumed field is absent; flag uncertain orphans and conflicting evidence for review. Do not invent scores, relationships or statuses. Without write authority, report drift instead. Derived classification changes remain flag-only under lens 8.
 
 **4. Output hygiene** — is output following the three-tier convention? (See AGENTS.md "Pipeline Artifacts and Output".)
 - Scratch dir (`_output/`/renamed): numbered-iteration siblings (`foo.csv`, `foo2.csv`, `foo3.csv`), underscore-"protected" files (the "protect this file" anti-pattern), or a large stale pile? Flag and recommend promote-or-purge — never auto-delete.
@@ -65,11 +67,27 @@ Run each category. For every finding, classify it: **OK**, **auto-fixed** (safe 
 - Once `architecture.md` exists: are there stage docs at engine root it doesn't mention? (orphan stages — the map is behind the territory.)
 - Files sitting in module dirs that nothing references.
 
+**5b. Process tier and unattended units** — skip silently when neither `cli/` nor `workflows/` exists.
+- `cli/{process}/check.py` present → run it (`python3 cli/{process}/check.py`); report FAIL lines as MED, WARN lines as LOW. A package with no `check.py` is a structural gap (flag, offer to materialize it from the AGENTS.md cli blueprint).
+- **Stale scripts:** a `scripts/*.py` not referenced by `ops.py`, any skill, `scripts/README.md`'s live table, or a `cli/` package, and unchanged for 60+ days (`git log -1 --format=%cs -- {file}`) → LOW, recommend retire. Never delete.
+- **Legacy process code in `workflows/`:** a `workflows/{name}/` whose contents look like a process package (multiple stage modules, its own `pyproject.toml`, a README saying it's hand-run or pre-deployment) → LOW, report "process package by content — `cli/{name}/` is its home now." Report only; never move code.
+- **Ambiguous ownership:** a `workflows/{name}/` whose README has no ownership line → LOW, ask the operator to add one; never conclude a move from imports.
+- **Inventory drift:** every `workflows/{name}/` and every `cli/*/deploy/` has a row in `workflows/README.md`, and every row points at something that exists. Declared status vs. runtime: compare only if a read-only check is possible (a function exists, a scheduler entry is loaded); otherwise mark the row "unverified" in the report — never infer "running" from a status line.
+
 **6. Context foundation** — is `context.md` internally consistent and current? (See AGENTS.md "Context Foundation".) Flag-only; **never auto-resolve** — the "current" value is ground truth only the operator holds.
 - **Conflicts (the payload):** scan for two statements that disagree about the same fact — a headcount stated in one section and contradicted in another, a positioning claim that violates a product rule. Report each as a candidate: quote both statements with their locations and ask which is current. Don't pick a winner. This is the check that catches the contradictions a growing file accretes.
 - **Cached-vs-source drift:** where a pointer in `context.md` names a source of truth (e.g. "source of truth: `demand/synthesis.md`", "live-sourced from the CRM API"), diff the cached values against that source and flag divergence. The pointer tells you exactly what to compare, so this lens is reliable — not open-ended contradiction-hunting.
 - **Age:** list dated `[VERIFIED: … · YYYY-MM]` claims oldest-first, so the eye lands on the most likely-stale. **No expiry rule** — undated facts are never flagged (dating is the opt-in decay signal), and an old date is a prompt to re-confirm, not an error. Don't decide per-fact when something becomes obsolete.
 - **Attribution presence:** attribution is load-bearing in the evidence-grounded artifacts (`demand/` PULL analyses, segment rationale, messaging angles — see AGENTS.md "Attribution"). Where Age checks whether *dated* tags have gone stale, this checks whether the convention is *applied at all*: scan those artifacts for any use of the confidence tags (`[VERIFIED]` / `[CLAIMED]` / `[INFERRED]` / `[UNVERIFIABLE]`). Flag (LOW) an artifact that makes evidence claims with **zero** confidence tags — the corpus may have drifted to unattributed. Count them; don't adjudicate any single claim, don't demand a density, and don't demand dating (dating stays opt-in). Skip pure-template artifacts: the shipped `_EXAMPLE.md` already attributes, and a near-empty instance with no real analyses is OK, not a finding.
+
+**7. Dependency liveness** — best-effort, needs credentials + network; skip (and say so) if unavailable rather than inferring health.
+- Enumerate external dependencies: `.env` keys, `.mcp.json` server entries, `engine/integrations/*.md`.
+- For each, attempt one cheap authenticated read (a whoami/metadata call — never a write). Report any that are dead, expired, or paused (expired token, auto-paused free-tier DB, unreachable endpoint) — these are exactly what recorded state (status.md, roadmap) can't reflect since it only records what was true as-of writing.
+
+**8. Derived-state coherence** — values computed from a source must still agree with it. **Flag only — never auto-fix**: reconciling re-interprets existing artifacts, so the operator decides.
+- **Classification recompute:** re-derive every `pull-index.json` entry's class from its `pull_score` under the bands in `demand/pull-framework.md` (the single source); flag any row whose stored `classification` disagrees. **Read the instance's actual documented bands first — never assume the template's** (instances legitimately anchor different thresholds), and honor any documented judgment boundary (e.g. a tiebreak field breaking a boundary score): the recompute checks conformance to the *documented* rubric, whatever it is. A systematic pattern (many rows off by the same boundary) means the *instance's operative bands drifted from its documented bands* — a methodology finding, not a data fix; flag it as one finding, not N.
+- **Synthesis recompute:** recompute the class distribution from `pull-index.json` and diff against every count/rate `synthesis.md` states — headline **and** its own tables (a synthesis can disagree with itself: a live instance's headline said 8 where its own table said 7). Flag each mismatch with the recomputed truth.
+- Both lenses are cheap and mechanical (jq + grep). They exist because this drift class is invisible to eyeball review: every individual number looks plausible; only recomputation catches it.
 
 ### Step 3: Report
 
@@ -101,16 +119,16 @@ Present a health report. Overall verdict first, then findings grouped by categor
 
 ## Fix vs Flag Policy
 
-- **Auto-fix silently:** index reconciliation only (this is already the session-start behavior — do it and report it).
+- **Auto-fix silently:** index reconciliation only, and only where this session holds write authority over the index (this is already the session-start behavior — do it and report it; without write authority, report the drift instead).
 - **Flag and offer:** missing overview files, structural gaps, suspected output rot. Never auto-create a doc or auto-delete a file — that respects "Check Before You Create" and the rule that output is the operator's to clear.
 - **CRITICAL, surface loudly:** PII in committed samples. Recommend the move; don't rewrite the file unilaterally.
 - **Flag, never resolve — context.md conflicts & drift:** the "current" value is ground truth only the operator holds. Quote both conflicting statements (or the cached value vs its named source); never pick a winner or edit `context.md` unilaterally.
 
 ## Relationship to the Startup Check
 
-The silent session-start reconcile (see `.claude/rules/01-system-identity.md`) is the lightweight heartbeat — it fixes index drift and checks evidence chains quietly, every session. This skill is the full physical: the on-demand, deep audit. The startup check can defer to it ("for a full check, run `/gtm-os-health`"); they don't duplicate each other.
+The session-start reconcile (see `.claude/rules/01-system-identity.md`) is the lightweight heartbeat — it fixes index drift quietly where the session holds write authority (reporting it otherwise) and checks evidence chains, every session. This skill is the full physical: the on-demand, deep audit. The startup check can defer to it ("for a full check, run `/gtm-os-health`"); they don't duplicate each other.
 
 ## Notes
 
-- Read-mostly: the only writes are silent index reconciles. Everything else is reported for the operator to act on.
+- Read-mostly: the only writes are silent index reconciles, and only where this session holds write authority. Everything else is reported for the operator to act on.
 - Honest reporting: if a check can't run (a module isn't bootstrapped, an index is absent), say so — don't infer health from a check you skipped.

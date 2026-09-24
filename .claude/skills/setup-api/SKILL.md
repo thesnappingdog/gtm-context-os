@@ -45,7 +45,9 @@ Tell the user exactly where to find the key (from the integration reference: whi
 ### Step 4: Set Up Integration
 
 **If MCP server available** (noted in integration reference):
-Add the server under `mcpServers` in `.mcp.json` — merge into the object `/setup-env` created (`{ "mcpServers": {} }`), don't replace it:
+Identify the active client first. Reuse an already-connected server if it supplies the needed tools. Otherwise merge a server entry into that client's configuration, preserving unrelated entries; do not write Claude's config for a Codex session.
+
+**Claude Code:** add the server under `mcpServers` in `.mcp.json`:
 ```json
 {
   "mcpServers": {
@@ -59,7 +61,22 @@ Add the server under `mcpServers` in `.mcp.json` — merge into the object `/set
   }
 }
 ```
-(`{TOOL}_API_KEY` is the `.env` key from Step 3; `${{TOOL}_API_KEY}` interpolates it — e.g. `APOLLO_API_KEY` → `${APOLLO_API_KEY}`. Use the exact env-var name from the integration reference read in Step 2 — not every tool uses an `_API_KEY` suffix: HubSpot uses `HUBSPOT_ACCESS_TOKEN`, Gong uses `GONG_ACCESS_KEY`/`GONG_SECRET_KEY`.)
+Use the exact environment-variable name from the integration reference in Step 2; `${{TOOL}_API_KEY}` above is a placeholder for a reference such as `${APOLLO_API_KEY}`, not a literal credential. HubSpot uses `HUBSPOT_ACCESS_TOKEN`; Gong uses `GONG_ACCESS_KEY`/`GONG_SECRET_KEY`.
+
+**Codex:** add a named table to `.codex/config.toml` for a trusted project (or update an existing user-scoped server when that is the operator's intended scope):
+
+```toml
+[mcp_servers.example_tool]
+command = "npx"
+args = ["-y", "example-mcp-package"]
+env_vars = ["EXAMPLE_API_KEY"]
+```
+
+Replace the example name, package and variable with the verified server contract. `env_vars` forwards named variables from the client environment; it does not contain secret values. For an HTTP server, use its documented URL/auth configuration instead of this STDIO example. Project config requires Codex project trust. Other clients use their own supported MCP configuration; check their documentation rather than assuming either format.
+
+**Credentials:** a script's `.env` file does not automatically populate the MCP client's environment. Ensure the client can access the required variables or complete the server's supported OAuth flow, without printing secrets or embedding them in tracked config. State any remaining environment/authentication step explicitly. Client references: [Codex MCP](https://developers.openai.com/codex/mcp/), [Claude MCP](https://code.claude.com/docs/en/mcp).
+
+**Pin fast-moving SDK dependencies.** Before committing a `uvx`/`npx`-launched MCP server entry, check whether it declares an unbounded dependency on a still-evolving SDK (e.g. `mcp>=1.0.0` with no ceiling). If so, pin it in the committed config (e.g. `--with "mcp<2"` for a `uvx` command, or the equivalent version pin for `npx`) and note why next to the pin — an unbounded transitive dependency breaks every fresh clone silently the day the SDK majors.
 
 **If script needed:**
 Bootstrap `scripts/` module if it doesn't exist (use AGENTS.md blueprint). Create a script at `scripts/pull-{tool}-{data}.py` using the standard script header (AGENTS.md "Module: scripts" — docstring + `ROOT` path anchor + inline deps):
@@ -75,15 +92,16 @@ The script should:
 - Read credentials from `.env` (env first, then `.env`; on Claude Code the key may already be in `.mcp.json`)
 - Pull data from the API
 - Write output to the appropriate location: repo state (transcripts → `demand/pull-analyses/`, metrics → the relevant campaign folder) goes to module folders; transient data (contact CSVs, enrichment results) goes to `_output/`
-- **If it writes back to a system of record** (CRM, sequencer): follow the write-safety convention in AGENTS.md "Module: scripts" — default to a dry-run, require `--commit`, and snapshot before overwriting
+- **If it writes or spends**: apply the write-safety class from AGENTS.md "Module: scripts" — a paid enrichment/search gets a `--max-{unit}` ceiling (never a dry-run); a write into a CRM/sequencer gets `--plan` and a snapshot before overwriting; a write into a store the script owns is an idempotent upsert, no flag
 - Be runnable with `uv run scripts/{name}.py`
 
 ### Step 5: Validate
 
 Test the connection:
-- If MCP: confirm server starts and can make a basic read
+- If MCP: reload/restart the active client's server configuration as needed, confirm the tool is visible in that client, and make a basic read; a valid config file alone is not a connected integration
 - If script: run it and confirm data comes back
 - If auth fails: diagnose (wrong key format, missing scopes, expired token)
+- **If MCP fails with transport error `-32000`:** this is opaque by design and usually does NOT mean auth — it means the server process died at launch (most often a dependency break). Run the server's launch command by hand in a terminal and read stderr to find the real cause.
 
 ### Step 6: Confirm
 

@@ -32,7 +32,8 @@ The branch makes everything *technically* recoverable, but a destructive change 
 ## Process
 
 ### Step 1: Fetch the latest template
-- If `$ARGUMENTS` gives a local template path (e.g. `../gtm-context-os`), use it as the source.
+- Before anything else, commit a checkpoint on the current branch (a bare `git commit` of whatever's pending) if the working tree isn't already clean — a rollback point that predates the run itself, independent of the review branch created in Step 5.
+- If the operator supplies a local template path (e.g. `../gtm-context-os`), use it as the source. Claude Code may pass this through `$ARGUMENTS`; in other clients read it from the invocation/message rather than expecting that substitution.
 - Otherwise shallow-clone the canonical public repo to a throwaway temp dir:
   `git clone --depth 1 https://github.com/thesnappingdog/gtm-context-os <tmp>`
   Read from it; delete it at the end. This is a **read-only reference** — no remote is added to the instance, nothing is merged file-to-file.
@@ -40,7 +41,7 @@ The branch makes everything *technically* recoverable, but a destructive change 
 
 ### Step 2: Work out what's new — two sources, not one
 1. **The CHANGELOG (curated intent).** Read the template's `CHANGELOG.md`. Each entry has a stable `ID` and explains what changed, why, how to assess fit, and how to adapt. This is the *explanation layer*.
-2. **The real file diff (catches drift).** The CHANGELOG can lag reality; comparing actual files surfaces template improvements never written up as entries. **Probe, don't dump** — a naive `diff -r` of two structurally-diverged repos is mostly noise (instances rename docs, reorganize sections). Instead, check specific system files for known-divergence signals: does the instance's `AGENTS.md` carry each major section the template's does (synthesis spec, conventions, blueprints)? Does `.claude/CLAUDE.md`'s skill table list every skill that actually exists? Which `.claude/skills/` and `.claude/rules/` exist in the template but not here? Surface real gaps as **uncatalogued differences** alongside the changelog entries.
+2. **The real file diff (catches drift).** The CHANGELOG can lag reality; comparing actual files surfaces template improvements never written up as entries. **Probe, don't dump** — a naive `diff -r` of two structurally-diverged repos is mostly noise (instances rename docs, reorganize sections). Instead, check specific system files for known-divergence signals: does the instance's `AGENTS.md` carry each major section the template's does (synthesis spec, conventions, blueprints)? Does `.claude/CLAUDE.md`'s skill table list every skill that actually exists? Which `.claude/skills/` and `.claude/rules/` exist in the template but not here? For Codex users, does `AGENTS.override.md` load the shared conventions and actual module headings, and does `.agents/skills` resolve to the canonical skills? For Claude, are intended scoped rules expressed with YAML `paths`, with identity/role rules unconditional? Surface real gaps as **uncatalogued differences** alongside the changelog entries. Preserve any existing entrypoint's instance-specific restrictions; adapt it, never overwrite it with the template loader.
 
    **Exclude template-maintainer machinery** — it exists to *build* the template, not to run an instance, so never propose porting it: the `release-check` skill, the CHANGELOG's "Maintainer discipline" section, `docs/`, `ROADMAP.md`.
 
@@ -96,6 +97,10 @@ Run `/run-eval` (and any domain-specific eval fixtures the instance has). Report
 ### Step 7: Record decisions in the ledger
 Append one decision **per entry ID** to `.gtm-os/upgrade-log.md` (create it on first run) — adopted, adapted, *and* skipped, each with reason and date. This is the instance's provenance: why it diverged, decided when. Also record any uncatalogued difference you acted on, keyed by a short slug, so it isn't re-proposed. Format:
 
+**Advisory-only entries.** Some entries name a *new home* for something the instance may already have elsewhere (e.g. `workflows-narrowed`: process code now belongs in `cli/{process}/`). For these, propose the move as a **report**, never as a diff — moving working code is destructive by the rule above *and* changes invocation paths the operator's scheduler or muscle memory depends on. Record the ledger decision (ADOPTED as "aware; left in place" is a valid outcome) and let the operator move code in their own session.
+
+The ledger vocabulary also includes **REMOVED** — when template-maintainer machinery was deleted from this instance (e.g. a leftover `docs/`, `ROADMAP.md`, or release-check residue from before the instance diverged), record it as removed and name exactly what was deleted, so a future run doesn't re-propose adding it back.
+
 ```markdown
 # Upgrade Adoption Ledger
 <!-- Agent-to-agent infrastructure, like the JSON indexes. The operator never reads or edits this file. -->
@@ -119,6 +124,8 @@ Kept existing exports/ rather than renaming to _output/ (scripts hardcode it); a
 
 ### Step 8: Hand off for review
 Tell the operator the work is on branch `gtm-os-upgrade-<today>`. They review the diff and either merge it or discard the branch (discard = zero cost — nothing touched their working state). Clean up the temp template checkout.
+
+**After merge, check the remote default branch.** Some hosting providers repoint the repo's default branch to whatever branch was pushed or merged most recently. If that happened here, reset the default branch back (e.g. to `main`) — skip this if the remote is bare or has no default-branch concept. A live instance's `origin/HEAD` sat on a merged upgrade branch for weeks before this was caught.
 
 ## First-time bootstrap (existing instances)
 

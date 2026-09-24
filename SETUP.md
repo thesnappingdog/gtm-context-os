@@ -5,7 +5,7 @@ Get operational in 10 minutes.
 ## Requirements
 
 - Git
-- An AI coding assistant (Claude Code, Cursor, Copilot, Windsurf, or similar)
+- An AI coding assistant (Claude Code, Codex, Cursor, Copilot, Windsurf, or similar)
 
 **Optional but recommended:**
 - Sales call transcripts — the system is most powerful with real buyer conversations, but can start from a hypothesis if you don't have recordings yet
@@ -26,6 +26,7 @@ cd my-company-gtm
 
 Open with your AI editor:
 - Claude Code: `claude`
+- Codex: `codex` (or open this repo in the Codex app/IDE extension)
 - Claude Cowork: Open as a **project** from the Cowork dashboard (not a task)
 - Cursor: `cursor .`
 - VS Code + Copilot: `code .`
@@ -35,6 +36,8 @@ Open with your AI editor:
 **Fastest path (Claude Code):** Type `/bootstrap acme.com` — agents crawl your website and populate `context.md` automatically. Everything gets tagged as `[CLAIMED: website]` since marketing sites aren't ground truth.
 
 **Guided path (Claude Code):** Type `/quickstart` for a conversational walkthrough that fills `context.md` and ingests your first sales call.
+
+**Codex:** Use `$bootstrap acme.com` or `$quickstart`, or describe the task in natural language. These are the same skill files as Claude's, discovered through `.agents/skills`.
 
 **Other editors:** Ask "Help me get started with this GTM system" — the AI will read AGENTS.md and guide you through filling `context.md`.
 
@@ -71,11 +74,23 @@ Claude Cowork runs in an isolated Linux VM on your device. This repo is optimize
 
 ## Configuration (Optional)
 
+### Codex Instruction and Skill Discovery
+
+Codex automatically loads `AGENTS.override.md`, a small guide that requires the common operating conventions and routes each task to the relevant sections of the full `AGENTS.md` handbook. Do not replace the handbook with a summary or increase the instruction budget just to load every blueprint at startup.
+
+After cloning or upgrading, start a fresh session and ask it to name its instruction entrypoint and locate the `intake` skill. Expect `AGENTS.override.md` and `.agents/skills/intake/SKILL.md` resolving to `.claude/skills/intake/SKILL.md`. Confirm discovery in the skill picker as well; reading a file manually does not prove it was discovered. If a change has not appeared, restart the client.
+
+The relative skill symlink is committed. On Windows or a checkout that materializes symlinks as text, restore it using supported symlink/junction facilities and re-check discovery. Preserve any existing custom skills; do not replace a real skill directory with a link blindly. A temporary fallback is asking the agent to read the canonical `SKILL.md` directly. Maintain skill edits only in `.claude/skills/`.
+
+`release-check` and `run-probes` need isolated workers and judges, and their current harness is validated in Claude Code. Shared discovery alone does not establish equivalent execution in another client.
+
 ### MCP Servers
 
-**Claude Code:** Run `/setup-env` to check Python/uv and scaffold a starter `.env` and `.mcp.json`, then `/setup-api <tool>` (e.g. `/setup-api hubspot`) to wire up a specific integration — it adds the `.mcp.json` entry, the `.env` keys, any pull script, and an integration reference for you. The manual steps below are for other editors.
+**Claude Code:** Run `/setup-env` to check Python/uv and scaffold a starter `.env` and `.mcp.json`, then `/setup-api <tool>` (e.g. `/setup-api hubspot`) to wire up a specific integration.
 
-If you use external tools and want AI access to them, create `.mcp.json`:
+**Codex:** Use `$setup-env`, then `$setup-api <tool>`. The skill reuses existing connections or configures `.codex/config.toml` for a trusted project, preserving other settings. A Codex connection is not configured by writing `.mcp.json`. Other editors use their own MCP settings.
+
+For manual Claude Code setup, merge the server into `.mcp.json`:
 
 ```json
 {
@@ -91,10 +106,29 @@ If you use external tools and want AI access to them, create `.mcp.json`:
 }
 ```
 
+For manual Codex STDIO setup, merge a named table into `.codex/config.toml` (replace the example package and environment-variable name):
+
+```toml
+[mcp_servers.your_tool]
+command = "npx"
+args = ["-y", "your-mcp-server"]
+env_vars = ["YOUR_API_KEY"]
+```
+
+Keep secret values out of tracked configuration. Both examples require the client environment to supply the named variables; a script's `.env` does not automatically populate the MCP environment. Use the server's supported OAuth flow where applicable. Reload the client's configuration and verify a real read-only tool call before calling the connection ready. See [Codex MCP](https://developers.openai.com/codex/mcp/) and [Claude MCP](https://code.claude.com/docs/en/mcp).
+
 Common integrations people add:
 - Web research (for account research and competitive intel)
 - CRM access (for deal and contact context)
 - Pipeline tools (for table management and enrichment)
+
+### Push Leak Sweep
+
+A leak sweep (`.githooks/pre-push`) blocks pushes whose outgoing commits contain secret-looking patterns (API keys, tokens, private keys) or terms you list in the gitignored `.gtm-os/sensitive-terms.txt` (customer names, codenames — one per line; the file is local by design). Activate it as a native git hook once per clone so it applies to pushes from either client or your terminal; Claude Code has an additional agent-side hook where that hook runtime is supported:
+
+```
+git config core.hooksPath .githooks
+```
 
 ### Environment Variables
 
