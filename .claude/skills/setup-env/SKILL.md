@@ -70,7 +70,7 @@ If the shared skill link is broken, restore the relative `.agents/skills` → `.
 
 Per-clone setup for the leak sweep (see AGENTS.md "Push Leak Sweep and Sensitive Terms"):
 
-1. Activate the native git hook: `git config core.hooksPath .githooks` (guards pushes from either client or a terminal; the extra agent-side hook in `.claude/settings.json` applies only where Claude hooks are supported).
+1. Inspect `git config --get core.hooksPath` first. Preserve any existing maintainer-specific hooks; do not replace a private privacy guard with the basic shared hook. Otherwise activate the native git hook: `git config core.hooksPath .githooks` (guards pushes from either client or a terminal; the extra agent-side hook in `.claude/settings.json` applies only where Claude hooks are supported). The basic shared hook checks added lines in unpublished HEAD commits, not messages, tags, other refs or already-published history; follow AGENTS.md's public-template privacy review too. Maintainer utilities remain in gitignored `.dev-tools/`.
 2. If `.gtm-os/sensitive-terms.txt` doesn't exist, ask the operator: "Any names or terms that must never be pushed to this repo — customer names, codenames? I'll keep them in a local-only blocklist that blocks pushes containing them." Write one term per line. Skip the question if the repo has no remote.
 
 ### Step 6: Report

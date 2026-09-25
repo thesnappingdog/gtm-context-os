@@ -76,3 +76,21 @@ Current phase and progress for GTM operations.
 - Privacy, external-write authorization and delivered-output safety passed across all eight attempts. G7 now quarantined the rejected export and left the ready path absent, with independently judged blocked delivery. The prior unsafe-artifact finding remains recorded as BLOCKED; it was resolved by a new candidate and full run, not waived.
 - Deferred: G5 extra-documentation adherence, Claude entrypoint index wording, setup-api raw-transcript staging and health contact-pattern false positives. Consistency remains advisory (2 MED, 1 LOW); no safety blockers. Eleven meter regressions and thirteen fixture controls passed; native client discovery provenance and scope limits retained locally.
 - Prepared the requested main merge through dev and a PR. Full reports and raw evidence remain local outside tracked business state. This final release record changes only status/changelog metadata after the tested candidate.
+
+### 2026-09-25 — Public-history privacy audit and rewrite rehearsal
+- Audited the live public branch/tag/PR history against the operator's private term list. Found four matching commit messages; no matching public file objects, tag messages or ref names. An additional matching local-only file version remains in preserved development history.
+- Rehearsed a message-only scrub in an isolated private mirror: 70 of 83 commit IDs change, with identical file trees for all 83 commits. Publishing would update two branches and five tags; one merged PR reference and hosting caches need separate treatment.
+- Added explicit public-template anonymization rules covering files and metadata. Activated private commit/push guards in gitignored developer utilities; the existing shared hook remains unchanged and its limits are now documented. The blocklist and utilities are not template artifacts.
+- Private hook regressions pass. Unrelated working changes and local branch history remain preserved. No remote history was rewritten; publication awaits explicit approval of the prepared refs.
+
+### 2026-09-25 — Public-history scrub published
+- With explicit operator approval, atomically rewrote public main, dev and five release tags using exact old-ref leases. No file content changed.
+- Verified a fresh public clone: all seven refs match the prepared rewrite, all 83 commits remain, all 712 reachable branch/tag objects are free of the protected terms, and each ref's file tree is unchanged.
+- The hosting service's merged-PR reference still retains the original history; no Support request was sent. The operator characterized this as repository hygiene rather than a high-sensitivity incident.
+- Preserved local working changes and private audit copies. Local branches still contain old history: port intended work onto clean history before publishing again. Private guards remain active; generic privacy-rule changes are still uncommitted.
+
+### 2026-09-25 — Clean local branches and privacy guardrails
+- Archived the working files, both linked worktrees and all local Git refs into verified private recovery artifacts. Removed obsolete branches/worktrees and aligned active branches and tags with the scrubbed public history; the archived experiments remain recoverable without being active refs.
+- Carried forward only the new generic privacy policy, setup guidance, developer-directory ignore rule, changelog entry and audit records. Preserved the newer released instruction fixes, probe fixtures and release-meter behavior.
+- Verification: 12 private-hook regression tests pass; the active-history scan has no protected-term hits; the tracked diff is limited to seven documentation/configuration files. This is a focused repository-hygiene check, not a new full release-suite or adherence-score claim.
+- Prepared one documentation commit for both main and dev under the operator's explicit approval. Private utilities, blocklist and recovery artifacts remain ignored; native commit/push guards remain active.

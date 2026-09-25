@@ -124,6 +124,34 @@ Also in this release (template-internal, not adoption entries): the `CHANGELOG.m
 
 ## Entries
 
+### [2026-09-25] Customer privacy covers Git metadata and history
+
+- **ID:** public-template-metadata-privacy
+- **Category:** convention
+- **Severity:** high
+- **Depends on:** pre-push-leak-sweep
+
+**What changed**
+Public-template contributions must anonymize customer identity in files and Git metadata, including full commit messages, ref names and tag annotations, as well as PR text and release notes. Review staged content before committing and all outgoing refs/history before publication. Maintainer-specific privacy utilities and reports stay local in gitignored developer storage.
+
+**Why**
+A clean current tree and an added-lines-only push check can still publish customer names in commit messages or older objects. Removing a name in a later commit does not erase it from history.
+
+**How to assess fit**
+Does the instance contribute learnings to a public template or another repository visible outside the customer boundary?
+
+**How to adapt (not copy)**
+Keep customer provenance private; describe exported improvements generically. Maintain a local sensitive-term list, review complete commit messages, and preserve existing maintainer hooks during setup. Known-term checks supplement human/agent review; they cannot identify every previously unknown company. The shipped basic hook is explicitly documented as an added-lines-only HEAD check, not a complete privacy audit.
+
+**Downstream risks / migration**
+Published-history cleanup changes descendant commit IDs and tag targets. Rehearse in isolation, verify preserved trees, and approve exact remote refs before rewriting. Old clones, forks and hosting-service PR/cached refs require separate handling. Do not merge old history back into the cleaned repository.
+
+**What I can't see from here**
+Each maintainer must supply their own private terms and hooks; ignored utilities do not travel with a fresh clone. Check actual hook configuration and all publication surfaces. Private business instances may retain their own authorized evidence.
+
+**Reference (template implementation)**
+`AGENTS.md` → "Push Leak Sweep and Sensitive Terms"; `.claude/rules/01-system-identity.md`; `.claude/skills/setup-env/SKILL.md`; `SETUP.md`; `.gitignore`.
+
 ### [2026-09-24] Rejected exports cannot remain at the ready path
 
 - **ID:** rejected-output-boundary

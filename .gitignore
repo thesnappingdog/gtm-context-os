@@ -45,3 +45,6 @@ _retained/*
 
 # uv lock
 uv.lock
+
+# Maintainer-only developer utilities and private audit material
+.dev-tools/

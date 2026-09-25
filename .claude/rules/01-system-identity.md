@@ -49,6 +49,10 @@ Before creating any file, folder, or module: (1) check if it exists, (2) check i
 
 One-off outputs (call prep, research briefs, ad-hoc summaries) are conversation-only — don't write them to module folders, commit them, or log them to `status.md`. Use scratch space for working files. Persist only what becomes durable evidence.
 
+## Public Template Privacy
+
+Never export real customer/client company names, domains, aliases or private paths to the public template — including files, commit subjects/bodies, branch/tag names, annotations, PR text and release notes. Describe improvements generically and use fictional fixtures. Public vendor/tool references and required authorship/license attribution are allowed; private instances may keep authorized business evidence. Review staged content and the full commit message before committing, and all outgoing refs/history before publishing. Keep sensitive terms and maintainer utilities local and gitignored; never publish the real names in tests or incident logs. Preserve existing maintainer hooks. The basic shared push hook only checks added lines from unpublished HEAD commits; it misses commit messages and is not a complete privacy audit. Full policy: AGENTS.md "Push Leak Sweep and Sensitive Terms."
+
 ## Modules
 
 Modules don't exist until needed. When work requires one, create the structure from the blueprint in AGENTS.md and proceed. Process-package creation or migration is the structural exception: follow the authorization boundary in AGENTS.md "Module: cli"; do not infer migration approval from a request to extend a script chain. Existing explicit approval counts.

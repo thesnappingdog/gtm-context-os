@@ -124,7 +124,7 @@ Common integrations people add:
 
 ### Push Leak Sweep
 
-A leak sweep (`.githooks/pre-push`) blocks pushes whose outgoing commits contain secret-looking patterns (API keys, tokens, private keys) or terms you list in the gitignored `.gtm-os/sensitive-terms.txt` (customer names, codenames — one per line; the file is local by design). Activate it as a native git hook once per clone so it applies to pushes from either client or your terminal; Claude Code has an additional agent-side hook where that hook runtime is supported:
+A basic leak sweep (`.githooks/pre-push`) checks added file lines in unpublished HEAD commits for secret-looking patterns or terms in the gitignored `.gtm-os/sensitive-terms.txt`. It does not scan commit messages, tags, other pushed refs or already-published history. Review those separately under AGENTS.md's public-template privacy policy. Maintainer-specific privacy utilities belong in gitignored `.dev-tools/`; they are not distributed with the template. First inspect `git config --get core.hooksPath` and preserve an existing maintainer configuration. For a clone without custom hooks, activate the shared hook once so it applies to pushes from either client or your terminal; Claude Code also has an agent-side check where supported:
 
 ```
 git config core.hooksPath .githooks
