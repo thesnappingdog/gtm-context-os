@@ -1,0 +1,48 @@
+---
+paths:
+  - "demand/**"
+---
+
+# Demand Module
+
+PULL analyses score buyer demand on four dimensions (Project, Unavoidable, Looking, Lacking), each 0-5. Total score classifies: demand (14+), benefit (8-13), neither (0-7).
+
+## Pull Index Schema (`demand/pull-index.json`)
+
+```json
+{
+  "id": "company-prospect-name",
+  "company": "Company Name",
+  "prospect": "Prospect Name",
+  "pull_score": 16,
+  "classification": "demand | benefit | neither",
+  "would_close": "yes | likely | unlikely | no",
+  "primary_trigger": "trigger_slug",
+  "buyer_type": "role_slug",
+  "features_resonated": ["feature1", "feature2"],
+  "date": "YYYY-MM-DD",
+  "file": "demand/pull-analyses/filename.md"
+}
+```
+
+When you write a PULL analysis, extract these fields into the index. Full analysis (quotes, context, reasoning) stays in the markdown.
+
+## Synthesis Trigger
+
+After saving a PULL analysis, check the count. If 5+ analyses exist and `demand/synthesis.md` does not, offer to create it. If it exists, check whether the new analysis introduces an uncaptured pattern and offer to update.
+
+When a full batch of transcripts has been analyzed, produce two synthesis deliverables:
+- **`demand/synthesis.md`** — Quantitative: full scorecard, demand distribution, pattern analysis, competitive landscape, trigger classification, recommendations
+- **`demand/key-learnings.md`** — Actionable: who buys, when, why, qualification framework, competitive positioning, messaging templates
+
+Both use actual buyer language (direct quotes, not paraphrases). Templates are in `demand/pull-framework.md`. Both are cumulative — update when new batches are analyzed.
+
+## Methodology
+
+See `demand/pull-framework.md` for the full scoring rubric, analysis template, and worked examples.
+
+Each PULL dimension is scored against **its own behavioral anchor ladder** (observable events, checkable against the transcript) — never a shared adjective scale. Watch the two drift-prone dimensions: U scores the forcing function and its date (never a category-level necessity true of the whole market); the second L scores the buyer's current alternative (never your own product's gaps — those are Key Risks). Anchor changes follow the framework's Calibration discipline: dated note, declared non-comparability, no rescoring the back catalogue.
+
+---
+
+*Source of truth: AGENTS.md, "Core Files" and "Synthesis Trigger" sections.*

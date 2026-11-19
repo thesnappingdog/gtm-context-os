@@ -1,0 +1,47 @@
+# Environment and credentials
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor configs (except .claude which is part of the system)
+.cursor/
+.vscode/
+.idea/
+
+# Node modules (if MCP servers are added later)
+node_modules/
+
+# Python virtual environments
+.venv/
+__pycache__/
+
+# Intake source documents (may contain sensitive materials)
+_intake/*
+!_intake/_processed.json
+
+# Pipeline output (transient, regeneratable)
+_output/
+
+# Retained datasets — durable but private (full/real data, contact records, PII).
+# Data never commits; the manifest tracks what's down there and why.
+_retained/*
+!_retained/manifest.md
+
+# Note: a datastore's migrations are schema-as-code and ARE tracked (the opposite of the
+# data tiers above) — a {datastore}/migrations/ dir and its .sql files commit; the data never does.
+
+# Temporary cross-session handoff breadcrumb (read then deleted; never ships)
+.session-handoff.md
+
+# Leak-sweep term list (customer names, codenames) — local by design; committing
+# the names you're keeping out of the repo would itself be the leak
+.gtm-os/sensitive-terms.txt
+
+# uv lock
+uv.lock
+
+# Maintainer-only developer utilities and private audit material
+.dev-tools/
